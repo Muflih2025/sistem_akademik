@@ -1,4 +1,4 @@
-﻿# Sistem Informasi Akademik (SIA) SMKN 2 Magelang
+# Sistem Informasi Akademik (SIA) SMKN 2 Magelang
 
 Sistem Informasi Akademik berbasis web yang dibangun menggunakan **PHP Native**, **MySQL/MariaDB (PDO)**, dan antarmuka responsif **Bootstrap 5**. Sistem ini menerapkan kontrol akses berbasis peran (**Role-Based Access Control / RBAC**) dengan 4 tingkatan hak akses: **Admin**, **Guru**, **Kepala Sekolah**, dan **Siswa**.
 
@@ -143,16 +143,21 @@ Database telah terisi data dummy riil yang melampaui batas minimal penugasan:
 
 ## 🖥️ Cara Menjalankan Aplikasi di Lokal
 
-Aplikasi sudah disiapkan untuk berjalan langsung pada web port bawaan:
+Aplikasi saat ini berjalan aktif via background service sistem:
 
 1. **Akses Langsung via Browser:**
-   - Halaman Utama: **`http://localhost`** atau **`http://127.0.0.1`**
-   - Halaman Login: **`http://localhost/auth/login.php`**
+   - Halaman Utama: [**`http://localhost:8085`**](http://localhost:8085) atau [**`http://127.0.0.1:8085`**](http://127.0.0.1:8085)
+   - Halaman Login: [**`http://localhost:8085/auth/login.php`**](http://localhost:8085/auth/login.php)
 
-2. **Menjalankan Manual via CLI (Jika Diperlukan):**
+2. **Status Service & Database:**
+   - Web Server: PHP 8.4 Server di Port **8085** (Multi-worker enabled)
+   - Database: MariaDB di Port **3307** (`db_sia_smkn2_magelang`)
+   - Otomatis aktif via systemd: `systemctl status sistem-akademik`
+
+3. **Menjalankan Manual via CLI (Jika Diperlukan):**
    ```bash
    cd sistem_akademik
-   php -S 0.0.0.0:80
+   php -S 0.0.0.0:8085
    ```
 
 ---

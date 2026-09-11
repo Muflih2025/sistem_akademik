@@ -27,6 +27,13 @@ function db(): PDO {
 }
 function ensure_auth_tables(): void {
     $pdo = db();
+    try {
+        if ($pdo->query("SELECT 1 FROM users LIMIT 1") !== false) {
+            return;
+        }
+    } catch (Throwable) {
+        // Table not ready yet, proceed to create
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id_user INT NOT NULL AUTO_INCREMENT,
         username VARCHAR(50) NOT NULL UNIQUE,
