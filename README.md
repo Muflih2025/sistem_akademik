@@ -1,4 +1,4 @@
-﻿# Sistem Informasi Akademik (SIA) SMKN 2 Magelang
+# Sistem Informasi Akademik (SIA) SMKN 2 Magelang
 
 Sistem Informasi Akademik berbasis web yang dibangun menggunakan **PHP Native**, **MySQL/MariaDB (PDO)**, dan antarmuka responsif **Bootstrap 5**. Sistem ini menerapkan kontrol akses berbasis peran (**Role-Based Access Control / RBAC**) dengan 4 tingkatan hak akses: **Admin**, **Guru**, **Kepala Sekolah**, dan **Siswa**.
 
@@ -111,10 +111,10 @@ Aplikasi juga dilengkapi fungsi otomatis `ensure_auth_tables()` yang akan memeri
    ```
 2. Jalankan server PHP bawaan:
    ```bash
-   php -S 127.0.0.1:8000
+   php -S 127.0.0.1:80
    ```
 3. Buka browser dan akses:
-   `http://127.0.0.1:8000`
+   `http://localhost`
 
 ### Opsi 2: Menggunakan Laragon / XAMPP
 
