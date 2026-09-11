@@ -1,10 +1,108 @@
-# Sistem Informasi Akademik (SIA) SMKN 2 Magelang
+﻿# Sistem Informasi Akademik (SIA) SMKN 2 Magelang
 
 Sistem Informasi Akademik berbasis web yang dibangun menggunakan **PHP Native**, **MySQL/MariaDB (PDO)**, dan antarmuka responsif **Bootstrap 5**. Sistem ini menerapkan kontrol akses berbasis peran (**Role-Based Access Control / RBAC**) dengan 4 tingkatan hak akses: **Admin**, **Guru**, **Kepala Sekolah**, dan **Siswa**.
 
 ---
 
-## Fitur Utama & Hak Akses (RBAC)
+## 📑 Berkas & Dokumentasi Proyek Lengkap
+
+Proyek ini telah dilengkapi dengan dokumen dan artefak pendukung akademik lengkap:
+1. 🗄️ **Skrip Database SQL:** [`database/db_sia_smkn2_magelang.sql`](database/db_sia_smkn2_magelang.sql) (DDL, DML, Stored Procedure, Trigger, View, dan 20 Query SQL).
+2. 🐘 **Skrip SQL PostgreSQL / pgAdmin:** [`database/db_sia_smkn2_magelang_postgres.sql`](database/db_sia_smkn2_magelang_postgres.sql).
+3. 🖼️ **Diagram ERD Resmi:** [`ERD_SIA_SMKN2_MAGELANG.png`](ERD_SIA_SMKN2_MAGELANG.png) (Resolusi tinggi 2400x1750 px 300 DPI).
+4. 📄 **Laporan Proyek Lengkap (15 Bab):** [`LAPORAN_PROYEK_SIA_SMKN2_MAGELANG.md`](LAPORAN_PROYEK_SIA_SMKN2_MAGELANG.md).
+5. 📊 **Panduan Slide Presentasi:** [`SLIDE_PRESENTASI.md`](SLIDE_PRESENTASI.md).
+
+---
+
+## 🔍 PANDUAN LENGKAP: CARA CEK & MELIHAT ISI DATABASE
+
+Database akademik **`db_sia_smkn2_magelang`** berjalan aktif pada **MariaDB Port 3307**. Anda dapat memeriksa isi seluruh tabel, melihat data siswa, nilai, jadwal, dan view rapor menggunakan beberapa cara berikut:
+
+### Opsi 1: Menggunakan HeidiSQL (Sangat Direkomendasikan & Sudah Ada di Komputer)
+1. Buka aplikasi **HeidiSQL** melalui Windows Start Menu (`heidisql.exe`).
+2. Di panel **Session Manager**, klik tombol **New** (Koneksi Baru):
+   - **Network type:** `MariaDB or MySQL (TCP/IP)`
+   - **Hostname / IP:** `127.0.0.1`
+   - **Port:** `3307`
+   - **User:** `root`
+   - **Password:** *(kosongkan / tanpa password)*
+3. Klik tombol **Open**.
+4. Di panel kiri, klik database **`db_sia_smkn2_magelang`**.
+5. Klik tab **Data** pada tabel yang ingin Anda cek:
+   - Klik tabel **`siswa`** untuk melihat 25 data peserta didik.
+   - Klik tabel **`nilai`** untuk melihat 40 catatan nilai tugas, UTS, UAS, dan nilai akhir.
+   - Klik view **`view_rapor_siswa`** untuk melihat rekapitulasi rapor lengkap dengan status ketuntasan KKM (*Tuntas/Belum Tuntas*).
+
+---
+
+### Opsi 2: Menggunakan DBeaver (Sudah Terpasang di Komputer)
+1. Buka aplikasi **DBeaver** (`C:\Users\User\dbeaver.exe`).
+2. Klik menu **Database** -> **New Database Connection**.
+3. Pilih driver **MariaDB** atau **MySQL** -> klik **Next**.
+4. Masukkan parameter koneksi:
+   - **Host:** `127.0.0.1`
+   - **Port:** `3307`
+   - **Database:** `db_sia_smkn2_magelang`
+   - **Username:** `root`
+   - **Password:** *(kosongkan)*
+5. Klik **Test Connection** (harus bertuliskan *Connected*), lalu klik **Finish**.
+6. Dobel klik tabel mana saja untuk melihat data dan struktur tabel secara interaktif.
+
+---
+
+### Opsi 3: Menggunakan Command Line (Terminal CLI Cepat)
+Anda dapat langsung mengecek isi tabel dari PowerShell atau terminal WSL dengan perintah berikut:
+
+```bash
+# 1. Cek daftar seluruh tabel
+mysql -h 127.0.0.1 -P 3307 -u root -D db_sia_smkn2_magelang -e "SHOW TABLES;"
+
+# 2. Cek isi data siswa
+mysql -h 127.0.0.1 -P 3307 -u root -D db_sia_smkn2_magelang -e "SELECT nis, nama_siswa, jenis_kelamin FROM siswa LIMIT 10;"
+
+# 3. Cek rapor siswa dan status KKM
+mysql -h 127.0.0.1 -P 3307 -u root -D db_sia_smkn2_magelang -e "SELECT nama_siswa, nama_mapel, kkm, nilai_akhir, status_ketuntasan FROM view_rapor_siswa LIMIT 10;"
+
+# 4. Cek riwayat perubahan nilai (Audit Trail Trigger)
+mysql -h 127.0.0.1 -P 3307 -u root -D db_sia_smkn2_magelang -e "SELECT * FROM log_perubahan_nilai;"
+```
+
+---
+
+### Opsi 4: Menggunakan pgAdmin 4 (PostgreSQL)
+Jika Anda ingin memeriksa tabel melalui **pgAdmin 4**:
+1. Buka **pgAdmin 4**.
+2. Buat database baru bernama `db_sia_smkn2_magelang`.
+3. Buka **Query Tool** pada database tersebut.
+4. Buka file skema PostgreSQL yang sudah disediakan di folder proyek:
+   `database/db_sia_smkn2_magelang_postgres.sql`
+5. Tekan tombol **Execute / Run (F5)**.
+6. Seluruh skema tabel PostgreSQL akan terbuat dan siap dilihat pada skema `public` -> `Tables`.
+
+---
+
+## 📊 Ringkasan Volume Data Tersimpan
+
+Database telah terisi data dummy riil yang melampaui batas minimal penugasan:
+
+| No | Entitas / Tabel | Jumlah Baris Data | Deskripsi Isi Data |
+|---|---|---|---|
+| 1 | **`jurusan`** | **5 data** | PPLG, TKJ, AKL, MPLB, PM |
+| 2 | **`kelas`** | **6 data** | X PPLG 1 & 2, XI PPLG 1, XII PPLG 1, X TKJ 1, XI TKJ 1 |
+| 3 | **`guru`** | **6 data** | Guru produktif dan umum lengkap dengan NIP |
+| 4 | **`siswa`** | **25 data** | Siswa aktif dari berbagai tingkat kelas dan jurusan |
+| 5 | **`mata_pelajaran`** | **12 data** | Mapel Produktif & Umum lengkap dengan KKM (75 s.d 80) |
+| 6 | **`tahun_ajaran`** | **2 data** | 2025/2026 Ganjil (Aktif) dan Genap |
+| 7 | **`jadwal`** | **18 data** | Sesi KBM hari Senin - Jumat di ruang Lab & Teori |
+| 8 | **`nilai`** | **40 data** | Nilai tugas, UTS, UAS, dan nilai akhir |
+| 9 | **`log_perubahan_nilai`** | **Dinamis** | Riwayat modifikasi nilai yang tercatat via Trigger |
+| 10 | **`users`** | **12 data** | Akun login untuk Admin, Guru, Siswa, dan Kepala Sekolah |
+| 11 | **`absensi`** | **4 data** | Catatan presensi kehadiran pertemuan kelas |
+
+---
+
+## 🚀 Fitur Utama & Hak Akses (RBAC)
 
 ### 1. Administrator
 - **Dashboard Ringkasan:** Statistik guru, siswa, kelas, mata pelajaran, dan jadwal aktif.
@@ -32,9 +130,9 @@ Sistem Informasi Akademik berbasis web yang dibangun menggunakan **PHP Native**,
 
 ---
 
-## Fitur Keamanan
+## 🔒 Fitur Keamanan Sistem
 
-- **PDO Prepared Statements:** Seluruh interaksi database menggunakan parameter binding untuk mencegah serangan SQL Injection.
+- **PDO Prepared Statements:** Parameter binding di seluruh query untuk memproteksi dari serangan SQL Injection.
 - **Bcrypt Password Hashing:** Pengamanan kata sandi menggunakan fungsi hash bawaan PHP `password_hash()` dan `password_verify()`.
 - **Proteksi CSRF:** Validasi token CSRF (`csrf_token()`) pada form pengiriman data POST.
 - **Session Guard & RBAC:** Pengecekan sesi dan otorisasi role di setiap modul controller/halaman.
@@ -43,91 +141,23 @@ Sistem Informasi Akademik berbasis web yang dibangun menggunakan **PHP Native**,
 
 ---
 
-## Struktur Direktori
+## 🖥️ Cara Menjalankan Aplikasi di Lokal
 
-```text
-sistem_akademik/
-|-- admin/                  # Modul & controller untuk Administrator
-|-- assets/                 # Asset statis (CSS, JS)
-|-- auth/                   # Modul autentikasi (login, logout, ganti password)
-|-- config/                 # Konfigurasi aplikasi & database
-|   |-- auth.php
-|   `-- config.php
-|-- database/               # File SQL skema dan data awal
-|   |-- add_users.sql
-|   `-- db_sia_smkn2_magelang.sql
-|-- errors/                 # Template halaman error (403, 404)
-|-- guru/                   # Modul untuk Guru
-|-- includes/               # Komponen antarmuka (header, footer, sidebar, flash)
-|-- kepsek/                 # Modul untuk Kepala Sekolah
-|-- siswa/                  # Modul untuk Siswa
-|-- index.php               # Halaman utama & redirect router
-|-- README.md               # Dokumentasi proyek
-`-- db_sia_smkn2_magelang.sql
-```
+Aplikasi sudah disiapkan untuk berjalan langsung pada web port bawaan:
 
----
+1. **Akses Langsung via Browser:**
+   - Halaman Utama: **`http://localhost`** atau **`http://127.0.0.1`**
+   - Halaman Login: **`http://localhost/auth/login.php`**
 
-## Persyaratan Sistem
-
-- **PHP:** Versi 8.1 atau lebih baru (ekstensi `pdo_mysql`, `mbstring`, `session` aktif)
-- **Database:** MariaDB 10.4+ / MySQL 8.0+
-- **Web Server:** Apache / Nginx / PHP Built-in Server
-
----
-
-## Panduan Database
-
-Aplikasi ini menggunakan database **MySQL/MariaDB** dengan nama:
-`db_sia_smkn2_magelang`
-
-### Langkah Impor Database:
-
-1. **Menggunakan phpMyAdmin / HeidiSQL / DBeaver:**
-   - Buat database baru bernama `db_sia_smkn2_magelang` dengan collation `utf8mb4_unicode_ci`.
-   - Impor file `database/db_sia_smkn2_magelang.sql`.
-   - Impor file `database/add_users.sql` untuk tabel user dan catatan evaluasi.
-
-2. **Menggunakan Command Line (MySQL / MariaDB CLI):**
-   ```bash
-   mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS db_sia_smkn2_magelang CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-   mysql -u root -p db_sia_smkn2_magelang < database/db_sia_smkn2_magelang.sql
-   mysql -u root -p db_sia_smkn2_magelang < database/add_users.sql
-   ```
-
-File konfigurasi database berada di `config/config.php`. Sesuaikan konstanta `DB_HOST`, `DB_NAME`, `DB_USER`, dan `DB_PASS` jika menggunakan konfigurasi yang berbeda.
-
-Aplikasi juga dilengkapi fungsi otomatis `ensure_auth_tables()` yang akan memeriksa dan melengkapi tabel otentikasi serta data awal saat sistem pertama kali dijalankan.
-
----
-
-## Cara Menjalankan Aplikasi di Lokal
-
-### Opsi 1: Menggunakan PHP Built-in Server (Cepat & Praktis)
-
-1. Buka terminal pada folder proyek:
+2. **Menjalankan Manual via CLI (Jika Diperlukan):**
    ```bash
    cd sistem_akademik
+   php -S 0.0.0.0:80
    ```
-2. Jalankan server PHP bawaan:
-   ```bash
-   php -S 127.0.0.1:80
-   ```
-3. Buka browser dan akses:
-   `http://localhost`
-
-### Opsi 2: Menggunakan Laragon / XAMPP
-
-1. Pindahkan atau salin folder `sistem_akademik` ke:
-   - **Laragon:** `C:\laragon\www\sistem_akademik`
-   - **XAMPP:** `C:\xampp\htdocs\sistem_akademik`
-2. Pastikan layanan Apache dan MySQL sudah dijalankan.
-3. Buka browser dan akses:
-   `http://localhost/sistem_akademik/`
 
 ---
 
-## Akun Demo Pengujian
+## 🔑 Akun Demo Pengujian
 
 Semua akun default memiliki kata sandi: **`password`**
 
@@ -142,7 +172,7 @@ Semua akun default memiliki kata sandi: **`password`**
 
 ---
 
-## Lisensi
+## 📄 Lisensi & Hak Cipta
 
-Proyek ini dikembangkan untuk kebutuhan internal akademik dan pembelajaran.
+Proyek ini dikembangkan untuk kebutuhan akademik SMK Negeri 2 Magelang.
 Dikelola oleh [@Muflih2025](https://github.com/Muflih2025).
