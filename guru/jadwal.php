@@ -5,11 +5,11 @@ $pdo = db(); $gid = (int)user_reference();
 $days_map = [1=>'Senin',2=>'Selasa',3=>'Rabu',4=>'Kamis',5=>'Jumat'];
 $today_name = $days_map[(int)date('N')] ?? null;
 
-$q = $pdo->prepare('SELECT j.*, k.nama_kelas, mp.nama_mapel 
-    FROM jadwal j 
-    JOIN kelas k ON k.id_kelas=j.id_kelas 
-    JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel 
-    WHERE j.id_guru=? 
+$q = $pdo->prepare('SELECT j.*, k.nama_kelas, mp.nama_mapel
+    FROM jadwal j
+    JOIN kelas k ON k.id_kelas=j.id_kelas
+    JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel
+    WHERE j.id_guru=? AND j.status="aktif" AND k.status="aktif" AND mp.status="aktif"
     ORDER BY FIELD(j.hari,"Senin","Selasa","Rabu","Kamis","Jumat"), j.jam_mulai');
 $q->execute([$gid]); $rows = $q->fetchAll();
 

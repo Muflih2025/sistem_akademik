@@ -36,7 +36,7 @@ if (PHP_SAPI !== 'cli' && session_status() !== PHP_SESSION_ACTIVE) {
     if (app_setting('SESSION_PATH') !== '') session_save_path(app_setting('SESSION_PATH'));
     session_set_cookie_params([
         'httponly' => true, 'samesite' => 'Lax',
-        'secure' => app_setting('COOKIE_SECURE', '0') === '1', 'path' => '/',
+        'secure' => app_setting('COOKIE_SECURE', '0') === '1' || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'), 'path' => '/',
     ]);
     session_start();
 }
@@ -67,9 +67,9 @@ function get_bobot_penilaian(?int $id_guru = null, ?int $id_mapel = null, ?int $
         'bobot_ekstra' => 0.00,
     ];
     if ($id_guru !== null && $id_mapel !== null) {
-        $q = $pdo->prepare('SELECT * FROM bobot_penilaian WHERE id_guru=? AND id_mapel=? AND (id_kelas=? OR id_kelas IS NULL) ORDER BY id_kelas DESC LIMIT 1');
+        $q = $pdo->prepare('SELECT * FROM bobot_penilaian WHERE id_guru=? AND id_mapel=? AND (id_kelas=? OR id_kelas IS NULL) ORDER BY id_kelas DESC LIMIT 2');
         $q->execute([$id_guru, $id_mapel, $id_kelas]);
-        $row = $q->fetch();
+        $rows=$q->fetchAll();if(count($rows)>1 && (string)$rows[0]['id_kelas']===(string)$rows[1]['id_kelas'])throw new InputError('Bobot pada cakupan yang sama duplikat; perlu peninjauan.');$row=$rows[0]??null;
         if ($row) {
             return [
                 'bobot_tugas' => (float)$row['bobot_tugas'],
@@ -83,9 +83,9 @@ function get_bobot_penilaian(?int $id_guru = null, ?int $id_mapel = null, ?int $
     }
     // Check mapel-level default or global default
     if ($id_mapel !== null) {
-        $q = $pdo->prepare('SELECT * FROM bobot_penilaian WHERE id_guru IS NULL AND id_mapel=? LIMIT 1');
+        $q = $pdo->prepare('SELECT * FROM bobot_penilaian WHERE id_guru IS NULL AND id_mapel=? AND id_kelas IS NULL ORDER BY id_bobot LIMIT 2');
         $q->execute([$id_mapel]);
-        $row = $q->fetch();
+        $rows=$q->fetchAll();if(count($rows)>1)throw new InputError('Default bobot mata pelajaran duplikat; perlu peninjauan.');$row=$rows[0]??null;
         if ($row) {
             return [
                 'bobot_tugas' => (float)$row['bobot_tugas'],
@@ -97,6 +97,9 @@ function get_bobot_penilaian(?int $id_guru = null, ?int $id_mapel = null, ?int $
             ];
         }
     }
+    $q=$pdo->query('SELECT * FROM bobot_penilaian WHERE id_guru IS NULL AND id_mapel IS NULL AND id_kelas IS NULL ORDER BY id_bobot LIMIT 2');$rows=$q->fetchAll();
+    if(count($rows)>1)throw new InputError('Default bobot duplikat memerlukan peninjauan.');
+    if($rows){$resolved=array_intersect_key($rows[0],$default)+$default;foreach($resolved as $key=>$value)if(str_starts_with($key,'bobot_'))$resolved[$key]=(float)$value;return $resolved;}
     return $default;
 }
 
@@ -133,7 +136,7 @@ function hitung_predikat_kkm(float $nilai, float $kkm = DEFAULT_KKM): array {
     }
 }
 
-function e(mixed $value): string { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
+function e(mixed $value): string { return htmlspecialchars(is_scalar($value)||$value===null?(string)$value:'', ENT_QUOTES, 'UTF-8'); }
 function url(string $path = ''): string { return rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/').'/'.$path; }
 function redirect(string $path): never { header('Location: '.$path); exit; }
 function flash(string $type, string $message): void { $_SESSION['flash'][] = compact('type','message'); }
@@ -147,6 +150,6 @@ function verify_csrf(): void {
         http_response_code(419); exit('CSRF token tidak valid.');
     }
 }
-function current_user(): ?array { return $_SESSION['user'] ?? null; }
+function current_user(): ?array { return function_exists('authenticated_user') ? authenticated_user() : null; }
 function role_label(string $role): string { return ['admin'=>'Administrator','guru'=>'Guru','kepala_sekolah'=>'Kepala Sekolah','siswa'=>'Siswa'][$role] ?? $role; }
 function dashboard_path(string $role): string { return ['admin'=>'admin/index.php','guru'=>'guru/index.php','kepala_sekolah'=>'kepsek/index.php','siswa'=>'siswa/index.php'][$role] ?? 'auth/login.php'; }

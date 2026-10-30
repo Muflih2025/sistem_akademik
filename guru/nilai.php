@@ -1,5 +1,5 @@
 <?php
-require_once '../config/auth.php';
+require_once '../config/academic_service.php';
 require_role('guru');
 $pdo = db();
 $gid = (int)user_reference();
@@ -7,102 +7,28 @@ $error = '';
 $success = '';
 
 // Ambil penugasan mengajar guru
-$q = $pdo->prepare('SELECT DISTINCT j.id_kelas, k.nama_kelas, j.id_mapel, mp.nama_mapel, mp.kkm 
-                    FROM jadwal j 
-                    JOIN kelas k ON k.id_kelas=j.id_kelas 
-                    JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel 
-                    WHERE j.id_guru=? 
+$q = $pdo->prepare('SELECT DISTINCT j.id_kelas, k.nama_kelas, j.id_mapel, mp.nama_mapel, mp.kkm
+                    FROM jadwal j
+                    JOIN kelas k ON k.id_kelas=j.id_kelas
+                    JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel
+                    WHERE j.id_guru=? AND j.status="aktif" AND k.status="aktif" AND mp.status="aktif"
                     ORDER BY k.nama_kelas, mp.nama_mapel');
 $q->execute([$gid]);
 $assignments = $q->fetchAll();
 
-// Handle Simpan / Ubah Bobot Penilaian
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_bobot') {
-    verify_csrf();
-    $b_mapel = (int)($_POST['id_mapel'] ?? 0);
-    $b_kelas = (int)($_POST['id_kelas'] ?? 0) ?: null;
-    $b_tugas = (float)($_POST['bobot_tugas'] ?? 0);
-    $b_uts = (float)($_POST['bobot_uts'] ?? 0);
-    $b_uas = (float)($_POST['bobot_uas'] ?? 0);
-    $b_praktik = (float)($_POST['bobot_praktik'] ?? 0);
-    $b_ekstra = (float)($_POST['bobot_ekstra'] ?? 0);
-    $nama_ekstra = trim($_POST['nama_ekstra'] ?? 'Praktik/Proyek');
-
-    $total_bobot = $b_tugas + $b_uts + $b_uas + $b_praktik + $b_ekstra;
-    if (abs($total_bobot - 100.0) > 0.01) {
-        $error = "Total persentase bobot harus pas 100%. Saat ini total bobot: {$total_bobot}%.";
-    } else {
-        $stmt = $pdo->prepare('INSERT INTO bobot_penilaian (id_guru, id_mapel, id_kelas, bobot_tugas, bobot_uts, bobot_uas, bobot_praktik, nama_ekstra, bobot_ekstra)
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                               ON DUPLICATE KEY UPDATE 
-                               bobot_tugas = VALUES(bobot_tugas),
-                               bobot_uts = VALUES(bobot_uts),
-                               bobot_uas = VALUES(bobot_uas),
-                               bobot_praktik = VALUES(bobot_praktik),
-                               nama_ekstra = VALUES(nama_ekstra),
-                               bobot_ekstra = VALUES(bobot_ekstra)');
-        $stmt->execute([$gid, $b_mapel, $b_kelas, $b_tugas, $b_uts, $b_uas, $b_praktik, $nama_ekstra, $b_ekstra]);
-        flash('success', 'Pengaturan bobot penilaian berhasil diperbarui (Total 100%).');
-        redirect('nilai.php');
-    }
-}
-
-// Handle Input / Edit Nilai Siswa
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && (!isset($_POST['action']) || $_POST['action'] === 'save_nilai')) {
-    verify_csrf();
-    $kelas = (int)($_POST['id_kelas'] ?? 0);
-    $mapel = (int)($_POST['id_mapel'] ?? 0);
-    $nis = trim($_POST['nis'] ?? '');
-
-    // Validasi otorisasi guru untuk kelas dan mapel ini
-    $q = $pdo->prepare('SELECT 1 FROM jadwal WHERE id_guru=? AND id_kelas=? AND id_mapel=?');
-    $q->execute([$gid, $kelas, $mapel]);
-    $q2 = $pdo->prepare('SELECT 1 FROM siswa WHERE nis=? AND id_kelas=?');
-    $q2->execute([$nis, $kelas]);
-
-    $tugas = (float)($_POST['nilai_tugas'] ?? 0);
-    $uts = (float)($_POST['nilai_uts'] ?? 0);
-    $uas = (float)($_POST['nilai_uas'] ?? 0);
-    $praktik = (float)($_POST['nilai_praktik'] ?? 0);
-    $ekstra = (float)($_POST['nilai_ekstra'] ?? 0);
-
-    $values = [$tugas, $uts, $uas, $praktik, $ekstra];
-
-    if (!$q->fetch() || !$q2->fetch()) {
-        $error = 'Siswa atau penugasan tidak berada dalam tanggung jawab mengajar Anda.';
-    } elseif (min($values) < 0 || max($values) > 100) {
-        $error = 'Semua nilai harus berada di rentang 0 hingga 100.';
-    } else {
-        $ta = (int)$pdo->query("SELECT id_tahun_ajaran FROM tahun_ajaran WHERE status='Aktif' LIMIT 1")->fetchColumn();
-        if (!$ta) {
-            $error = 'Belum ada tahun ajaran aktif di sistem.';
-        } else {
-            // Ambil bobot aktif untuk mapel & guru ini
-            $bobot = get_bobot_penilaian($gid, $mapel, $kelas);
-            $akhir = hitung_nilai_akhir_berbobot($tugas, $uts, $uas, $praktik, $ekstra, $bobot);
-
-            $stmt = $pdo->prepare('INSERT INTO nilai (nis, id_mapel, id_guru, id_tahun_ajaran, nilai_tugas, nilai_uts, nilai_uas, nilai_praktik, nilai_ekstra, nilai_akhir) 
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                   ON DUPLICATE KEY UPDATE 
-                                   nilai_tugas = VALUES(nilai_tugas),
-                                   nilai_uts = VALUES(nilai_uts),
-                                   nilai_uas = VALUES(nilai_uas),
-                                   nilai_praktik = VALUES(nilai_praktik),
-                                   nilai_ekstra = VALUES(nilai_ekstra),
-                                   nilai_akhir = VALUES(nilai_akhir),
-                                   id_guru = VALUES(id_guru)');
-            $stmt->execute([$nis, $mapel, $gid, $ta, $tugas, $uts, $uas, $praktik, $ekstra, $akhir]);
-            flash('success', 'Nilai siswa berhasil disimpan dengan pembobotan aktif.');
-            redirect('nilai.php');
-        }
-    }
+if($_SERVER['REQUEST_METHOD']==='POST'){
+    verify_csrf();try{
+        $action=input_choice($_POST,'action',['save_bobot','save_nilai']);
+        if($action==='save_bobot')save_weights($_POST);else save_teacher_grade($_POST);
+        flash('success','Data penilaian berhasil disimpan.');redirect('nilai.php');
+    }catch(Throwable $errorInput){$error=operation_error($errorInput);}
 }
 
 // Data siswa per kelas penugasan
 $students = [];
 $bobot_map = [];
 foreach ($assignments as $a) {
-    $q = $pdo->prepare('SELECT nis, nama_siswa FROM siswa WHERE id_kelas=? ORDER BY nama_siswa');
+    $q = $pdo->prepare('SELECT nis, nama_siswa FROM siswa WHERE id_kelas=? AND status="aktif" ORDER BY nama_siswa');
     $q->execute([$a['id_kelas']]);
     $students[$a['id_kelas']] = $q->fetchAll();
 
@@ -110,13 +36,13 @@ foreach ($assignments as $a) {
 }
 
 // Ambil daftar nilai yang pernah diinput oleh guru ini
-$q = $pdo->prepare('SELECT n.*, s.nama_siswa, k.nama_kelas, mp.nama_mapel, mp.kkm, ta.tahun_ajaran, ta.semester 
-                    FROM nilai n 
-                    JOIN siswa s ON s.nis=n.nis 
-                    JOIN kelas k ON k.id_kelas=s.id_kelas 
-                    JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel 
-                    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran 
-                    WHERE n.id_guru=? 
+$q = $pdo->prepare('SELECT n.*, s.nama_siswa, k.nama_kelas, mp.nama_mapel, mp.kkm, ta.tahun_ajaran, ta.semester
+                    FROM nilai n
+                    JOIN siswa s ON s.nis=n.nis
+                    JOIN kelas k ON k.id_kelas=s.id_kelas
+                    JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel
+                    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran
+                    WHERE n.id_guru=? AND k.status="aktif" AND mp.status="aktif" AND EXISTS(SELECT 1 FROM jadwal scope WHERE scope.id_guru=n.id_guru AND scope.id_kelas=s.id_kelas AND scope.id_mapel=n.id_mapel AND scope.status="aktif" AND (scope.id_tahun_ajaran=n.id_tahun_ajaran OR scope.id_tahun_ajaran IS NULL))
                     ORDER BY ta.status DESC, k.nama_kelas, s.nama_siswa');
 $q->execute([$gid]);
 $existing_grades = $q->fetchAll();
@@ -189,8 +115,8 @@ require '../includes/flash.php';
                             <div class="alert alert-info py-2 mb-0 small d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>Formula Bobot Aktif:</strong>
-                                    Tugas <span id="b_tugas_badge" class="badge bg-primary">30%</span> + 
-                                    UTS <span id="b_uts_badge" class="badge bg-primary">30%</span> + 
+                                    Tugas <span id="b_tugas_badge" class="badge bg-primary">30%</span> +
+                                    UTS <span id="b_uts_badge" class="badge bg-primary">30%</span> +
                                     UAS <span id="b_uas_badge" class="badge bg-primary">40%</span>
                                     <span id="extra_badge_wrapper" style="display:none;"> + <span id="b_extra_name">Praktik</span> <span id="b_extra_badge" class="badge bg-secondary">0%</span></span>
                                 </div>
@@ -281,7 +207,7 @@ require '../includes/flash.php';
                         <?php if (empty($existing_grades)): ?>
                             <tr><td colspan="12" class="text-center text-muted py-4">Belum ada nilai yang diinput.</td></tr>
                         <?php else: ?>
-                            <?php $no = 1; foreach ($existing_grades as $eg): 
+                            <?php $no = 1; foreach ($existing_grades as $eg):
                                 $pred = hitung_predikat_kkm((float)$eg['nilai_akhir'], (float)$eg['kkm']);
                             ?>
                             <tr>
@@ -323,7 +249,7 @@ require '../includes/flash.php';
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">
-                        Tentukan persentase bobot tiap komponen nilai untuk mata pelajaran yang Anda ampu. 
+                        Tentukan persentase bobot tiap komponen nilai untuk mata pelajaran yang Anda ampu.
                         <strong>Total bobot harus tepat 100%</strong>.
                     </p>
 
@@ -331,9 +257,9 @@ require '../includes/flash.php';
                         <label class="form-label fw-bold">Mata Pelajaran</label>
                         <select class="form-select" name="id_mapel" id="modal_id_mapel" required>
                             <option value="">-- Pilih Mata Pelajaran --</option>
-                            <?php 
+                            <?php
                             $seen_mapel = [];
-                            foreach ($assignments as $a): 
+                            foreach ($assignments as $a):
                                 if (in_array($a['id_mapel'], $seen_mapel)) continue;
                                 $seen_mapel[] = $a['id_mapel'];
                             ?>
@@ -395,7 +321,7 @@ document.getElementById('assignment').addEventListener('change', function() {
     const val = this.value;
     const studentSelect = document.getElementById('student');
     const bobotBox = document.getElementById('bobotInfoBox');
-    
+
     if (!val) {
         studentSelect.innerHTML = '<option>Pilih penugasan kelas terlebih dahulu</option>';
         studentSelect.disabled = true;
@@ -449,9 +375,9 @@ function recalculateLive() {
     const praktik = parseFloat(document.getElementById('inp_praktik').value) || 0;
     const ekstra = parseFloat(document.getElementById('inp_ekstra').value) || 0;
 
-    const bTugas = curBobot.bobot_tugas || 30;
-    const bUts = curBobot.bobot_uts || 30;
-    const bUas = curBobot.bobot_uas || 40;
+    const bTugas = curBobot.bobot_tugas ?? 30;
+    const bUts = curBobot.bobot_uts ?? 30;
+    const bUas = curBobot.bobot_uas ?? 40;
     const bPraktik = curBobot.bobot_praktik || 0;
     const bEkstra = curBobot.bobot_ekstra || 0;
 

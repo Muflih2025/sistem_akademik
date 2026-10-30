@@ -30,5 +30,7 @@ if (isset($entry['role'])) {
     require_once $root.'/config/auth.php';
     require_role($entry['role']);
 }
+$postRoutes=['/auth/login.php','/auth/logout.php','/auth/change_password.php','/admin/master.php','/admin/users.php','/admin/jadwal.php','/admin/penugasan.php','/admin/tahun_ajaran.php','/admin/nilai.php','/admin/ekskul.php','/admin/export_import.php','/admin/kalender.php','/guru/absen.php','/guru/jurnal.php','/guru/nilai.php','/guru/ekskul.php','/kepsek/evaluasi.php','/kepsek/kalender.php'];
+if($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,$postRoutes,true)){http_response_code(405);header('Allow: GET, HEAD');exit;}
 chdir(dirname($root.$path));
 require $root.$path;

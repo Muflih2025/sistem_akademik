@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/config/config.php';
+require_once __DIR__.'/config/auth.php';
 if (current_user()) { redirect(dashboard_path(current_user()['role'])); }
 ?><!doctype html>
 <html lang="id">

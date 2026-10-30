@@ -1,33 +1,31 @@
 <?php
 require_once '../config/auth.php';
-$role = current_user()['role'];
-if (!in_array($role, ['guru', 'admin', 'kepala_sekolah'])) {
-    deny_access();
-}
+require_role('guru');
+$role=current_user()['role'];
 
 $pdo = db();
 $gid = ($role === 'guru') ? (int)user_reference() : 0;
 
 // Ambil daftar kelas dan mapel
 if ($role === 'guru') {
-    $q = $pdo->prepare('SELECT DISTINCT k.id_kelas, k.nama_kelas, mp.id_mapel, mp.nama_mapel 
-                        FROM jadwal j 
-                        JOIN kelas k ON k.id_kelas = j.id_kelas 
-                        JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel 
-                        WHERE j.id_guru = ? 
+    $q = $pdo->prepare('SELECT DISTINCT k.id_kelas, k.nama_kelas, mp.id_mapel, mp.nama_mapel
+                        FROM jadwal j
+                        JOIN kelas k ON k.id_kelas = j.id_kelas
+                        JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel
+                        WHERE j.id_guru = ? AND j.status = "aktif"
                         ORDER BY k.nama_kelas, mp.nama_mapel');
     $q->execute([$gid]);
     $pairs = $q->fetchAll();
 } else {
-    $pairs = $pdo->query('SELECT DISTINCT k.id_kelas, k.nama_kelas, mp.id_mapel, mp.nama_mapel 
-                          FROM jadwal j 
-                          JOIN kelas k ON k.id_kelas = j.id_kelas 
-                          JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel 
+    $pairs = $pdo->query('SELECT DISTINCT k.id_kelas, k.nama_kelas, mp.id_mapel, mp.nama_mapel
+                          FROM jadwal j
+                          JOIN kelas k ON k.id_kelas = j.id_kelas
+                          JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel
                           ORDER BY k.nama_kelas, mp.nama_mapel')->fetchAll();
 }
 
-$selected_kelas = (int)($_GET['id_kelas'] ?? ($pairs[0]['id_kelas'] ?? 0));
-$selected_mapel = (int)($_GET['id_mapel'] ?? ($pairs[0]['id_mapel'] ?? 0));
+$selected_kelas = ($_GET['id_kelas']??'')!==''?input_id($_GET,'id_kelas'):(int)($pairs[0]['id_kelas']??0);
+$selected_mapel = ($_GET['id_mapel']??'')!==''?input_id($_GET,'id_mapel'):(int)($pairs[0]['id_mapel']??0);
 
 $target_kelas_nama = '';
 $target_mapel_nama = '';
@@ -40,19 +38,20 @@ foreach ($pairs as $p) {
 }
 
 // Ambil tahun ajaran aktif
-$ta = $pdo->query("SELECT id_tahun_ajaran, tahun_ajaran, semester FROM tahun_ajaran WHERE status='Aktif' LIMIT 1")->fetch();
+$ta=active_period(($_GET['id_tahun_ajaran']??'')!==''?input_id($_GET,'id_tahun_ajaran'):null);
+if($selected_kelas && $selected_mapel){if($role==='guru')teacher_assignment($selected_kelas,$selected_mapel,(int)$ta['id_tahun_ajaran']);$q=$pdo->prepare('SELECT kkm FROM mata_pelajaran WHERE id_mapel=?');$q->execute([$selected_mapel]);$export_kkm=$q->fetchColumn();if($export_kkm===false)not_found();$export_kkm=(float)$export_kkm;}else{$export_kkm=DEFAULT_KKM;}
 
 // Ambil data nilai siswa
 $scores = [];
 if ($selected_kelas && $selected_mapel) {
     $sql = 'SELECT s.nis, s.nama_siswa, s.jenis_kelamin,
                    n.nilai_tugas, n.nilai_uts, n.nilai_uas, n.nilai_akhir
-            FROM siswa s 
-            LEFT JOIN nilai n ON n.nis = s.nis AND n.id_mapel = ? 
-            WHERE s.id_kelas = ? 
+            FROM siswa s
+            LEFT JOIN nilai n ON n.nis = s.nis AND n.id_mapel = ? AND n.id_tahun_ajaran = ?
+            WHERE s.id_kelas = ?
             ORDER BY s.nama_siswa';
     $q = $pdo->prepare($sql);
-    $q->execute([$selected_mapel, $selected_kelas]);
+    $q->execute([$selected_mapel,$ta['id_tahun_ajaran'],$selected_kelas]);
     $scores = $q->fetchAll();
 }
 
@@ -64,8 +63,8 @@ if (isset($_GET['format']) && $_GET['format'] === 'csv') {
     // Tambahkan UTF-8 BOM agar Excel di Windows otomatis mengenali karakter dan kolom
     fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
     fputcsv($out, ['DAFTAR NILAI SISWA']);
-    fputcsv($out, ['Kelas', $target_kelas_nama]);
-    fputcsv($out, ['Mata Pelajaran', $target_mapel_nama]);
+    fputcsv($out, array_map('csv_safe',['Kelas', $target_kelas_nama]), ',', '"', '');
+    fputcsv($out, array_map('csv_safe',['Mata Pelajaran', $target_mapel_nama]), ',', '"', '');
     fputcsv($out, ['Tahun Ajaran', ($ta['tahun_ajaran'] ?? '-') . ' / ' . ($ta['semester'] ?? '-')]);
     fputcsv($out, []);
     fputcsv($out, ['No', 'NIS', 'Nama Siswa', 'L/P', 'Nilai Tugas', 'Nilai UTS', 'Nilai UAS', 'Nilai Akhir', 'Status']);
@@ -73,8 +72,8 @@ if (isset($_GET['format']) && $_GET['format'] === 'csv') {
     $no = 1;
     foreach ($scores as $r) {
         $na = $r['nilai_akhir'] ?? 0;
-        $status = ($na >= DEFAULT_KKM) ? 'Tuntas' : 'Belum Tuntas';
-        fputcsv($out, [
+        $status = ($na >= $export_kkm) ? 'Tuntas' : 'Belum Tuntas';
+        fputcsv($out, array_map('csv_safe',[
             $no++,
             $r['nis'],
             $r['nama_siswa'],
@@ -84,7 +83,7 @@ if (isset($_GET['format']) && $_GET['format'] === 'csv') {
             $r['nilai_uas'] ?? 0,
             $na,
             $status
-        ]);
+        ]), ',', '"', '');
     }
     fclose($out);
     exit;
@@ -115,7 +114,7 @@ require '../includes/flash.php';
         <div class="col-md-8">
             <label class="form-label fw-bold">Pilih Kelas dan Mata Pelajaran</label>
             <select class="form-select" onchange="const p=this.value.split('|'); location.href='?id_kelas='+p[0]+'&id_mapel='+p[1];">
-                <?php foreach ($pairs as $p): 
+                <?php foreach ($pairs as $p):
                     $val = $p['id_kelas'].'|'.$p['id_mapel'];
                     $is_sel = ($p['id_kelas'] == $selected_kelas && $p['id_mapel'] == $selected_mapel);
                 ?>
@@ -137,7 +136,7 @@ require '../includes/flash.php';
             <span>Kelas: <strong><?= e($target_kelas_nama) ?></strong></span>
             <span>Mata Pelajaran: <strong><?= e($target_mapel_nama) ?></strong></span>
             <span>Tahun Ajaran: <strong><?= e($ta['tahun_ajaran'] ?? '-') ?> (<?= e($ta['semester'] ?? '-') ?>)</strong></span>
-            <span>Standar KKM: <strong><?= DEFAULT_KKM ?></strong></span>
+            <span>Standar KKM: <strong><?= $export_kkm ?></strong></span>
         </div>
     </div>
 
@@ -157,14 +156,14 @@ require '../includes/flash.php';
                 </tr>
             </thead>
             <tbody>
-                <?php 
+                <?php
                 $no = 1;
                 $total_na = 0;
                 $tuntas = 0;
-                foreach ($scores as $s): 
+                foreach ($scores as $s):
                     $na = (float)($s['nilai_akhir'] ?? 0);
                     $total_na += $na;
-                    $is_pass = ($na >= DEFAULT_KKM);
+                    $is_pass = ($na >= $export_kkm);
                     if ($is_pass) $tuntas++;
                 ?>
                 <tr>

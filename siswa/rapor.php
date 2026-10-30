@@ -1,37 +1,37 @@
 <?php
-require_once __DIR__.'/../config/auth.php'; 
-require_role('siswa');
-$pdo = db(); 
+require_once __DIR__.'/../config/auth.php';
+require_role('siswa');if($_SERVER['REQUEST_METHOD']==='POST')deny_access();if(isset($_GET['nis']) && input_text($_GET,'nis',15)!==(string)user_reference())deny_access();
+$pdo = db();
 $nis = user_reference();
 
 // Student info
 $q = $pdo->prepare('SELECT s.*, k.nama_kelas, jr.nama_jurusan FROM siswa s JOIN kelas k ON k.id_kelas=s.id_kelas LEFT JOIN jurusan jr ON jr.id_jurusan=k.id_jurusan WHERE s.nis=?');
-$q->execute([$nis]); 
+$q->execute([$nis]);
 $siswa = $q->fetch();
 
 // Grades
-$q = $pdo->prepare('SELECT n.*, mp.nama_mapel, mp.kkm, ta.tahun_ajaran, ta.semester, ta.id_tahun_ajaran 
-                    FROM nilai n 
-                    JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel 
-                    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran 
-                    WHERE n.nis=? 
+$q = $pdo->prepare('SELECT n.*, mp.nama_mapel, mp.kkm, ta.tahun_ajaran, ta.semester, ta.id_tahun_ajaran
+                    FROM nilai n
+                    JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel
+                    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran
+                    WHERE n.nis=? AND ta.rapor_diterbitkan=1
                     ORDER BY ta.tahun_ajaran DESC, ta.semester DESC, mp.nama_mapel');
-$q->execute([$nis]); 
+$q->execute([$nis]);
 $grades = $q->fetchAll();
 
 // Ekskul
-$q = $pdo->prepare('SELECT ne.*, ek.nama_ekskul, ta.tahun_ajaran, ta.semester 
-                    FROM nilai_ekskul ne 
-                    JOIN ekstrakurikuler ek ON ek.id_ekskul=ne.id_ekskul 
-                    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=ne.id_tahun_ajaran 
-                    WHERE ne.nis=? 
+$q = $pdo->prepare('SELECT ne.*, ek.nama_ekskul, ta.tahun_ajaran, ta.semester
+                    FROM nilai_ekskul ne
+                    JOIN ekstrakurikuler ek ON ek.id_ekskul=ne.id_ekskul
+                    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=ne.id_tahun_ajaran
+                    WHERE ne.nis=? AND ta.rapor_diterbitkan=1
                     ORDER BY ta.tahun_ajaran DESC');
-$q->execute([$nis]); 
+$q->execute([$nis]);
 $ekskul = $q->fetchAll();
 
 // Attendance
 $q = $pdo->prepare('SELECT status, COUNT(*) as total FROM absensi WHERE nis=? GROUP BY status');
-$q->execute([$nis]); 
+$q->execute([$nis]);
 $abs_raw = $q->fetchAll();
 $att = ['Hadir'=>0, 'Sakit'=>0, 'Izin'=>0, 'Alpa'=>0];
 foreach ($abs_raw as $a) {
@@ -39,8 +39,8 @@ foreach ($abs_raw as $a) {
 }
 
 $page_title = 'Rapor Saya - SMKN 2 Magelang';
-require __DIR__.'/../includes/header.php'; 
-require __DIR__.'/../includes/sidebar.php'; 
+require __DIR__.'/../includes/header.php';
+require __DIR__.'/../includes/sidebar.php';
 require __DIR__.'/../includes/flash.php';
 ?>
 
@@ -99,8 +99,8 @@ require __DIR__.'/../includes/flash.php';
                 </tr>
             </thead>
             <tbody>
-            <?php if ($grades): foreach ($grades as $r): 
-                $na = (float)$r['nilai_akhir']; 
+            <?php if ($grades): foreach ($grades as $r):
+                $na = (float)$r['nilai_akhir'];
                 $kkm = (float)($r['kkm'] ?? DEFAULT_KKM);
                 $pred = hitung_predikat_kkm($na, $kkm);
             ?>

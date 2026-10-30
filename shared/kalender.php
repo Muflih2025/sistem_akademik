@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/auth.php';
-require_login();
+require_login();if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__)deny_access();
 
 $pdo = db();
 $role = current_user()['role'];
@@ -23,7 +23,7 @@ $month_name_id = [
 $start_month_date = sprintf('%04d-%02d-01', $year, $month);
 $end_month_date = sprintf('%04d-%02d-%02d', $year, $month, $days_in_month);
 
-$stmt = $pdo->prepare("SELECT * FROM kalender_akademik 
+$stmt = $pdo->prepare("SELECT * FROM kalender_akademik
                       WHERE (tanggal_mulai <= ? AND (tanggal_selesai IS NULL OR tanggal_selesai >= ?))
                       ORDER BY tanggal_mulai ASC");
 $stmt->execute([$end_month_date, $start_month_date]);
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($role, ['admin', 'kepala_s
         $tgl_selesai = !empty($_POST['tanggal_selesai']) ? $_POST['tanggal_selesai'] : null;
         $kat = $_POST['kategori'] ?? 'agenda_sekolah';
         $desk = trim($_POST['deskripsi'] ?? '');
-        
+
         if ($judul && $tgl_mulai) {
             $ins = $pdo->prepare("INSERT INTO kalender_akademik (judul, deskripsi, tanggal_mulai, tanggal_selesai, kategori) VALUES (?, ?, ?, ?, ?)");
             $ins->execute([$judul, $desk, $tgl_mulai, $tgl_selesai, $kat]);
@@ -158,7 +158,7 @@ require_once __DIR__ . '/../includes/flash.php';
                                 </span>
                             <?php endif; ?>
 
-                            <?php foreach ($day_events as $ev): 
+                            <?php foreach ($day_events as $ev):
                                 $badge_class = match($ev['kategori']) {
                                     'agenda_sekolah' => 'bg-primary text-white',
                                     'jadwal_kbm' => 'bg-success text-white',

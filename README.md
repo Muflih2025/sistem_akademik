@@ -2,11 +2,13 @@
 
 Aplikasi web PHP native dan MariaDB dengan peran admin, guru, kepala sekolah, dan siswa. Arsitektur native serta database existing dipertahankan sesuai hasil audit.
 
-## Keadaan R0
+## Keadaan R0 dan R1
 
-R0 menyiapkan baseline privat, backup/restore terisolasi, document root terbatas, konfigurasi eksternal, login tanpa perubahan skema, dan pengujian dengan fixture sintetis. Perubahan berada pada branch/worktree terpisah; layanan aktif belum diganti.
+R0 `531d2f8` sudah aktif pada port 8085 dengan document root terbatas, konfigurasi eksternal dan login tanpa perubahan skema. R1 dikembangkan terpisah pada branch `r1/security-crud-20261030` untuk autentikasi, RBAC, CRUD inti, identitas pencatat absensi dan UI CRUD responsif. R1 belum diaktifkan pada layanan 8085.
 
 Panduan lengkap tersedia di [docs/R0_OPERATIONS.md](docs/R0_OPERATIONS.md). Hasil audit sebelumnya berada di `/home/muflih/audit_sia_2026-10-30/LAPORAN_AUDIT.md`.
+
+Panduan fixture, pengujian, konsekuensi migrasi aditif dan deployment R1 tersedia di [docs/R1_OPERATIONS.md](docs/R1_OPERATIONS.md). Pengujian R1 menggunakan port 18091 dan database sintetis terisolasi; jangan menjalankan tes tulis pada layanan aktif.
 
 ## Menjalankan development/staging
 

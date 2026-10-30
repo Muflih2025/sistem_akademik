@@ -43,7 +43,8 @@ $current_file = basename($_SERVER['SCRIPT_NAME']);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link href="../assets/css/app.css" rel="stylesheet">
-</head><body>
+<?php if(!empty($crud_ui)): ?><link href="../assets/css/crud.css" rel="stylesheet"><?php endif; ?>
+</head><body class="<?= !empty($crud_ui)?'crud-page':'' ?>">
 
 <div class="navbar-top">
   <a class="brand" href="<?= e('../'.dashboard_path($role)) ?>">SIA SMKN 2 Magelang</a>

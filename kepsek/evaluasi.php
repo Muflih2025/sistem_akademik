@@ -10,17 +10,19 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $action = $_POST['action'] ?? 'save';
+    $action=input_choice($_POST+['action'=>'save'],'action',['save','delete']);
+    if(!empty($_POST['id_evaluasi'])){$q=$pdo->prepare('SELECT created_by FROM catatan_evaluasi WHERE id_evaluasi=?');$q->execute([input_id($_POST,'id_evaluasi')]);if((int)$q->fetchColumn()!==(int)current_user()['id_user'])deny_access();}
+    active_period($sel_ta?:null,true);
     try {
         if ($action === 'delete') {
             $q = $pdo->prepare('DELETE FROM catatan_evaluasi WHERE id_evaluasi=?');
             $q->execute([(int)$_POST['id_evaluasi']]);
             flash('success', 'Catatan evaluasi dihapus.');
         } else {
-            $judul = trim($_POST['judul'] ?? '');
-            $isi = trim($_POST['isi'] ?? '');
+            $judul=input_text($_POST,'judul',150);
+            $isi=input_text($_POST,'isi',10000);
             if (!$judul || !$isi) throw new RuntimeException('Judul dan isi wajib diisi.');
-            
+
             $uid = (int)current_user()['id_user'];
             if (!empty($_POST['id_evaluasi'])) {
                 $q = $pdo->prepare('UPDATE catatan_evaluasi SET judul=?, isi=?, id_tahun_ajaran=? WHERE id_evaluasi=?');
@@ -34,20 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         redirect("evaluasi.php?id_tahun_ajaran=$sel_ta");
     } catch (Throwable $e) {
-        $error = $e->getMessage();
+        $error=operation_error($e);
     }
 }
 
 $edit = null;
 if (isset($_GET['edit'])) {
     $q = $pdo->prepare('SELECT * FROM catatan_evaluasi WHERE id_evaluasi=?');
-    $q->execute([(int)$_GET['edit']]); $edit = $q->fetch();
+    $q->execute([input_id($_GET,'edit')]); $edit=$q->fetch();if(!$edit || (int)$edit['created_by']!==(int)current_user()['id_user'])deny_access();
 }
 
-$q = $pdo->prepare('SELECT ce.*, ta.tahun_ajaran, ta.semester, u.username 
-    FROM catatan_evaluasi ce 
-    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=ce.id_tahun_ajaran 
-    LEFT JOIN users u ON u.id_user=ce.created_by 
+$q = $pdo->prepare('SELECT ce.*, ta.tahun_ajaran, ta.semester, u.username
+    FROM catatan_evaluasi ce
+    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=ce.id_tahun_ajaran
+    LEFT JOIN users u ON u.id_user=ce.created_by
     WHERE ce.id_tahun_ajaran=? ORDER BY ce.created_at DESC');
 $q->execute([$sel_ta]); $rows = $q->fetchAll();
 

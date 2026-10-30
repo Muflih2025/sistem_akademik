@@ -52,3 +52,5 @@
 </aside>
 <main class="col-lg-10 py-4">
 <div class="container-fluid">
+
+<?php if(!empty($crud_ui) && function_exists('crud_navigation'))crud_navigation(); ?>
