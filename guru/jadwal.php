@@ -1,5 +1,51 @@
 <?php
-require_once '../config/auth.php';require_role('guru');$pdo=db();$gid=(int)user_reference();$error='';
-if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();try{if($_POST['action']==='delete'){$q=$pdo->prepare('DELETE FROM jadwal WHERE id_jadwal=? AND id_guru=?');$q->execute([(int)$_POST['id_jadwal'],$gid]);flash('success','Jadwal dihapus.');}else{$q=$pdo->prepare('INSERT INTO jadwal(id_guru,id_mapel,id_kelas,hari,jam_mulai,jam_selesai,ruang) VALUES(?,?,?,?,?,?,?)');$q->execute([$gid,(int)$_POST['id_mapel'],(int)$_POST['id_kelas'],$_POST['hari'],$_POST['jam_mulai'],$_POST['jam_selesai'],trim($_POST['ruang'])?:null]);flash('success','Jadwal berhasil ditambahkan.');}redirect('jadwal.php');}catch(Throwable $e){$error='Jadwal gagal diproses. Pastikan data lengkap.';}}
-$maps=$pdo->query('SELECT id_mapel,nama_mapel FROM mata_pelajaran ORDER BY nama_mapel')->fetchAll();$classes=$pdo->query('SELECT id_kelas,nama_kelas FROM kelas ORDER BY nama_kelas')->fetchAll();$q=$pdo->prepare('SELECT j.*,k.nama_kelas,mp.nama_mapel FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel WHERE j.id_guru=? ORDER BY FIELD(j.hari,"Senin","Selasa","Rabu","Kamis","Jumat"),j.jam_mulai');$q->execute([$gid]);$rows=$q->fetchAll();$page_title='Jadwal Mengajar';require '../includes/header.php';require '../includes/sidebar.php';require '../includes/flash.php';
-?><h2>Jadwal Mengajar</h2><?php if($error):?><div class="alert alert-danger"><?=e($error)?></div><?php endif;?><div class="card p-3 mb-4"><h5>Tambah jadwal</h5><form method="post" class="row g-2 align-items-end"><?=csrf_field()?><input type="hidden" name="action" value="add"><div class="col-md-3"><label class="form-label">Mapel</label><select name="id_mapel" class="form-select" required><option value="">Pilih...</option><?php foreach($maps as $x):?><option value="<?=$x['id_mapel']?>"><?=e($x['nama_mapel'])?></option><?php endforeach;?></select></div><div class="col-md-3"><label class="form-label">Kelas</label><select name="id_kelas" class="form-select" required><option value="">Pilih...</option><?php foreach($classes as $x):?><option value="<?=$x['id_kelas']?>"><?=e($x['nama_kelas'])?></option><?php endforeach;?></select></div><div class="col-md-2"><label class="form-label">Hari</label><select name="hari" class="form-select"><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option></select></div><div class="col-md-1"><label class="form-label">Mulai</label><input type="time" name="jam_mulai" class="form-control" required></div><div class="col-md-1"><label class="form-label">Selesai</label><input type="time" name="jam_selesai" class="form-control" required></div><div class="col-md-1"><label class="form-label">Ruang</label><input name="ruang" class="form-control"></div><div class="col-md-1"><button class="btn btn-primary w-100">Tambah</button></div></form></div><div class="card p-3"><div class="table-responsive"><table class="table"><thead><tr><th>Hari</th><th>Jam</th><th>Mapel</th><th>Kelas</th><th>Ruang</th><th></th></tr></thead><tbody><?php foreach($rows as $r):?><tr><td><?=e($r['hari'])?></td><td><?=e(substr($r['jam_mulai'],0,5).'–'.substr($r['jam_selesai'],0,5))?></td><td><?=e($r['nama_mapel'])?></td><td><?=e($r['nama_kelas'])?></td><td><?=e($r['ruang']??'-')?></td><td><form method="post" onsubmit="return confirm('Hapus jadwal ini?')"><?=csrf_field()?><input type="hidden" name="action" value="delete"><input type="hidden" name="id_jadwal" value="<?=$r['id_jadwal']?>"><button class="btn btn-sm btn-outline-danger">Hapus</button></form></td></tr><?php endforeach;?></tbody></table></div></div><?php require '../includes/footer.php';
+require_once __DIR__.'/../config/auth.php'; require_role('guru');
+$pdo = db(); $gid = (int)user_reference();
+
+$days_map = [1=>'Senin',2=>'Selasa',3=>'Rabu',4=>'Kamis',5=>'Jumat'];
+$today_name = $days_map[(int)date('N')] ?? null;
+
+$q = $pdo->prepare('SELECT j.*, k.nama_kelas, mp.nama_mapel 
+    FROM jadwal j 
+    JOIN kelas k ON k.id_kelas=j.id_kelas 
+    JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel 
+    WHERE j.id_guru=? 
+    ORDER BY FIELD(j.hari,"Senin","Selasa","Rabu","Kamis","Jumat"), j.jam_mulai');
+$q->execute([$gid]); $rows = $q->fetchAll();
+
+// Group by day
+$by_day = [];
+foreach ($rows as $r) { $by_day[$r['hari']][] = $r; }
+
+$page_title = 'Jadwal Mengajar';
+require __DIR__.'/../includes/header.php'; require __DIR__.'/../includes/sidebar.php'; require __DIR__.'/../includes/flash.php';
+?>
+<h2>Jadwal Mengajar</h2>
+
+<?php if (empty($rows)): ?>
+<div class="alert alert-info">Belum ada jadwal mengajar.</div>
+<?php else: ?>
+<?php foreach (['Senin','Selasa','Rabu','Kamis','Jumat'] as $day): ?>
+<?php if (!isset($by_day[$day])) continue; ?>
+<div class="card p-3 mb-3 <?= $day === $today_name ? 'border-primary' : '' ?>">
+    <h5><?= e($day) ?> <?= $day === $today_name ? '<span class="badge bg-primary">Hari Ini</span>' : '' ?></h5>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Jam</th><th>Mata Pelajaran</th><th>Kelas</th><th>Ruang</th></tr></thead>
+            <tbody>
+            <?php foreach ($by_day[$day] as $r): ?>
+            <tr>
+                <td><?= e(substr($r['jam_mulai'],0,5).' - '.substr($r['jam_selesai'],0,5)) ?></td>
+                <td class="fw-semibold"><?= e($r['nama_mapel']) ?></td>
+                <td><?= e($r['nama_kelas']) ?></td>
+                <td><?= e($r['ruang'] ?? '-') ?></td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endforeach; ?>
+<?php endif; ?>
+
+<?php require __DIR__.'/../includes/footer.php'; ?>

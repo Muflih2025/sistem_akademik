@@ -1,0 +1,11 @@
+# Review-only drop-in template. Applying this to the active service requires approval.
+# Do not point it at the old project root or use a router that returns false.
+[Service]
+User=approved-unprivileged-user
+Group=approved-unprivileged-group
+UMask=0077
+NoNewPrivileges=true
+WorkingDirectory=/path/to/approved-release
+Environment=SIA_CONFIG_FILE=/private/path/app-config.json
+ExecStart=
+ExecStart=/usr/sbin/php -d display_errors=0 -S 127.0.0.1:8085 -t /path/to/approved-release/public /path/to/approved-release/public/index.php
