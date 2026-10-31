@@ -44,6 +44,10 @@ if(isset($entry['role']) && function_exists('app_setting') && app_setting('ACADE
         '/kepsek/kalender.php'=>'kalender','/siswa/kalender.php'=>'kalender',
         '/admin/export_import.php'=>'impor',
         '/siswa/absen.php'=>'kehadiran',
+        '/guru/jadwal.php'=>'jadwal','/siswa/jadwal.php'=>'jadwal',
+        '/admin/nilai.php'=>'nilai','/kepsek/akademik.php'=>'nilai',
+        '/guru/export_nilai.php'=>'nilai','/admin/export_nilai.php'=>'rapor',
+        '/admin/index.php'=>'beranda','/guru/index.php'=>'beranda','/siswa/index.php'=>'beranda','/kepsek/index.php'=>'beranda',
     ];
     if(isset($academicRoutes[$path])){
         if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();http_response_code(409);exit('Gunakan formulir Ruang Akademik terbaru; tidak ada data yang disimpan.');}

@@ -7,21 +7,25 @@ if (current_user()) { redirect(dashboard_path(current_user()['role'])); }
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e(APP_NAME) ?></title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap.min.css" rel="stylesheet">
   <link href="assets/css/app.css" rel="stylesheet">
   <style>
-    .landing-hero{background:linear-gradient(135deg,#082b52 0%,#0d6efd 100%);min-height:470px;color:#fff}
-    .landing-hero h1{color:#fff;font-size:clamp(2rem,5vw,3.7rem)}
-    .landing-hero p{color:#dcecff;max-width:620px}
-    .feature-icon{width:48px;height:48px;border-radius:12px;background:#eaf2fc;color:#0d6efd;display:grid;place-items:center;font-size:1.35rem}
-    .school-mark{width:76px;height:76px;border-radius:50%;background:#fff;color:#082b52;display:grid;place-items:center;font-size:2rem;font-weight:800;box-shadow:0 8px 22px #001b3c55}
+    .landing-hero{background:#F3F4F6;min-height:470px;color:#111111}
+    .landing-hero h1{color:#111111;font-size:clamp(2rem,5vw,3.7rem)}
+    .landing-hero p{color:#4b5563;max-width:620px}
+    .feature-icon{width:48px;height:48px;border-radius:12px;background:#F3F4F6;color:#111111;display:grid;place-items:center;font-size:1.35rem}
+    .navbar.bg-navy{background:#111111!important;color:#FFFFFF}
+    .navbar.bg-navy .navbar-brand{color:#FFFFFF}
+    footer.bg-navy{background:#111111!important}
+    .landing-hero .btn-warning{background:#111111;border-color:#111111;color:#FFFFFF}
+    @media(max-width:575px){.landing-hero .row{--bs-gutter-x:1.5rem}}
   </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-navy">
     <div class="container py-2">
       <a class="navbar-brand fw-bold" href="index.php">SMKN 2 Magelang</a>
-      <a class="btn btn-light text-primary fw-semibold" href="auth/login.php">Masuk ke Sistem</a>
+      <a class="btn btn-outline-light fw-semibold" href="auth/login.php">Masuk ke Sistem</a>
     </div>
   </nav>
 
@@ -29,7 +33,6 @@ if (current_user()) { redirect(dashboard_path(current_user()['role'])); }
     <div class="container py-5">
       <div class="row align-items-center g-5">
         <div class="col-lg-8">
-          <div class="school-mark mb-4">S2</div>
           <h1>Sistem Informasi Akademik<br>SMK Negeri 2 Magelang</h1>
           <p class="lead mt-3">Platform terpadu untuk mengelola data akademik, jadwal pelajaran, nilai, rapor, dan laporan sekolah secara mudah dan terstruktur.</p>
           <a class="btn btn-warning btn-lg mt-3 px-4" href="auth/login.php">Mulai Sekarang</a>

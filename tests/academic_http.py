@@ -85,7 +85,7 @@ def main():
         response=b.request(path,'POST',b''.join(parts),{'Content-Type':'multipart/form-data; boundary='+boundary});status(response,want);return response
     structural_before={name:re.sub(r' AUTO_INCREMENT=[0-9]+','',list(db('SHOW CREATE TABLE `'+name+'`')[0].values())[1]) for name in snapshot(STATE/'private/inspector.json')['tables']}
     initial=snapshot(STATE/'private/inspector.json')
-    admin=login('admin');teacher=login('teacher');other=login('other_teacher');duty=login('duty');student=login('student');head=login('head')
+    admin=login('admin');teacher=login('teacher');other=login('other_teacher');duty=login('duty');student=login('student');head=login('head');wali=login('wali')
     test('auth_six_accounts_and_four_roles',lambda:[status(get(b,'beranda'),200) for b in [admin,teacher,other,duty,student,head]])
     test('login_does_not_mutate_schema_or_rows',lambda:check(snapshot(STATE/'private/inspector.json')==initial))
     for key in ['admin','teacher','student','head']:
@@ -232,6 +232,8 @@ def main():
     test('second_subject_teacher_grade',lambda:post(other,grade_data(4,rid2)))
     test('report_build_snapshot',lambda:post(admin,build));report_id=int(scalar('SELECT MAX(id) FROM ak_rapor_snapshot'))
     def transition(statusValue,want=302,browser=admin):
+        if statusValue=='terverifikasi' and want==302 and browser is admin:
+            revision=scalar('SELECT revision FROM ak_rapor_status WHERE id_snapshot=?',[report_id]);post(wali,{'action':'rapor_review','id':report_id,'revision':revision,'keputusan':'disetujui','catatan':'Pemeriksaan wali fixture melalui HTTP'})
         row=one('SELECT revision FROM ak_rapor_status WHERE id_snapshot=?',[report_id]);return post(browser,{'action':'rapor_status','id':report_id,'revision':row['revision'],'status':statusValue,'alasan':'Keputusan fixture '+tag},want=want)
     test('student_cannot_read_draft_report_URL',lambda:status(get(student,'rapor',id=report_id),403))
     test('student_cannot_export_draft_report',lambda:status(export(student,'rapor',id=report_id),403))

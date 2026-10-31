@@ -1,5 +1,7 @@
 # Panduan pengujian lokal akademik
 
+> Panduan terbaru setelah penyelesaian fungsi wali dan impor fondasi: [PANDUAN_FUNGSI_AKADEMIK_LOKAL.md](PANDUAN_FUNGSI_AKADEMIK_LOKAL.md). Dokumen di bawah merekam checkpoint awal.
+
 Checkpoint development, 31 Oktober 2026. Website PHP native modular/PDO berbasis R1.5; seluruh data pada database development ini **sintetis**. Bukan APK. Tidak ada aktivasi produksi, Docker, perubahan port 8085, atau pemetaan penugasan legacy.
 
 ## Membuka dan menjalankan

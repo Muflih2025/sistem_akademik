@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/attendance.php';
 require_once __DIR__.'/grades.php';
 require_once __DIR__.'/transfer.php';
+require_once __DIR__.'/print.php';
 
 function ak_report_range(array $input,int $periodId): array {
     $from=input_date($input,'mulai'); $until=input_date($input,'selesai');
@@ -15,7 +16,14 @@ function ak_export_data(string $kind,array $input): array {
     $role=current_user()['role'];
     if($kind==='template')return ak_import_template(input_choice($input,'module',array_keys(AK_IMPORT_HEADERS)),$input);
     if($kind==='nilai') {
-        require_role('guru');$rows=ak_grade_rows(input_id($input,'id_jadwal'));
+        require_role('guru','admin','kepala_sekolah');
+        if($role!=='guru'){
+            $period=input_id($input,'id_tahun_ajaran');ak_period($period);$where='n.id_tahun_ajaran=?';$args=[$period];
+            foreach(['id_kelas','id_mapel'] as $key)if(($input[$key]??'')!==''){$where.=' AND n.'.$key.'=?';$args[]=input_id($input,$key);}
+            $rows=ak_rows('SELECT n.*,s.nama_siswa,k.nama_kelas,m.nama_mapel,g.nama_guru,r.versi FROM ak_nilai n JOIN siswa s ON s.nis=n.nis JOIN kelas k ON k.id_kelas=n.id_kelas JOIN mata_pelajaran m ON m.id_mapel=n.id_mapel JOIN guru g ON g.id_guru=n.id_guru JOIN ak_aturan_nilai r ON r.id=n.id_aturan WHERE '.$where.' ORDER BY k.nama_kelas,n.nis,n.id_mapel',$args);
+            return ['title'=>'Rekap nilai akademik','headers'=>['NIS','Nama','Kelas','Mapel','Guru','Nilai akhir','Predikat','Deskripsi','Versi aturan'],'rows'=>array_map(fn($r)=>[$r['nis'],$r['nama_siswa'],$r['nama_kelas'],$r['nama_mapel'],$r['nama_guru'],(float)$r['nilai_akhir'],$r['predikat'],$r['deskripsi'],(int)$r['versi']],$rows)];
+        }
+        $rows=ak_grade_rows(input_id($input,'id_jadwal'));
         return ['title'=>'Rekap nilai mapel berversi','headers'=>['NIS','Nama','Nilai akhir','Predikat','Deskripsi','Versi aturan','KKM'],
             'rows'=>array_map(fn($r)=>[$r['nis'],$r['nama_siswa'],(float)$r['nilai_akhir'],$r['predikat'],$r['deskripsi'],(int)$r['versi_aturan'],(float)$r['kkm']],$rows)];
     }
@@ -29,22 +37,26 @@ function ak_export_data(string $kind,array $input): array {
     }
     if ($kind==='jurnal') {
         require_role('guru','admin','kepala_sekolah');
-        $meeting=ak_one('SELECT p.*,k.nama_kelas,m.nama_mapel,g.nama_guru,x.nama_guru AS pengganti FROM ak_pertemuan p JOIN kelas k ON k.id_kelas=p.id_kelas JOIN mata_pelajaran m ON m.id_mapel=p.id_mapel JOIN guru g ON g.id_guru=p.id_guru LEFT JOIN guru x ON x.id_guru=p.id_guru_pengganti WHERE p.id=?',[input_id($input,'id')]);
+        $meeting=ak_one('SELECT p.*,k.nama_kelas,m.nama_mapel,g.nama_guru,x.nama_guru AS pengganti,t.tahun_ajaran,t.semester FROM ak_pertemuan p JOIN kelas k ON k.id_kelas=p.id_kelas JOIN mata_pelajaran m ON m.id_mapel=p.id_mapel JOIN guru g ON g.id_guru=p.id_guru JOIN tahun_ajaran t ON t.id_tahun_ajaran=p.id_tahun_ajaran LEFT JOIN guru x ON x.id_guru=p.id_guru_pengganti WHERE p.id=?',[input_id($input,'id')]);
         if (!$meeting || ($role==='guru' && (int)$meeting['id_guru']!==(int)user_reference())) deny_access();
         $rows=[];
         foreach(['id'=>'ID pertemuan','tanggal'=>'Tanggal','nama_kelas'=>'Kelas','nama_guru'=>'Guru','nama_mapel'=>'Mapel','jam_ke'=>'Jam ke','pertemuan_ke'=>'Pertemuan ke','tp_atp'=>'TP / ATP','materi'=>'Materi','kegiatan'=>'Kegiatan','pengganti'=>'Guru pengganti','refleksi'=>'Refleksi','catatan'=>'Catatan','tindak_lanjut'=>'Tindak lanjut'] as $key=>$label)$rows[]=[$label,(string)($meeting[$key]??'')];
         $rows[]=['DAFTAR HADIR','Nomor · NIS · Nama · Status · Keterangan'];
-        foreach(ak_meeting_rows((int)$meeting['id']) as $row)$rows[]=[(string)$row['nomor_absen'].' · '.$row['nis'],$row['nama_snapshot'].' · '.$row['status'].' · '.$row['keterangan']];
-        return ['title'=>'Jurnal KBM & Agenda Guru — '.$meeting['nama_kelas'].' — '.$meeting['tanggal'],'headers'=>['Isian','Data'],'rows'=>$rows];
+        $attendance=ak_meeting_rows((int)$meeting['id']);
+        foreach($attendance as $row)$rows[]=[(string)$row['nomor_absen'].' · '.$row['nis'],$row['nama_snapshot'].' · '.$row['status'].' · '.$row['keterangan']];
+        return ['title'=>'Jurnal KBM & Agenda Guru — '.$meeting['nama_kelas'].' — '.$meeting['tanggal'],'headers'=>['Isian','Data'],'rows'=>$rows,'layout'=>'jurnal','meeting'=>$meeting,'attendance'=>$attendance];
     }
     if ($kind==='agenda') {
         require_role('guru','admin','kepala_sekolah');$period=input_id($input,'id_tahun_ajaran');ak_period($period);
         $scope=$role==='guru'?' AND p.id_guru=?':'';$args=$role==='guru'?[$period,user_reference()]:[$period];
         if(($input['id_kelas']??'')!==''){$scope.=' AND p.id_kelas=?';$args[]=input_id($input,'id_kelas');}
         if(($input['mulai']??'')!=='' && ($input['selesai']??'')!==''){$dates=ak_report_range($input,$period);$scope.=' AND p.tanggal BETWEEN ? AND ?';$args[]=$dates[0];$args[]=end($dates);}
-        $rows=ak_rows('SELECT p.id,p.tanggal,k.nama_kelas,g.nama_guru,m.nama_mapel,p.jam_ke,p.pertemuan_ke,p.tp_atp,p.materi,p.kegiatan,p.refleksi,p.catatan,p.tindak_lanjut FROM ak_pertemuan p JOIN kelas k ON k.id_kelas=p.id_kelas JOIN guru g ON g.id_guru=p.id_guru JOIN mata_pelajaran m ON m.id_mapel=p.id_mapel WHERE p.id_tahun_ajaran=?'.$scope.' ORDER BY p.tanggal,p.id LIMIT 5001',$args);
+        $rows=ak_rows('SELECT p.id,p.tanggal,k.nama_kelas,g.nama_guru,m.nama_mapel,p.jam_ke,p.pertemuan_ke,p.tp_atp,p.materi,p.kegiatan,p.refleksi,p.catatan,p.tindak_lanjut,x.nama_guru AS pengganti FROM ak_pertemuan p JOIN kelas k ON k.id_kelas=p.id_kelas JOIN guru g ON g.id_guru=p.id_guru JOIN mata_pelajaran m ON m.id_mapel=p.id_mapel LEFT JOIN guru x ON x.id_guru=p.id_guru_pengganti WHERE p.id_tahun_ajaran=?'.$scope.' ORDER BY p.tanggal,p.id LIMIT 5001',$args);
         if(count($rows)>5000)throw new InputError('Lebih dari 5000 pertemuan. Persempit kelas atau tanggal laporan.');
-        return ['title'=>'Agenda harian guru','headers'=>['ID','Tanggal','Kelas','Guru','Mapel','Jam ke','Pertemuan','TP/ATP','Materi','Kegiatan','Refleksi','Catatan','Tindak lanjut'],'rows'=>array_map('array_values',$rows)];
+        $absent=[];
+        if($rows){$ids=array_column($rows,'id');foreach(ak_rows("SELECT id_pertemuan,nomor_absen,nama_snapshot,status,keterangan FROM ak_absensi_sesi WHERE status<>'H' AND id_pertemuan IN(".implode(',',array_fill(0,count($ids),'?')).') ORDER BY id_pertemuan,nomor_absen',$ids) as $s)$absent[$s['id_pertemuan']][]=$s['nomor_absen'].'. '.$s['nama_snapshot'].' ('.$s['status'].')'.($s['keterangan']!==''?' '.$s['keterangan']:'');}
+        foreach($rows as &$row)$row['tidak_hadir']=implode("\n",$absent[$row['id']]??[])?:'Tidak ada';unset($row);
+        return ['title'=>'Agenda harian guru','headers'=>['ID','Tanggal','Kelas','Guru','Mapel','Jam ke','Pertemuan','TP/ATP','Materi','Kegiatan','Refleksi','Catatan','Tindak lanjut','Guru pengganti','Siswa tidak hadir / belum'],'rows'=>array_map('array_values',$rows),'layout'=>'agenda','meetings'=>$rows];
     }
     if ($kind==='kalender') {
         $period=input_id($input,'id_tahun_ajaran');ak_period($period);
@@ -91,6 +103,8 @@ function ak_export_html(array $data): string {
         foreach(array_chunk($dateColumns,12) as $chunk)$groups[]=[0,1,2,...$chunk,...range(count($headers)-5,count($headers)-1)];
     }
     $html='<!doctype html><html lang="id"><meta charset="utf-8"><title>'.e($data['title']).'</title><style>body{font:11px Arial,sans-serif;color:#111}h1{font-size:18px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{border:1px solid #ccc;padding:5px;white-space:pre-wrap;overflow-wrap:anywhere}th{background:#f3f4f6}thead{display:table-header-group}tr{break-inside:avoid}section{break-after:page}section:last-of-type{break-after:auto}@page{size:A4 landscape;margin:12mm}@media print{button{display:none}}</style><body><button onclick="window.print()">Cetak / Simpan PDF</button>';
+    if(($data['layout']??'')==='jurnal')return $html.ak_print_journal($data['meeting'],$data['attendance']).'</body></html>';
+    if(($data['layout']??'')==='agenda')return $html.ak_print_agenda($data['meetings']).'</body></html>';
     foreach($groups as $number=>$indices) {
         $html.='<section><h1>'.e($data['title']).'</h1><p>SMK Negeri 2 Magelang · Data pengujian development · Dicetak '.e(date('Y-m-d H:i')).' · Bagian '.($number+1).'</p><table><thead><tr>';
         foreach($indices as $i)$html.='<th>'.e($headers[$i]).'</th>';

@@ -8,7 +8,7 @@ require_once __DIR__.'/layout.php';
 require_once dirname(__DIR__).'/includes/crud.php';
 require_login();
 if (app_setting('ACADEMIC_WORKFLOWS')!=='1') not_found();
-$view=input_choice(['view'=>$_GET['view']??'beranda'],'view',['beranda','fondasi','pertemuan','jurnal','piket','kalender','nilai','rapor','impor','kehadiran']);
+$view=input_choice(['view'=>$_GET['view']??'beranda'],'view',['beranda','fondasi','pertemuan','jurnal','piket','kalender','nilai','rapor','impor','kehadiran','jadwal']);
 if($view==='kehadiran')require_role('siswa');
 if($view==='fondasi')require_role('admin');
 if(in_array($view,['pertemuan','jurnal','piket','nilai','impor'],true))require_role(...($view==='pertemuan'?['guru']:['admin','guru','kepala_sekolah']));
@@ -23,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
             case 'anggota': ak_save_member($_POST); break;
             case 'penugasan': ak_save_assignment_window($_POST); break;
             case 'piket': ak_save_duty($_POST); break;
+            case 'wali': ak_save_wali($_POST); break;
+            case 'rapor_review': ak_review_report($_POST); break;
             case 'pertemuan': ak_save_meeting($_POST); break;
             case 'rekonsiliasi': ak_reconcile($_POST); break;
             case 'koreksi_harian': ak_correct_daily($_POST); break;
@@ -37,14 +39,14 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
         }
         if(!$didPreview)flash('success','Data berhasil disimpan dan riwayat perubahan dicatat.');
         $params=['view'=>$view];
-        foreach(['id_jadwal','id_tahun_ajaran','id_kelas','tanggal','bulan'] as $key) if(isset($_GET[$key]) && is_string($_GET[$key])) $params[$key]=$_GET[$key];
+        foreach(['id_jadwal','id_tahun_ajaran','id_kelas','tanggal','bulan','id','module','nis'] as $key) if(isset($_GET[$key]) && is_string($_GET[$key])) $params[$key]=$_GET[$key];
         if(!$didPreview)redirect('/academic/index.php?'.http_build_query($params));
     } catch (Throwable $caught) { $error=operation_error($caught); }
 }
 ob_start();
-$titles=['beranda'=>'Ruang Akademik','fondasi'=>'Fondasi Akademik','pertemuan'=>'Absensi & Pertemuan','jurnal'=>'E-Jurnal Kelas & Agenda Guru','piket'=>'Monitoring Guru Piket','kalender'=>'Kalender Akademik','nilai'=>'Penilaian','rapor'=>'Rapor Semester','impor'=>'Impor & Ekspor','kehadiran'=>'Kehadiran Saya'];
+$titles=['beranda'=>'Ruang Akademik','fondasi'=>'Fondasi Akademik','pertemuan'=>'Absensi & Pertemuan','jurnal'=>'E-Jurnal Kelas & Agenda Guru','piket'=>'Monitoring Guru Piket','kalender'=>'Kalender Akademik','nilai'=>'Penilaian','rapor'=>'Rapor Semester','impor'=>'Impor & Ekspor','kehadiran'=>'Kehadiran Saya','jadwal'=>'Jadwal Pelajaran'];
 // View files are an explicit allowlist, never a user-supplied path.
-$views=['beranda'=>'home','fondasi'=>'foundation','pertemuan'=>'meeting','jurnal'=>'journal','piket'=>'duty','kalender'=>'calendar','nilai'=>'grades','rapor'=>'reports','impor'=>'transfer','kehadiran'=>'student_attendance'];
+$views=['beranda'=>'home','fondasi'=>'foundation','pertemuan'=>'meeting','jurnal'=>'journal','piket'=>'duty','kalender'=>'calendar','nilai'=>'grades','rapor'=>'reports','impor'=>'transfer','kehadiran'=>'student_attendance','jadwal'=>'schedules'];
 ak_begin($titles[$view],$view);
 if ($error!=='') echo '<div class="notice error" role="alert">'.e($error).'</div>';
 $path=__DIR__.'/views/'.$views[$view].'.php';

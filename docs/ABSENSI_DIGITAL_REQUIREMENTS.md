@@ -1,5 +1,7 @@
 # Ketentuan absensi digital — fase setelah fondasi penugasan/periode
 
+> Status development 31 Oktober 2026: implementasi dan bukti fungsi terbaru dicatat pada [MATRIKS_FUNGSI_AKADEMIK.md](MATRIKS_FUNGSI_AKADEMIK.md). Catatan R1.5 di bawah tetap merupakan riwayat fase tersebut; 18 penugasan asli tidak otomatis dipetakan.
+
 Sumber: penegasan pengguna 31 Oktober 2026. **Spesifikasi dicatat; belum diimplementasikan pada R1.5.** R1.5 tidak menambah permission Guru Piket, status baru, migration absensi atau fitur kalender. Implementasi menunggu penugasan/periode yang sah dan fondasi riwayat kelas R2, lalu fase absensi/jurnal terkait. Jangan membuka akses guru untuk mengatasi 18 penugasan yang masih PENDING ADMIN REVIEW.
 
 ## Platform dan visual

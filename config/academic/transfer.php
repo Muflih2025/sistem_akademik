@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/calendar.php';
 require_once __DIR__.'/grades.php';
 require_once dirname(__DIR__).'/import_service.php';
+require_once __DIR__.'/transfer_foundation.php';
 
 const AK_IMPORT_HEADERS=[
     'absensi'=>['nis','status','keterangan'],
@@ -10,6 +11,8 @@ const AK_IMPORT_HEADERS=[
     'kalender'=>['mulai','selesai','judul','jenis','status','catatan'],
     'siswa'=>['nis','nama_siswa','jenis_kelamin','tanggal_lahir','id_kelas','alamat'],
     'guru'=>['nip','nama_guru','email','no_hp'],
+    'anggota'=>['nis','id_kelas','nomor_absen','mulai','selesai'],
+    'penugasan'=>['id_guru','id_mapel','id_kelas','hari','jam_mulai','jam_selesai','ruang','mulai','selesai','catatan'],
 ];
 function ak_import_template(string $module,array $input): array {
     $rows=[];
@@ -21,6 +24,8 @@ function ak_import_template(string $module,array $input): array {
     return ['title'=>'Template impor '.$module,'headers'=>AK_IMPORT_HEADERS[$module],'rows'=>$rows];
 }
 function ak_preview_import(array $input,array $file): array {
+    // A new upload attempt invalidates the old preview, including validation failures.
+    unset($_SESSION['ak_import']);
     $module=input_choice($input,'module',array_keys(AK_IMPORT_HEADERS));
     if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK || !is_string($file['tmp_name']??null) || !is_uploaded_file($file['tmp_name']))throw new InputError('Unggah berkas CSV / XLSX yang valid.');
     $extension=strtolower(pathinfo(is_string($file['name']??null)?$file['name']:'',PATHINFO_EXTENSION));
@@ -31,11 +36,13 @@ function ak_preview_import(array $input,array $file): array {
     $seen=[];$normalized=[];
     foreach($rows as $i=>$row) {
         if(count($row)!==count($headers))throw new InputError('Jumlah kolom tidak cocok pada baris '.($i+2).'.');
-        $entry=array_combine($headers,$row);$key=$module==='kalender'?implode('|',[$entry['mulai'],$entry['selesai'],$entry['judul']]):($module==='guru'?$entry['nip']:$entry['nis']);
+        $entry=array_combine($headers,$row);$key=$module==='kalender'?implode('|',[$entry['mulai'],$entry['selesai'],$entry['judul']]):($module==='penugasan'?implode('|',$entry):($module==='guru'?$entry['nip']:$entry['nis']));
         if(isset($seen[$key]))throw new InputError('Data duplikat pada baris '.($i+2).'.');$seen[$key]=true;$normalized[]=$entry;
     }
     $context=['module'=>$module,'alasan'=>input_text($input,'alasan',500)];
-    if(in_array($module,['siswa','guru'],true)) {
+    if(in_array($module,['anggota','penugasan'],true)) {
+        $context+=ak_preview_foundation_import($module,$input,$normalized);
+    }elseif(in_array($module,['siswa','guru'],true)) {
         permission('master.manage');
         foreach($normalized as $row) {
             if($module==='siswa') {
@@ -97,6 +104,7 @@ function ak_commit_import(array $input): int {
     if(($input['konfirmasi']??'')!=='1')throw new InputError('Konfirmasikan pemeriksaan preview sebelum menerapkan impor.');
     $context=$preview['context'];
     $count=db_transaction(function()use($preview,$context,$input):int {
+        if(in_array($preview['module'],['anggota','penugasan'],true))return ak_commit_foundation_import($preview,$input);
         if(in_array($preview['module'],['siswa','guru'],true)) {
             foreach($preview['rows'] as $row)save_master($preview['module'],$row+['action'=>'create']);
             return count($preview['rows']);

@@ -9,7 +9,7 @@ def main():
  os.umask(0o077);config=json.loads((STATE/'private/runtime.json').read_text())
  assert config['DB_NAME']=='sia_academic_dev_20261031' and config['APP_ENV']=='testing' and config.get('DB_SOCKET')
  env={**os.environ,'PLAYWRIGHT_BROWSERS_PATH':config['PDF_BROWSERS_PATH'],'LD_LIBRARY_PATH':config['PDF_LIBRARY_PATH']}
- suites=[('http',['python3','tests/academic_http.py'],'academic-http-tests.json'),('edges',['python3','tests/academic_edges.py'],'academic-edge-tests.json'),('browser',['node','tests/academic_browser.cjs'],'academic-browser-tests.json'),('login',['node','tests/login_layout.cjs'],'login-layout-tests.json'),('integrity',['python3','tests/academic_integrity.py'],'academic-integrity-tests.json')]
+ suites=[('http',['python3','tests/academic_http.py'],'academic-http-tests.json'),('edges',['python3','tests/academic_edges.py'],'academic-edge-tests.json'),('completion',['python3','tests/academic_completion_http.py'],'completion-http-tests.json'),('functional-browser',['node','tests/academic_functional_browser.cjs'],'functional-browser-tests.json'),('browser',['node','tests/academic_browser.cjs'],'academic-browser-tests.json'),('login',['node','tests/login_layout.cjs'],'login-layout-tests.json'),('integrity',['python3','tests/academic_integrity.py'],'academic-integrity-tests.json')]
  reports=[]
  for name,args,file in suites:
   start=time.time();log=STATE/'reports'/(name+'-latest.log')

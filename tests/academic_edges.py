@@ -34,7 +34,7 @@ def main():
   r=b.request('/academic/index.php?view=impor&module='+module,'POST',b''.join(parts),{'Content-Type':'multipart/form-data; boundary='+boundary});status(r,want)
   if want==200:return re.search(rb'name="preview_token" value="([a-f0-9]+)"',r[2]).group(1).decode()
  def commit(b,token,want=302):return post(b,{'action':'impor_commit','preview_token':token,'konfirmasi':'1'},want)
- admin=login('admin');teacher=login('teacher');duty=login('duty');student=login('student')
+ admin=login('admin');teacher=login('teacher');duty=login('duty');student=login('student');wali=login('wali')
  test('legacy_student_report_redirects_to_snapshot_gate',lambda:check(get(student,'/siswa/rapor.php',302)[1].get('Location','').startswith('/academic/index.php?view=rapor')))
  test('legacy_attendance_write_disabled_in_new_workflow',lambda:post(teacher,{},409,'/guru/absen.php'))
  test('legacy_calendar_write_disabled',lambda:post(admin,{},409,'/admin/kalender.php'))
@@ -98,6 +98,8 @@ def main():
  # New report snapshots are invalidated for publication when their source revisions change.
  build={'action':'rapor_buat','id_tahun_ajaran':1,'nis':'0000001','tanggal':'2026-10-30','alasan':'Snapshot edge '+tag}
  def transition(rid,target,want=302):
+  if target=='terverifikasi' and want==302:
+   rev=scalar('SELECT revision FROM ak_rapor_status WHERE id_snapshot=?',[rid]);post(wali,{'action':'rapor_review','id':rid,'revision':rev,'keputusan':'disetujui','catatan':'Pemeriksaan wali fixture kasus batas'})
   rev=scalar('SELECT revision FROM ak_rapor_status WHERE id_snapshot=?',[rid]);return post(admin,{'action':'rapor_status','id':rid,'revision':rev,'status':target,'alasan':'Review fixture '+tag},want)
  post(admin,build);rid=int(scalar('SELECT MAX(id) FROM ak_rapor_snapshot'));post(teacher,bulk())
  test('report_source_change_blocks_verification',lambda:transition(rid,'terverifikasi',422))

@@ -54,16 +54,16 @@ def main():
     save_json(STATE/'private/owner.json',owner)
     save_json(STATE/'private/runtime.json',runtime)
     save_json(STATE/'private/inspector.json',{**admin,'DB_NAME':DATABASE})
-    fixture={'admin':'uji_admin','teacher':'uji_guru','other_teacher':'uji_guru_lain','duty':'uji_piket','student':'uji_siswa','head':'uji_kepsek','password':secrets.token_urlsafe(24)}
+    fixture={'admin':'uji_admin','teacher':'uji_guru','other_teacher':'uji_guru_lain','duty':'uji_piket','student':'uji_siswa','head':'uji_kepsek','wali':'uji_wali','password':secrets.token_urlsafe(24)}
     save_json(STATE/'private/test-accounts.json',fixture)
     env={**os.environ,'SIA_CONFIG_FILE':str(STATE/'private/owner.json')}
-    for args in [['ops/migrate_r1.php','--apply','--expected-database='+DATABASE],['ops/migrate_academic.php','--apply','--expected-database='+DATABASE],['ops/academic_fixture.php',str(STATE/'private/test-accounts.json')]]:
+    for args in [['ops/migrate_r1.php','--apply','--expected-database='+DATABASE],['ops/migrate_academic.php','--apply','--expected-database='+DATABASE],['ops/academic_fixture.php',str(STATE/'private/test-accounts.json')],['ops/academic_completion_fixture.php',str(STATE/'private/test-accounts.json')]]:
         r=subprocess.run(['php',*args],cwd=ROOT,env=env,capture_output=True)
         assert r.returncode==0,'Migration/fixture failed; preserve DB and inspect locally (no automatic reset)'
     tables=mysql(client,"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='"+DATABASE+"' AND TABLE_TYPE='BASE TABLE';").decode().split()
     allowed_legacy={'jurusan','kelas','guru','siswa','mata_pelajaran','jadwal','users','tahun_ajaran','nilai','absensi','jurnal_kelas','bobot_penilaian','ekstrakurikuler','nilai_ekskul','kalender_akademik','catatan_evaluasi'}
     for table in tables:
-        privileges='SELECT,INSERT' if table in {'ak_riwayat','ak_aturan_nilai','ak_rapor_snapshot'} else 'INSERT' if table=='audit_aktivitas' else 'SELECT,INSERT,UPDATE' if table in allowed_legacy or table.startswith('ak_') else None
+        privileges='SELECT,INSERT' if table in {'ak_riwayat','ak_aturan_nilai','ak_rapor_snapshot','ak_review_rapor'} else 'INSERT' if table=='audit_aktivitas' else 'SELECT,INSERT,UPDATE' if table in allowed_legacy or table.startswith('ak_') else None
         if privileges:
             mysql(client,'GRANT '+privileges+' ON `'+DATABASE+'`.`'+table+"` TO '"+names[0]+"'@'localhost';")
     mysql(client,'GRANT DELETE ON `'+DATABASE+"`.catatan_evaluasi TO '"+names[0]+"'@'localhost';")
