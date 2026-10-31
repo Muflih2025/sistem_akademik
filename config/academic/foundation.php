@@ -57,6 +57,7 @@ function ak_period_settings(array $input): void {
         $before = ak_one('SELECT * FROM ak_periode WHERE id_tahun_ajaran=?',[$id]);
         if ($before) {
             $used = (int)ak_query('SELECT COUNT(*) FROM ak_pertemuan WHERE id_tahun_ajaran=?',[$id])->fetchColumn();
+            $used += (int)ak_query('SELECT COUNT(*) FROM ak_kenaikan_batch WHERE periode_asal=? OR periode_tujuan=?',[$id,$id])->fetchColumn();
             if ($used && ($from!==$before['mulai'] || $until!==$before['selesai'] || $days!==$before['hari_efektif'] || $verified!==(string)$before['terverifikasi'])) throw new InputError('Aturan periode telah digunakan pertemuan. Perubahan membutuhkan peninjauan historis terpisah.');
             if (ak_one('SELECT id FROM ak_anggota_kelas WHERE id_tahun_ajaran=? AND (mulai<? OR selesai>?) LIMIT 1',[$id,$from,$until])) throw new InputError('Tanggal baru akan mengeluarkan keanggotaan existing dari periode.');
             if (ak_one('SELECT id FROM ak_kalender WHERE id_tahun_ajaran=? AND (mulai<? OR selesai>?) LIMIT 1',[$id,$from,$until])) throw new InputError('Tanggal baru tidak mencakup kegiatan kalender existing.');
@@ -73,12 +74,14 @@ function ak_save_member(array $input): int {
         $period = ak_period(input_id($input,'id_tahun_ajaran'),true);
         $class = input_id($input,'id_kelas'); active_reference('kelas','id_kelas',$class);
         $nis = input_text($input,'nis',15); active_reference('siswa','nis',$nis);
+        if(ak_one("SELECT id FROM ak_kenaikan_detail WHERE nis=? AND hasil='alumni' AND tanggal_berlaku<=? LIMIT 1",[$nis,input_date($input,'selesai')]))throw new InputError('Siswa telah tercatat sebagai alumni pada rentang ini. Penerimaan kembali memerlukan proses tersendiri.');
         $number = input_id($input,'nomor_absen'); if ($number>1000) throw new InputError('Nomor absen maksimal 1000.');
         $from = input_date($input,'mulai'); $until = input_date($input,'selesai');
         if ($from>$until || $from<$period['mulai'] || $until>$period['selesai']) throw new InputError('Tanggal keanggotaan harus di dalam periode dan berurutan.');
         $id = ($input['id']??'')!==''?input_id($input,'id'):0;
         $before = $id?ak_one('SELECT * FROM ak_anggota_kelas WHERE id=? FOR UPDATE',[$id]):null;
         if ($id && (!$before || (int)$before['id_tahun_ajaran']!==(int)$period['id_tahun_ajaran'])) deny_access();
+        if($before && ak_one('SELECT id FROM ak_kenaikan_detail WHERE id_anggota_asal=? OR id_anggota_tujuan=? LIMIT 1',[$id,$id]))throw new InputError('Keanggotaan telah digunakan dalam kenaikan kelas. Riwayat tersebut tidak dapat diubah.');
         if ($before) {
             if ($nis!==$before['nis'] || $class!==(int)$before['id_kelas'] || $from!==$before['mulai']) throw new InputError('Identitas keanggotaan tetap. Tutup rentang lama lalu buat rentang baru.');
             $last = ak_query('SELECT MAX(p.tanggal) FROM ak_absensi_sesi a JOIN ak_pertemuan p ON p.id=a.id_pertemuan WHERE a.id_anggota=?',[$id])->fetchColumn();

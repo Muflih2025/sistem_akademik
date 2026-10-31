@@ -37,13 +37,13 @@ def main():
  def idempotent():
   before=snapshot(STATE/'private/inspector.json');r=subprocess.run(['python3',str(ROOT/'ops/academic_kelas10.py'),'--source',str(source),'--expected-database=sia_academic_dev_20261031','--apply'],capture_output=True);check(r.returncode==0 and json.loads(r.stdout)['status']=='already_imported_verified' and before==snapshot(STATE/'private/inspector.json'))
  test('repeated_import_is_read_only_without_duplicates',idempotent)
- references=db('SELECT * FROM ak_jam_belajar');profiles={r['nama']:json.loads(r['payload_json'])for r in references}
+ references=db('SELECT * FROM ak_jam_belajar WHERE versi=1');profiles={r['nama']:json.loads(r['payload_json'])for r in references}
  test('bell_reference_three_versioned_profiles_stored_in_real_DB',lambda:check(len(references)==3 and all(r['versi']==1 for r in references)))
  test('bell_slots_10_Monday_10_TuesdayThursday_8_Friday',lambda:check(sorted(sum(x[0]is not None for x in p['slots'])for p in profiles.values())==[8,10,10]))
  friday=next(r for r in references if r['status']=='perlu_konfirmasi');fp=json.loads(friday['payload_json'])
  test('Friday_1050_1140_retained_pending_confirmation',lambda:check(any(x[:3]==[6,'10:50','11:40']for x in fp['slots']) and any(x[0]is None and x[1]=='11:40' and x[2]=='13:00' and 'belum' in x[3]for x in fp['slots'])))
  grantee="'ak_dev_runtime_1031'@'localhost'"
- test('runtime_bell_reference_SELECT_only_no_write_privilege',lambda:check({r['PRIVILEGE_TYPE']for r in db('SELECT PRIVILEGE_TYPE FROM information_schema.TABLE_PRIVILEGES WHERE GRANTEE=? AND TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?',[grantee,'ak_jam_belajar'])}=={'SELECT'}))
+ test('runtime_bell_reference_append_only_no_update_delete',lambda:check({r['PRIVILEGE_TYPE']for r in db('SELECT PRIVILEGE_TYPE FROM information_schema.TABLE_PRIVILEGES WHERE GRANTEE=? AND TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?',[grantee,'ak_jam_belajar'])}=={'SELECT','INSERT'}))
  credentials=json.loads((STATE/'private/test-accounts.json').read_text())
  def login(role):
   b=Browser();r=b.request('/auth/login.php');check(b.request('/auth/login.php','POST',{'csrf_token':csrf(r[2].decode()),'username':credentials[role],'password':credentials['password']})[0]==302);return b

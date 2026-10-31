@@ -17,7 +17,7 @@ function ak_textarea(string $key,string $label,string $value='',bool $required=f
 function ak_begin(string $title,string $view): void {
     $role=current_user()['role'];
     $links=['beranda'=>'Beranda'];
-    if ($role==='admin') $links+=['fondasi'=>'Akademik','piket'=>'Guru Piket'];
+    if ($role==='admin') $links+=['fondasi'=>'Akademik','piket'=>'Guru Piket','kenaikan'=>'Naik Kelas','alumni'=>'Alumni'];
     if ($role==='guru') $links+=['pertemuan'=>'Absensi','jurnal'=>'Jurnal & Agenda','piket'=>'Guru Piket'];
     if (in_array($role,['admin','kepala_sekolah'],true)) $links+=['jurnal'=>'Jurnal','piket'=>'Absensi Harian'];
     $links+=['kalender'=>'Kalender'];

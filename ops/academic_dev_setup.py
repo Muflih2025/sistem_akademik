@@ -63,7 +63,7 @@ def main():
     tables=mysql(client,"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='"+DATABASE+"' AND TABLE_TYPE='BASE TABLE';").decode().split()
     allowed_legacy={'jurusan','kelas','guru','siswa','mata_pelajaran','jadwal','users','tahun_ajaran','nilai','absensi','jurnal_kelas','bobot_penilaian','ekstrakurikuler','nilai_ekskul','kalender_akademik','catatan_evaluasi'}
     for table in tables:
-        privileges='SELECT' if table=='ak_jam_belajar' else 'SELECT,INSERT' if table in {'ak_riwayat','ak_aturan_nilai','ak_rapor_snapshot','ak_review_rapor'} else 'INSERT' if table=='audit_aktivitas' else 'SELECT,INSERT,UPDATE' if table in allowed_legacy or table.startswith('ak_') else None
+        privileges='SELECT,INSERT' if table in {'ak_jam_belajar','ak_kenaikan_batch','ak_kenaikan_detail','ak_riwayat','ak_aturan_nilai','ak_rapor_snapshot','ak_review_rapor'} else 'INSERT' if table=='audit_aktivitas' else 'SELECT,INSERT,UPDATE' if table in allowed_legacy or table.startswith('ak_') else None
         if privileges:
             mysql(client,'GRANT '+privileges+' ON `'+DATABASE+'`.`'+table+"` TO '"+names[0]+"'@'localhost';")
     mysql(client,'GRANT DELETE ON `'+DATABASE+"`.catatan_evaluasi TO '"+names[0]+"'@'localhost';")

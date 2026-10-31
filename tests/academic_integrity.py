@@ -39,7 +39,7 @@ def main():
  test('runtime_no_DDL_no_grant_privileges',lambda:check(not types.intersection({'CREATE','ALTER','DROP','INDEX','REFERENCES','GRANT OPTION','TRIGGER','EVENT','CREATE ROUTINE','ALTER ROUTINE'})))
  test('runtime_and_deployment_distinct_principals',lambda:check(runtime['DB_USER']!=json.loads((STATE/'private/owner.json').read_text())['DB_USER']))
  test('runtime_not_root_and_staging_socket_only',lambda:check(runtime['DB_USER']!='root' and db('SELECT @@skip_networking n',config='runtime.json')[0]['n']==1))
- for table in ['ak_aturan_nilai','ak_rapor_snapshot','ak_riwayat']:
+ for table in ['ak_aturan_nilai','ak_rapor_snapshot','ak_riwayat','ak_jam_belajar','ak_kenaikan_batch','ak_kenaikan_detail']:
   test('append_only_runtime_grants_'+table,lambda table=table:check({r['PRIVILEGE_TYPE'] for r in db('SELECT PRIVILEGE_TYPE FROM information_schema.TABLE_PRIVILEGES WHERE GRANTEE=? AND TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?',[grantee,table])}=={'SELECT','INSERT'}))
  # Fresh private backup and create-only restore on the socket-only synthetic server.
  client=Path('/home/muflih/.local/state/sia-r0/20261030-r0/private/stage-admin.cnf');check(mysql(client,'SELECT @@skip_networking').strip()==b'1')

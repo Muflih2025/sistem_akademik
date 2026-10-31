@@ -59,6 +59,10 @@ function save_master(string $table,array $input):string {
         }elseif($table==='kelas'){
             $data['nama_kelas']=input_text($input,'nama_kelas',20);unique_value($table,'nama_kelas',$data['nama_kelas'],$pk,$id);
             $data['tingkat']=input_choice($input,'tingkat',['X','XI','XII']);$data['id_jurusan']=input_id($input,'id_jurusan');active_reference('jurusan','id_jurusan',$data['id_jurusan']);
+            if($before && app_setting('ACADEMIC_WORKFLOWS')==='1' && ($data['tingkat']!==$before['tingkat'] || $data['id_jurusan']!==(int)$before['id_jurusan'])){
+                $q=$pdo->prepare('SELECT id FROM ak_anggota_kelas WHERE id_kelas=? LIMIT 1');$q->execute([$id]);
+                if($q->fetch())throw new InputError('Tingkat dan jurusan kelas beranggota historis tidak dapat diganti. Buat kelas baru; nama tetap dapat diperbaiki.');
+            }
         }elseif($table==='mata_pelajaran'){
             $data['kode_mapel']=input_text($input,'kode_mapel',10);unique_value($table,'kode_mapel',$data['kode_mapel'],$pk,$id);
             $data['kelompok']=input_choice($input,'kelompok',['Muatan Nasional','Muatan Kewilayahan','Produktif']);$data['kkm']=input_number($input,'kkm',1,100);

@@ -79,7 +79,7 @@ Server menggunakan unit lokal yang sudah ada, DynamicUser non-root, kode read-on
 # Sudah tersedia di lingkungan ini; hanya bila dependency tes PDF belum ada:
 python3 ops/academic_test_dependencies.py
 # Seluruh suite berurutan, termasuk operasi browser yang menyimpan data:
-python3 tests/run_academic.py --with-kelas10 \
+python3 tests/run_academic.py --with-kelas10 --with-progression \
   --baseline-directory /home/muflih/.local/state/sia-academic-dev/20261031/reports/kelas10-baseline
 ```
 
@@ -95,7 +95,7 @@ Sumber pengganti yang dipakai adalah `/home/muflih/sistem_akademik/data kelas 10
 
 - Admin `uji_admin`: buka `/admin/master.php?table=siswa`, pilih kelas X dan **Terapkan filter**. Contoh **X PPLG 2** mempunyai 35 siswa, terbagi 20 dan 15 pada dua halaman. Kelas/jurusan juga tersedia di master masing-masing.
 - Guru Piket `uji_piket`: buka `/academic/index.php?view=piket`, tanggal **2026-10-30**, pilih kelas X. Siswa baru seluruhnya Belum Dikonfirmasi sampai ada pengisian yang sah. Excel/CSV/PDF memakai roster keanggotaan yang sama.
-- Semua akun testing yang sudah login dapat membuka **Jam Belajar**: `/academic/index.php?view=jam`. Profil Senin, Selasa–Kamis dan Jumat berasal dari gambar, disimpan berversi di database. Halaman ini hanya membaca referensi; tidak otomatis mengubah jadwal.
+- Semua akun testing yang sudah login dapat membuka **Jam Belajar**: `/academic/index.php?view=jam`. Profil Senin, Selasa–Kamis dan Jumat berasal dari gambar, disimpan berversi di database. **Admin dapat mengubah jam**; guru/siswa/kepsek membaca versi terbaru. Perubahan jam umum tidak otomatis mengubah jadwal dan pertemuan historis.
 - Guru belum diberi penugasan tambahan untuk kelas X. Admin harus menetapkan guru, mapel, hari, rentang jam dan periode, kemudian memverifikasi rentang penugasan di **Akademik**. Tabel jam bel tidak menyebut guru/mapel, sehingga tidak digunakan untuk mengarang jadwal. Alur guru/jurnal contoh XII tetap tersedia.
 - Keanggotaan kelas X memakai **periode fixture sintetis 2026/2027 Ganjil** yang sudah ada, bukan periode yang diperoleh dari Excel. Excel tidak mempunyai tanggal lahir; nilai `2010-01-01` adalah placeholder **DATA UJI**, diberi keterangan pada alamat, bukan informasi siswa dari sumber. Jangan gunakan sebagai data sekolah resmi.
 - Jumat jam ke-6 **10:50–11:40**, jam ke-7 **13:00–13:30** dipertahankan sesuai gambar; status referensi **perlu konfirmasi**. Jenis jeda 11:40–13:00 belum ditetapkan pengguna.
@@ -104,4 +104,18 @@ Impor dilakukan sekali melalui CRUD dan preview/commit yang terautentikasi; scri
 
 ## Batas yang masih perlu keputusan
 
-Delapan alur inti sudah dapat diuji lokal. Data sekolah asli/18 penugasan, kalender resmi, pengesahan kurikulum/format cetak persis foto dan tanda tangan resmi masih memerlukan validasi sekolah. Kenaikan kelas/mutasi massal, penyetaraan nilai lintas kelas serta modul tambahan legacy ekstrakurikuler/evaluasi belum dinyatakan selesai seluruhnya. Pengujian beban/multi-worker, Android/iOS fisik, LAN dan produksi belum dilakukan. Tidak ada Docker/deployment produksi pada pekerjaan ini.
+Delapan alur inti sudah dapat diuji lokal. Data sekolah asli/18 penugasan, kalender resmi, pengesahan kurikulum/format cetak persis foto dan tanda tangan resmi masih memerlukan validasi sekolah. Kenaikan tahunan kini tersedia. Mutasi khusus massal, penyetaraan nilai lintas kelas serta modul tambahan legacy ekstrakurikuler/evaluasi belum dinyatakan selesai seluruhnya. Pengujian beban/multi-worker, Android/iOS fisik, LAN dan produksi belum dilakukan. Tidak ada Docker/deployment produksi pada pekerjaan ini.
+
+## Kelola kelas, jam, kenaikan dan alumni
+
+Daftar awal sekarang **36 kelas**: X/XI/XII × PPLG/AKL/PM/MPLB × paralel 1/2/3. Penambahan 23 kelas mempertahankan 13 kelas existing. Kelas tanpa siswa memang kosong; tidak diisi siswa rekaan atau diberi jadwal guru otomatis. Admin dapat menambah, memperbaiki nama dan menonaktifkan kelas melalui `/admin/master.php?table=kelas`; tersedia filter tingkat/jurusan dan 20 baris per halaman. Tingkat/jurusan kelas yang sudah mempunyai keanggotaan historis tidak dapat diganti untuk menafsirkan ulang arsip.
+
+**Mengubah jam:** login `uji_admin` → **Jam Belajar** → **Ubah Jam Senin / Selasa–Kamis / Jumat**. Edit mulai/selesai, nomor pelajaran dan keterangan. Kosongkan nomor untuk upacara, istirahat atau kegiatan. Tambah/hapus baris bila diperlukan. Isi alasan, catatan dan status; centang pemeriksaan untuk menyimpan status Referensi. Klik **Simpan Jam**, reload dan periksa versi/riwayat. Waktu yang terbalik/bertumpang tindih, nomor ganda dan formulir versi lama ditolak. Jam berlaku umum bagi semua kelas, belum menetapkan mapel/guru. Akun selain Admin tidak dapat mengedit melalui URL maupun POST.
+
+**Naik Kelas:** login Admin → `/academic/index.php?view=kenaikan`. Pilih **Genap asal** secara eksplisit → **Muat kelas asal**. Pilih Ganjil tahun berikutnya yang terverifikasi dan tidak dikunci, periksa pemetaan X→XI dan XI→XII pada jurusan yang sama, serta XII→Alumni. Masukkan dasar keputusan → **Pratinjau Naik Kelas**. Setelah memeriksa jumlah dan setiap tujuan, centang konfirmasi lalu **Terapkan Naik Kelas**. Proses menyimpan satu batch atomik, keanggotaan baru bertanggal, hasil setiap siswa, identitas Admin dan audit. Kelas tujuan yang sudah berisi anggota/histori serta siswa yang sudah diproses ditolak; tidak ada penimpaan atau klik ulang yang menggandakan data.
+
+Sumber siswa adalah anggota kelas yang berlaku pada akhir Genap asal. Nomor absen dipertahankan. Kenaikan berlaku pada awal Ganjil tujuan dan tidak mengganti periode aktif otomatis. Keanggotaan, nilai, absensi, jurnal dan rapor lama tidak diubah. Master Siswa menampilkan kelas yang berlaku **hari ini** dari keanggotaan; referensi kelas master lama tetap ada. Kenaikan bertanggal mendatang belum mengubah kelas hari ini. XII menjadi calon alumni hingga tanggal berlaku, lalu alumni; akun/rapor terbit historis tidak dihapus atau direset. Form keanggotaan biasa menolak pendaftaran setelah tanggal kelulusan. Penerimaan kembali alumni, mutasi khusus dan pembatalan batch memerlukan workflow tersendiri; tidak tersedia rollback massal yang menghapus riwayat.
+
+Untuk uji manual tanpa menaikkan 389 siswa Excel, tersedia **tiga siswa sintetis khusus** (satu X, satu XI, satu XII) dalam periode berlabel `DATA UJI KENAIKAN Manual`. Link dan ID periode tepat dicatat pada laporan checkpoint terbaru dan `reports/progression-manual-guide.json` privat. Siswa contoh ini belum diproses. Pilih tujuan secara manual pada kelas berlabel Uji, karena penamaan kelas contoh tidak memakai pola sekolah. Jangan menekan Terapkan untuk periode/data lain yang belum ditinjau.
+
+**Alumni:** `/academic/index.php?view=alumni`, cari NIS/nama/kelas dan lihat batch asal. Status calon alumni dibedakan dari alumni berdasarkan tanggal berlaku. Semua daftar memakai pagination backend: master, periode, keanggotaan, batch, alumni, rapor dan jurnal 20 baris per halaman; Piket 6 kelas per halaman. Pilihan siswa pada form anggota dibatasi 50 hasil; gunakan pencarian NIS/nama di filter periode untuk menemukan siswa lainnya. Daftar absensi satu kelas tetap memuat seluruh roster agar penyimpanan tidak menghilangkan siswa di halaman lain.
