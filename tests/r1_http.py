@@ -12,6 +12,7 @@ def main():
  config=json.loads((state/'private/runtime.json').read_text());assert config['DB_NAME']=='r1_testing_20261030' and config['APP_ENV']=='testing' and config.get('DB_SOCKET')
  creds=json.loads((state/'private/fixture-login.json').read_text());base='http://127.0.0.1:'+str(a.port);tag=secrets.token_hex(3);run=state/'security'/tag;run.mkdir(mode=0o700);config['SECURITY_STATE_PATH']=str(run);save_json(state/'private/runtime.json',config)
  results=[];ctx={};password=creds['password'];protected_legacy={}
+ error_log_path=state/'logs/php-errors.log';error_log_offset=error_log_path.stat().st_size if error_log_path.exists() else 0
  def db(sql,args=None):
   result=subprocess.run(['php',str(ROOT/'tests/r1_db.php'),str(state/'private/inspector.json')],input=json.dumps({'sql':sql,'args':args or []}).encode(),capture_output=True)
   if result.returncode:raise RuntimeError('Fixture helper refused/failed')
@@ -227,7 +228,7 @@ def main():
  test('attendance_foreign_student_POST',lambda:submit(teacher,'/guru/absen.php',{**attendance,'nis':'0000002'},403))
  test('attendance_wrong_record_id',lambda:submit(teacher,'/guru/absen.php',{**attendance,'id_absen':'2'},403))
  test('attendance_closed_period',lambda:submit(teacher,'/guru/absen.php',{**attendance,'id_jadwal':'4'},403))
- test('attendance_unknown_legacy_period_no_guess',lambda:submit(teacher,'/guru/absen.php',{**attendance,'id_jadwal':'5','tanggal':'2026-10-22'},422))
+ test('attendance_unknown_legacy_period_no_guess',lambda:submit(teacher,'/guru/absen.php',{**attendance,'id_jadwal':'5','tanggal':'2026-10-22'},403))
  test('attendance_wrong_weekday',lambda:submit(teacher,'/guru/absen.php',{**attendance,'tanggal':'2026-10-27'},422))
  def attendance_identity():
   submit(teacher,'/guru/absen.php',{**attendance,'created_by':'1'});record=row("SELECT * FROM absensi WHERE id_jadwal=1 AND tanggal='2026-10-26' AND nis='0000001'");check(record['created_by']==50 and record['created_by']!=1);ctx['attendance']=record['id_absen']
@@ -258,7 +259,8 @@ def main():
    db("UPDATE jadwal SET status='nonaktif' WHERE id_guru=1 AND id_tahun_ajaran IS NOT NULL")
    for path in ['/guru/rapor.php?id_kelas=1&nis=0000001&id_tahun_ajaran=1','/guru/rapor.php?id_kelas=1&nis=0000001&id_tahun_ajaran=2','/guru/export_nilai.php?id_kelas=1&id_mapel=1&id_tahun_ajaran=1&format=csv','/guru/ekskul.php?id_kelas=1&id_tahun_ajaran=1&id_ekskul=1']:status(teacher.request(path),403)
    body=teacher.request('/guru/nilai.php')[2];check('Daftar Nilai Tersimpan (0 Siswa)' in body);submit(teacher,'/guru/nilai.php',grade,403)
-   status(teacher.request('/guru/absen.php?id_jadwal=5&tanggal=2026-10-29'),200)
+   status(teacher.request('/guru/absen.php?id_jadwal=5&tanggal=2026-10-29'),403)
+   check('Siswa Fixture A' not in body)
   finally:
    for schedule in schedules:db('UPDATE jadwal SET status=? WHERE id_jadwal=?',[schedule['status'],schedule['id_jadwal']])
  test('legacy_null_period_does_not_authorize_grades_exports_or_reports',legacy_read_scope)
@@ -353,7 +355,7 @@ def main():
  test('legacy_ambiguous_identity_and_foreign_history_not_repaired_by_guess',lambda:[check(row(f'SELECT * FROM {table} WHERE {pk}=?',[value])==before) for (table,pk,value),before in protected_legacy.items()])
  test('audit_no_password_or_auth_secrets',lambda:check(password not in json.dumps(db('SELECT before_json,after_json FROM audit_aktivitas')) and scalar("SELECT COUNT(*) FROM audit_aktivitas WHERE before_json LIKE '%\\\"password\\\"%' OR after_json LIKE '%\\\"password\\\"%'")==0))
  test('foreign_keys_no_orphan_attendance',lambda:check(scalar('SELECT COUNT(*) FROM absensi a LEFT JOIN users u ON u.id_user=a.created_by LEFT JOIN siswa s ON s.nis=a.nis LEFT JOIN jadwal j ON j.id_jadwal=a.id_jadwal WHERE u.id_user IS NULL OR s.nis IS NULL OR j.id_jadwal IS NULL')==0))
- errors=(state/'logs/php-errors.log').read_text(errors='replace') if (state/'logs/php-errors.log').exists() else ''
+ errors=error_log_path.read_bytes()[error_log_offset:].decode(errors='replace') if error_log_path.exists() else ''
  test('no_php_fatal_errors',lambda:check('PHP Fatal error' not in errors and 'PHP Parse error' not in errors and 'Uncaught ' not in errors))
  results.append({'test':'nisn_validation_not_applicable_no_nisn_column','status':'SKIP','reason':'Existing schema does not use NISN; no invented identifier column.'})
  report={'tests':results,'passed':sum(t['status']=='PASS' for t in results),'failed':sum(t['status']=='FAIL' for t in results),'skipped':sum(t['status']=='SKIP' for t in results),'fixture_only':True,'run':tag,'port':a.port}

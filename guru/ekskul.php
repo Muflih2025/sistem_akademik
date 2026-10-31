@@ -3,7 +3,7 @@ require_once __DIR__.'/../config/academic_service.php'; require_role('guru');
 $pdo = db(); $gid = (int)user_reference();
 
 // Guru's classes
-$q = $pdo->prepare('SELECT DISTINCT j.id_kelas, k.nama_kelas FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas WHERE j.id_guru=? AND j.status="aktif" AND k.status="aktif" ORDER BY k.nama_kelas');
+$q = $pdo->prepare('SELECT DISTINCT j.id_kelas, k.nama_kelas FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas WHERE j.id_guru=? AND j.status="aktif" AND k.status="aktif" AND EXISTS(SELECT 1 FROM tahun_ajaran scope_period WHERE scope_period.id_tahun_ajaran=j.id_tahun_ajaran AND scope_period.status="Aktif") ORDER BY k.nama_kelas');
 $q->execute([$gid]); $kelas_list = $q->fetchAll();
 
 $tahun_list = $pdo->query('SELECT * FROM tahun_ajaran ORDER BY status DESC, tahun_ajaran DESC')->fetchAll();

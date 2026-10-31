@@ -12,7 +12,7 @@ $q = $pdo->prepare('SELECT DISTINCT j.id_kelas, k.nama_kelas, j.id_mapel, mp.nam
                     JOIN kelas k ON k.id_kelas=j.id_kelas
                     JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel
                     WHERE j.id_guru=? AND j.status="aktif" AND k.status="aktif" AND mp.status="aktif"
-                    ORDER BY k.nama_kelas, mp.nama_mapel');
+                    AND EXISTS(SELECT 1 FROM tahun_ajaran scope_period WHERE scope_period.id_tahun_ajaran=j.id_tahun_ajaran AND scope_period.status="Aktif") ORDER BY k.nama_kelas, mp.nama_mapel');
 $q->execute([$gid]);
 $assignments = $q->fetchAll();
 

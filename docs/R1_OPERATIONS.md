@@ -61,7 +61,7 @@ php ops/migrate_r1.php --apply --expected-database=r1_testing_20261030
 
 DDL MariaDB melakukan implicit commit. Tidak ada rollback DDL otomatis. Runner memakai ledger dan operasi aditif yang dapat dijalankan ulang. Jika gagal, hentikan aktivasi, tinjau snapshot privat dan penyebabnya. Tidak ada perintah down/destruktif.
 
-Penugasan lama tanpa periode dapat dibaca sesuai scope guru tetapi ditolak untuk pencatatan baru. Penugasan yang sudah mempunyai jurnal/absensi/nilai tidak boleh diubah konteksnya. Admin perlu menonaktifkan penugasan lama dan membuat penugasan berperiode untuk transaksi baru, setelah meninjau konflik; arsip lama tetap ada. Jangan menebak backfill massal.
+Penugasan lama tanpa periode tidak memberikan akses guru ke roster, pertemuan, nilai, rapor atau ekspor yang membutuhkan periode. Metadata jadwal miliknya tetap dapat dilihat; peninjauan arsip ambigu dilakukan admin/kepala sekolah sampai model riwayat siap. Penugasan yang sudah mempunyai jurnal/absensi/nilai tidak boleh diubah konteksnya. Admin perlu menonaktifkan penugasan lama dan membuat penugasan berperiode untuk transaksi baru, setelah meninjau konflik; arsip lama tetap ada. Jangan menebak backfill massal.
 
 ## Rencana deployment setelah persetujuan terpisah
 
@@ -75,4 +75,4 @@ Penugasan lama tanpa periode dapat dibaca sesuai scope guru tetapi ditolak untuk
 
 Tidak ada deployment, restart 8085, perubahan grant aktif atau implementasi R2 yang dilakukan oleh prosedur pengujian di atas.
 
-Final review memperketat scope periode: penugasan NULL tidak memberikan akses nilai/rapor/ekspor lintas tahun. Baca arsip melalui ID jadwal milik guru tetap tersedia; penetapan periode historis tidak ditebak. Panduan aktivasi terbaru tersedia di [R1_ACTIVATION.md](R1_ACTIVATION.md).
+Final review memperketat scope periode: penugasan NULL tidak memberikan akses nilai/rapor/ekspor lintas tahun. Roster/pertemuan guru juga membutuhkan periode aktif yang terverifikasi; akses arsip ambigu ditahan untuk admin/supervisi dan penetapan periode historis tidak ditebak. Panduan aktivasi terbaru tersedia di [R1_ACTIVATION.md](R1_ACTIVATION.md).

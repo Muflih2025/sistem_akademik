@@ -1,6 +1,6 @@
 <?php
 require_once '../config/academic_service.php';require_role('guru');$pdo=db();$gid=(int)user_reference();$error='';
-$q=$pdo->prepare("SELECT j.id_jadwal,j.id_kelas,k.nama_kelas,mp.nama_mapel,j.hari,j.jam_mulai FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel WHERE j.id_guru=? AND j.status='aktif' AND k.status='aktif' AND mp.status='aktif' ORDER BY j.hari,j.jam_mulai");$q->execute([$gid]);$schedules=$q->fetchAll();
+$q=$pdo->prepare("SELECT j.id_jadwal,j.id_kelas,k.nama_kelas,mp.nama_mapel,j.hari,j.jam_mulai FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel WHERE j.id_guru=? AND j.status='aktif' AND k.status='aktif' AND mp.status='aktif' AND EXISTS(SELECT 1 FROM tahun_ajaran scope_period WHERE scope_period.id_tahun_ajaran=j.id_tahun_ajaran AND scope_period.status='Aktif') ORDER BY j.hari,j.jam_mulai");$q->execute([$gid]);$schedules=$q->fetchAll();
 $input=$_SERVER['REQUEST_METHOD']==='POST'?$_POST:$_GET;$selected=($input['id_jadwal']??'')!==''?input_id($input,'id_jadwal'):0;$date=input_date($input+['tanggal'=>date('Y-m-d')],'tanggal');
 if($selected)own_schedule($selected);
 if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();try{save_attendance($_POST);flash('success','Absensi disimpan dengan identitas akun pencatat dan jejak audit.');redirect('absen.php?'.http_build_query(['id_jadwal'=>$selected,'tanggal'=>$date]));}catch(Throwable $e){$error=operation_error($e);}}

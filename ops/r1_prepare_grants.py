@@ -21,6 +21,7 @@ def main():
     runtime={**connection,'APP_ENV':'production','DB_USER':app,'DB_PASS':apppass,'ALLOW_SCHEMA_CHANGES':'0','SESSION_NAME':'SIA_R1_'+suffix.upper(),'SESSION_PATH':str(runtime_target/'sessions'),'SECURITY_STATE_PATH':str(runtime_target/'security'),'SECURITY_LOG':str(runtime_target/'logs/security.jsonl'),'COOKIE_SECURE':'0','R1_APPROVED_RELEASE':''}
     deployment={**connection,'APP_ENV':'production','DB_USER':owner,'DB_PASS':ownerpass,'ALLOW_SCHEMA_CHANGES':'1','R1_APPROVED_RELEASE':''}
     save_json(output/'runtime.json',runtime);save_json(output/'deployment-owner.json',deployment)
+    save_json(output/'rollback-runtime.json',{**runtime,'SESSION_NAME':runtime['SESSION_NAME']+'_R0','SESSION_PATH':str(runtime_target/'sessions-rollback')})
     cnf(output/'runtime-client.cnf',runtime);cnf(output/'owner-client.cnf',deployment)
     business=['jurusan','kelas','guru','siswa','mata_pelajaran','jadwal','users','tahun_ajaran','nilai','absensi','jurnal_kelas','bobot_penilaian','ekstrakurikuler','nilai_ekskul','kalender_akademik','catatan_evaluasi']
     sql=['-- NOT EXECUTED. Separate user authorization is required before applying.',

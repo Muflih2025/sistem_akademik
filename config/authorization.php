@@ -23,6 +23,9 @@ function active_period(?int $id=null, bool $write=false): array {
 }
 function teacher_assignment(int $kelas, ?int $mapel=null, ?int $period=null, bool $write=false): void {
     permission('teach');
+    // Current rosters cannot be inferred from a legacy or historical assignment.
+    if($period===null)deny_access();
+    $scopePeriod=active_period($period,$write);if($scopePeriod['status']!=='Aktif')deny_access();
     $sql="SELECT j.* FROM jadwal j JOIN guru g ON g.id_guru=j.id_guru JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran m ON m.id_mapel=j.id_mapel WHERE j.id_guru=? AND j.id_kelas=? AND j.status='aktif' AND g.status='aktif' AND k.status='aktif' AND m.status='aktif'";
     $args=[user_reference(),$kelas];
     if($mapel!==null){$sql.=' AND j.id_mapel=?';$args[]=$mapel;}
@@ -35,7 +38,7 @@ function own_schedule(int $id, bool $write=false, ?string $date=null): array {
     $q=db()->prepare('SELECT * FROM jadwal WHERE id_jadwal=? AND id_guru=?'.($write?' FOR UPDATE':''));$q->execute([$id,user_reference()]);$row=$q->fetch();
     if(!$row || $row['status']!=='aktif')deny_access();
     $period=$row['id_tahun_ajaran']===null ? null : (int)$row['id_tahun_ajaran'];
-    if($write && $period===null)throw new InputError('Penugasan lama belum mempunyai periode. Nonaktifkan penugasan lama dan buat penugasan berperiode melalui administrator; arsip lama tetap dipertahankan.');
+    if($period===null)deny_access();
     teacher_assignment((int)$row['id_kelas'],(int)$row['id_mapel'],$period,$write);
     if($write && $date!==null){
         $days=[1=>'Senin',2=>'Selasa',3=>'Rabu',4=>'Kamis',5=>'Jumat'];
