@@ -18,6 +18,10 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD', 'POST'], true)) {
     http_response_code(405); header('Allow: GET, HEAD, POST'); exit;
 }
 $entry = $routes[$path];
+if(isset($entry['target'])){
+    $path=$entry['target'];
+    $_GET['view']=$entry['view'];
+}
 if ($entry['type'] === 'asset') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') { http_response_code(405); exit; }
     header('Content-Type: '.$entry['mime']);
@@ -47,13 +51,14 @@ if(isset($entry['role']) && function_exists('app_setting') && app_setting('ACADE
         '/admin/nilai.php'=>'nilai','/kepsek/akademik.php'=>'nilai',
         '/guru/export_nilai.php'=>'nilai','/admin/export_nilai.php'=>'rapor',
         '/admin/index.php'=>'beranda','/guru/index.php'=>'beranda','/siswa/index.php'=>'beranda','/kepsek/index.php'=>'beranda',
+        '/admin/posisi_guru.php'=>'pemantauan','/kepsek/posisi_guru.php'=>'pemantauan',
     ];
     if($path==='/admin/export_import.php'&&$_SERVER['REQUEST_METHOD']!=='POST')redirect('/admin/bulk_upload.php');
     if(isset($academicRoutes[$path])){
         if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();http_response_code(409);exit('Gunakan formulir Ruang Akademik terbaru; tidak ada data yang disimpan.');}
         $params=['view'=>$academicRoutes[$path]];
-        foreach(['id_jadwal','tanggal','id_tahun_ajaran'] as $key)if(isset($_GET[$key])&&is_string($_GET[$key]))$params[$key]=$_GET[$key];
-        header('Location: /academic/index.php?'.http_build_query($params));exit;
+        foreach(['id_jadwal','tanggal','id_tahun_ajaran','id_guru','id_kelas','ruang','jam_ke'] as $key)if(isset($_GET[$key])&&is_string($_GET[$key]))$params[$key]=$_GET[$key];
+        header('Location: '.ak_route_url($academicRoutes[$path],array_diff_key($params,['view'=>true])));exit;
     }
 }
 chdir(dirname($root.$path));

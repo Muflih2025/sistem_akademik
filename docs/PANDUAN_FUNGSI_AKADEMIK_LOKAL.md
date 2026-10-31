@@ -1,5 +1,8 @@
 # Panduan fungsi dan uji manual lokal
 
+> **Pembaruan setelah pembersihan fixture 31 Oktober 2026:** gunakan [SIMULASI_5_HARI.md](SIMULASI_5_HARI.md) untuk akun, ID dan URL terbaru. Contoh acak/ID lama di dokumen ini adalah riwayat checkpoint, tidak lagi menjadi dataset aktif.
+
+
 > Konfigurasi staf terbaru: bulk Excel di `/admin/bulk_upload.php`; wali sebagai informasi, verifikasi rapor oleh Admin; akun uji yang dicantumkan memakai password development `password`. Gunakan [panduan manual terbaru](PANDUAN_TEST_MANUAL_ADMIN_GURU_KEPSEK.md). Langkah persetujuan wali pada bagian lama di bawah adalah riwayat alur kompatibilitas, bukan alur operasional saat ini.
 
 Kelanjutan checkpoint `d53c95f`. Gunakan worktree `/home/muflih/sia-academic-dev`, branch `development/academic-workflows-20261031`. Seluruh contoh di bawah memakai data development sintetis, bukan data asli sekolah.

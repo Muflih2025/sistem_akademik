@@ -7,7 +7,7 @@ if(cfg.DB_NAME!=='sia_academic_dev_20261031'||cfg.APP_ENV!=='testing'||!cfg.DB_S
 const {chromium}=require(cfg.PDF_PLAYWRIGHT_PATH),results=[],contexts=[];let browser;
 function check(v){if(!v)throw Error('Browser condition failed; private contents omitted');}
 async function test(name,fn){try{await fn();results.push({test:name,status:'PASS'});}catch(e){results.push({test:name,status:'FAIL',error_type:e.name});}process.stdout.write(results.at(-1).status+' '+name+'\n');}
-async function login(role){const context=await browser.newContext({viewport:{width:375,height:900}});contexts.push(context);await context.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());const page=await context.newPage();await page.goto(base+'/auth/login.php');await page.locator('[name=username]').fill(creds[role]);await page.locator('[name=password]').fill(creds.password);await Promise.all([page.waitForURL('**/academic/index.php'),page.locator('button').click()]);return page;}
+async function login(role){const context=await browser.newContext({viewport:{width:375,height:900}});contexts.push(context);await context.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());const page=await context.newPage();await page.goto(base+'/auth/login.php');await page.locator('[name=username]').fill(creds[role]);await page.locator('[name=password]').fill(creds.password);await Promise.all([page.waitForURL(/\/(?:academic\/index\.php|beranda)(?:\?|$)/),page.locator('button').click()]);return page;}
 (async()=>{browser=await chromium.launch();
  const admin=await login('admin'),cid=data.class_ids['X PPLG 2'];
  await test('admin_filtered_imported_class_pagination_35_persistent_students',async()=>{

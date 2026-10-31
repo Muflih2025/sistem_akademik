@@ -36,7 +36,7 @@ $modules = match($role) {
 };
 if($role==='guru'&&app_setting('HOMEROOM_MODE')==='informational')$modules=array_values(array_filter($modules,fn($m)=>$m['url']!=='../guru/rapor.php'));
 $current_file = basename($_SERVER['SCRIPT_NAME']);
-if(app_setting('ACADEMIC_WORKFLOWS')==='1')array_unshift($modules,['url'=>'../academic/index.php','label'=>'Ruang Akademik']);
+if(app_setting('ACADEMIC_WORKFLOWS')==='1')array_unshift($modules,['url'=>function_exists('ak_route_url')?ak_route_url('beranda'):'../academic/index.php','label'=>'Ruang Akademik']);
 ?>
 <!doctype html><html lang="id"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

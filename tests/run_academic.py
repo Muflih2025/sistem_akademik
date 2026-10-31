@@ -17,9 +17,9 @@ def main():
  integrity=['python3','tests/academic_integrity.py']
  if options.baseline_directory:integrity.extend(['--baseline-directory',options.baseline_directory])
  suites.append(('integrity',integrity,'academic-integrity-tests.json'))
- keys=['HOMEROOM_MODE','ROOM_CATALOG_ENFORCED','ADMIN_BULK_ONLY'];original={k:config.get(k)for k in keys};compat=False
+ keys=['HOMEROOM_MODE','ROOM_CATALOG_ENFORCED','ADMIN_BULK_ONLY','FRIENDLY_ROUTES'];original={k:config.get(k)for k in keys};compat=False
  def policy(legacy):
-  c=json.loads(cfgpath.read_text());desired={'HOMEROOM_MODE':'review','ROOM_CATALOG_ENFORCED':'0','ADMIN_BULK_ONLY':'0'}if legacy else original
+  c=json.loads(cfgpath.read_text());desired={'HOMEROOM_MODE':'review','ROOM_CATALOG_ENFORCED':'0','ADMIN_BULK_ONLY':'0','FRIENDLY_ROUTES':'0'}if legacy else original
   for k,v in desired.items():
    if v is None:c.pop(k,None)
    else:c[k]=v

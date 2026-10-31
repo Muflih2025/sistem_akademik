@@ -19,7 +19,7 @@ async function test(name,fn){try{await fn();results.push({test:name,status:'PASS
  }
  for(const role of ['admin','teacher','duty','student','head']){
   const context=await browser.newContext();const page=await context.newPage();await page.goto(base+'/auth/login.php');
-  await test('login_backend_'+role,async()=>{await page.locator('[name=username]').fill(creds[role]);await page.locator('[name=password]').fill(creds.password);await Promise.all([page.waitForURL('**/academic/index.php'),page.locator('button').click()]);check(await page.locator('.identity').innerText().then(x=>x.includes(creds[role])));const cookies=await context.cookies();check(cookies.some(x=>x.name===cfg.SESSION_NAME&&x.httpOnly&&x.sameSite==='Lax'));});
+  await test('login_backend_'+role,async()=>{await page.locator('[name=username]').fill(creds[role]);await page.locator('[name=password]').fill(creds.password);await Promise.all([page.waitForURL(/\/(?:academic\/index\.php|beranda)(?:\?|$)/),page.locator('button').click()]);check(await page.locator('.identity').innerText().then(x=>x.includes(creds[role])));const cookies=await context.cookies();check(cookies.some(x=>x.name===cfg.SESSION_NAME&&x.httpOnly&&x.sameSite==='Lax'));});
   await test('logout_backend_'+role,async()=>{await Promise.all([page.waitForURL('**/auth/login.php'),page.locator('.identity button').click()]);check(await page.locator('.login-card').isVisible());});await context.close();
  }
  const context=await browser.newContext({viewport:{width:375,height:900}});const page=await context.newPage();await page.goto(base+'/auth/login.php');

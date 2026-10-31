@@ -1,7 +1,11 @@
 <?php
 declare(strict_types=1);
-function ak_link(string $view,array $params=[]): string { return '/academic/index.php?'.http_build_query(['view'=>$view]+$params); }
-function ak_hidden(string $key,mixed $value): void { echo '<input type="hidden" name="'.e($key).'" value="'.e($value).'">'; }
+require_once dirname(__DIR__).'/config/academic/routes.php';
+function ak_link(string $view,array $params=[]): string { return ak_route_url($view,$params); }
+function ak_hidden(string $key,mixed $value): void {
+    if($key==='view' && app_setting('FRIENDLY_ROUTES')==='1' && in_array(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),AK_VIEW_ROUTES,true))return;
+    echo '<input type="hidden" name="'.e($key).'" value="'.e($value).'">';
+}
 function ak_field(string $key,string $label,mixed $value='',string $type='text',bool $required=true): void {
     echo '<label class="field"><span>'.e($label).'</span><input name="'.e($key).'" type="'.e($type).'" value="'.e($value).'"'.($required?' required':'').($type==='number'?' step="any"':'').'></label>';
 }
@@ -18,7 +22,7 @@ function ak_begin(string $title,string $view): void {
     $role=current_user()['role'];
     $links=['beranda'=>'Beranda'];
     if ($role==='admin') $links+=['fondasi'=>'Akademik','piket'=>'Guru Piket','kenaikan'=>'Naik Kelas','alumni'=>'Alumni'];
-    if ($role==='guru') $links+=['pertemuan'=>'Absensi','jurnal'=>'Jurnal & Agenda','piket'=>'Guru Piket'];
+    if ($role==='guru') $links+=['pertemuan'=>'Absensi & Isi Jurnal','jurnal'=>'Riwayat & Cetak','piket'=>'Guru Piket'];
     if (in_array($role,['admin','kepala_sekolah'],true)) $links+=['jurnal'=>'Jurnal','piket'=>'Absensi Harian'];
     if(in_array($role,['admin','kepala_sekolah'],true))$links+=['pemantauan'=>'Guru Mengajar'];
     $links+=['kalender'=>'Kalender'];
@@ -35,6 +39,7 @@ function ak_begin(string $title,string $view): void {
 function ak_end(): void {
     $role=current_user()['role'];
     $nav=['beranda'=>['M3 10l9-7 9 7v10H3z M9 20v-7h6v7','Beranda'],($role==='guru'?'pertemuan':'kalender')=>['M4 5h16v16H4z M4 10h16 M8 3v4 M16 3v4',$role==='guru'?'Absensi':'Kalender'],'rapor'=>['M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h5','Rapor']];
+    if($role==='guru'&&app_setting('HOMEROOM_MODE')==='informational'){unset($nav['rapor']);$nav['nilai']=['M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h5','Nilai'];}
     if ($role!=='siswa') $nav['piket']=['M12 8v5l3 2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0','Piket'];
     echo '</main><nav class="bottom-nav" aria-label="Navigasi utama">';
     foreach($nav as $view=>[$symbol,$label]) echo '<a href="'.e(ak_link($view)).'"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="'.e($symbol).'"/></svg>'.e($label).'</a>';

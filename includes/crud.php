@@ -20,7 +20,7 @@ function crud_page_size_control(string $parameter='page'):void {
     $state=$GLOBALS['crud_pagination'][$parameter]??null;if(!$state||!$state['selectable'])return;
     $GLOBALS['crud_pagination'][$parameter]['control']=true;$key=$parameter==='page'?'per_page':$parameter.'_size';
     echo '<form method="get" class="page-size-control">';
-    foreach($_GET as $name=>$value)if(is_string($value)&&!in_array($name,[$parameter,$key,'edit'],true))echo '<input type="hidden" name="'.e($name).'" value="'.e($value).'">';
+    foreach($_GET as $name=>$value)if(is_string($value)&&!in_array($name,[$parameter,$key,'edit',...(defined('AK_VIEW_ROUTES')&&app_setting('FRIENDLY_ROUTES')==='1'&&in_array(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),AK_VIEW_ROUTES,true)?['view']:[])],true))echo '<input type="hidden" name="'.e($name).'" value="'.e($value).'">';
     echo '<label><span>Baris per halaman</span><select name="'.e($key).'" aria-label="Baris per halaman" onchange="this.form.submit()">';
     foreach([10,20,25,50,100]as $n)echo '<option value="'.$n.'"'.($n===$state['size']?' selected':'').'>'.$n.'</option>';
     echo '</select></label><noscript><button type="submit">Terapkan</button></noscript></form>';
@@ -32,7 +32,7 @@ function crud_pager(int $page,int $pages,int $total,string $label='data',string 
     $link=static function(int $target,string $text,string $title,bool $disabled=false)use($parameter,$page):void{
         if($disabled){echo '<span class="page-link disabled" aria-disabled="true" aria-label="'.e($title).'">'.e($text).'</span>';return;}
         if($title==='Halaman '.$page){echo '<span class="page-link current" aria-current="page">'.e($text).'</span>';return;}
-        $query=$_GET;unset($query['edit']);$query[$parameter]=$target;
+        $query=$_GET;unset($query['edit']);if(defined('AK_VIEW_ROUTES')&&app_setting('FRIENDLY_ROUTES')==='1'&&in_array(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),AK_VIEW_ROUTES,true))unset($query['view']);$query[$parameter]=$target;
         echo '<a class="page-link" aria-label="'.e($title).'" href="?'.e(http_build_query($query)).'">'.e($text).'</a>';
     };
     $link(1,'«','Halaman pertama',$page===1);$link($page-1,'‹','Sebelumnya',$page===1);

@@ -97,3 +97,7 @@ Sesudah regresi 869 pemeriksaan di atas, perubahan pagination diverifikasi denga
 Unggahan akademik tetap tersedia **di dalam modulnya**, setelah menu umum dilepas: Kalender untuk Admin/Kepsek, Absensi dan Nilai untuk guru pemilik penugasan, Fondasi untuk anggota/penugasan Admin. Alur kalender/absensi/nilai diuji dengan Excel nyata → preview → konfirmasi → DB → reload; konteks modul, RBAC/IDOR/CSRF dan arsip rapor immutable diuji terpisah pada `academic_module_upload.cjs`.
 
 Pengujian unggahan per modul sesudah perubahan navigasi: **6 PASS, 0 FAIL, 0 SKIP**. Ini hasil terpisah dari regresi 869 dan pagination 10; bukan klaim satu rangkaian penuh baru.
+
+## Checkpoint simulasi lima hari setelah pembersihan fixture
+
+Data development kini 389 siswa Excel + 22 siswa demo, 36 kelas, 29 ruang; fixture acak dihapus melalui manifest/backup dan akun arsip dinonaktifkan tanpa menghapus audit. Kepala Sekolah melihat/filter nomor jam (acuan jam terbaru), guru/kelas/ruang/status jurnal. Absensi memiliki pagination 10/20/50 dengan seluruh roster tetap disimpan atomik; bukan LIMIT yang memotong payload. Alias URL pendek memakai allowlist dan otorisasi yang sama, URL lama tetap bekerja. Bukti baru: 7 skenario isi melalui browser + 12 skenario review (19 PASS, 0 FAIL, 0 SKIP), bukan run ulang suite historis 869. Lihat `SIMULASI_5_HARI.md` dan laporan pembersihan/simulasi terbaru.

@@ -5,6 +5,19 @@ require_once __DIR__.'/foundation.php';
 function ak_bells(): array {
     return ak_rows("SELECT b.* FROM ak_jam_belajar b JOIN (SELECT nama,MAX(versi) versi FROM ak_jam_belajar GROUP BY nama) v ON v.nama=b.nama AND v.versi=b.versi ORDER BY CASE b.nama WHEN 'Senin' THEN 1 WHEN 'Selasa–Kamis' THEN 2 WHEN 'Jumat' THEN 3 ELSE 4 END,b.nama");
 }
+function ak_bell_profile_for_day(string $day): ?array {
+    $name=in_array($day,['Selasa','Rabu','Kamis'],true)?'Selasa–Kamis':$day;
+    foreach(ak_bells() as $row)if($row['nama']===$name)return $row;
+    return null;
+}
+function ak_schedule_periods(array $schedule,?array $profile): ?array {
+    if(!$profile)return null;
+    $from=substr($schedule['jam_mulai'],0,5);$until=substr($schedule['jam_selesai'],0,5);$slots=[];
+    foreach(json_decode($profile['payload_json'],true,512,JSON_THROW_ON_ERROR)['slots']as $slot)
+        if($slot[0]!==null && $slot[1]>=$from && $slot[2]<=$until)$slots[]=$slot;
+    if(!$slots || $slots[0][1]!==$from || $slots[count($slots)-1][2]!==$until)return null;
+    return ['first'=>$slots[0][0],'last'=>$slots[count($slots)-1][0],'version'=>$profile['versi']];
+}
 function ak_save_bell(array $input): int {
     require_role('admin');permission('master.manage');
     return db_transaction(function()use($input): int {

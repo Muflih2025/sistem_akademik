@@ -1,5 +1,6 @@
 <?php
 // Explicit public surface; SQL, config, includes, shared, tools, logs and Git are never routed.
+require_once __DIR__.'/academic/routes.php';
 $routes = [
     '/index.php' => ['type' => 'page'],
     '/auth/login.php' => ['type' => 'page'],
@@ -35,4 +36,5 @@ foreach ($pages as $directory => $names) {
         ];
     }
 }
+foreach(AK_VIEW_ROUTES as $view=>$alias)$routes[$alias]=['type'=>'page','target'=>'/academic/index.php','view'=>$view];
 return $routes;

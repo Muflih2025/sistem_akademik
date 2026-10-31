@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
         $params=['view'=>$view];
         if(($action??'')==='kenaikan_commit')$params['batch']=$batch;
         foreach(['id_jadwal','id_tahun_ajaran','id_kelas','tanggal','bulan','id','module','nis','periode_asal','upload'] as $key) if(isset($_GET[$key]) && is_string($_GET[$key])) $params[$key]=$_GET[$key];
-        if(!$didPreview)redirect('/academic/index.php?'.http_build_query($params));
+        if(!$didPreview)redirect(ak_link($view,$params));
     } catch (Throwable $caught) { $error=operation_error($caught); }
 }
 ob_start();

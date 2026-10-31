@@ -13,7 +13,7 @@ async function login(role){
  await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
  const page=await context.newPage();page.on('pageerror',()=>errors.push('pageerror'));
  await page.goto(base+'/auth/login.php');await page.locator('input[name=username]').fill(creds[role]);await page.locator('input[name=password]').fill(creds.password);
- await Promise.all([page.waitForURL('**/academic/index.php'),page.locator('button').filter({hasText:'Masuk'}).click()]);return {context,page};
+ await Promise.all([page.waitForURL(/\/(?:academic\/index\.php|beranda)(?:\?|$)/),page.locator('button').filter({hasText:'Masuk'}).click()]);return {context,page};
 }
 async function geometry(page,width){
  const m=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:innerWidth,forms:[...document.querySelectorAll('main form')].filter(f=>!f.closest('.table-scroll,.table-responsive')).map(f=>({left:f.getBoundingClientRect().left,right:f.getBoundingClientRect().right,scroll:f.scrollWidth,width:f.clientWidth})),inputs:[...document.querySelectorAll('main input:not([type=hidden]):not([type=radio]):not([type=checkbox]),main select,main textarea,main button,.status-options span')].filter(x=>x.getClientRects().length>0&&!x.closest('.table-scroll,.table-responsive')).map(x=>({left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right,height:x.getBoundingClientRect().height}))}));

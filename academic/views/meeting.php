@@ -22,13 +22,18 @@ $options=[];foreach($schedules as $row)$options[$row['id_jadwal']]=$row['nama_ke
 <label class="check"><input type="checkbox" name="terverifikasi" value="1" id="verified"><span>Saya telah memeriksa kehadiran dan informasi ketidakhadiran siswa.</span></label>
 <div class="attendance-tools"><label class="search"><span>Cari siswa</span><input type="search" id="student-search" placeholder="Nama, NIS, atau nomor absen" autocomplete="off"></label><button type="button" id="all-present" class="secondary">Tandai Semua Hadir</button></div>
 <p id="attendance-feedback" role="status" class="muted">Status awal adalah Belum Dikonfirmasi. Verifikasi sebelum menandai hadir.</p></section>
-<div class="students">
+<div class="attendance-page-tools" data-attendance-pagination hidden>
+<label class="field"><span>Siswa per halaman</span><select id="attendance-page-size" aria-controls="attendance-students"><option>10</option><option>20</option><option>50</option></select></label>
+<p id="attendance-page-range" class="muted" role="status" aria-live="polite"></p>
+</div>
+<div class="students" id="attendance-students">
 <?php foreach($roster as $student):$nis=$student['nis'];$row=$stored[$nis]??[];$status=$row['status']??'B';$parts=preg_split('/\s+/u',trim($student['nama_siswa']));$initial=mb_strtoupper(mb_substr($parts[0]??'S',0,1).mb_substr($parts[count($parts)-1]??'',0,1));?>
 <article class="student-card" data-student="<?=e(mb_strtolower($student['nama_siswa'].' '.$nis.' '.$student['nomor_absen']))?>"><div class="student-info"><span class="avatar" aria-hidden="true"><?=e($initial)?></span><div><h3><?=e($student['nama_siswa'])?></h3><p>No. <?=e($student['nomor_absen'])?> · NIS <?=e($nis)?></p></div></div>
 <fieldset class="status-options"><legend class="sr-only">Status <?=e($student['nama_siswa'])?></legend><?php foreach(AK_STATUSES as $code=>$label):?><label title="<?=e($label)?>"><input type="radio" name="status[<?=e($nis)?>]" value="<?=e($code)?>" <?=$status===$code?'checked':''?>><span><?=$code==='B'?'?':e($code)?><small><?=e($code==='B'?'Belum':$label)?></small></span></label><?php endforeach;?></fieldset>
 <label class="field note"><span>Keterangan <?=e($student['nomor_absen'])?></span><input name="keterangan[<?=e($nis)?>]" value="<?=e($row['keterangan']??'')?>" maxlength="500" placeholder="Keterangan (opsional)"></label></article>
 <?php endforeach;?></div>
-<section class="panel"><h2>Jurnal & agenda pertemuan</h2><p class="muted">Disimpan bersama absensi dengan satu identitas pertemuan.</p><div class="form-grid"><?php ak_field('pertemuan_ke','Pertemuan ke',$meeting['pertemuan_ke']??1,'number');ak_field('jam_ke','Jam ke',$meeting['jam_ke']??'1–2');?></div>
+<div class="crud-pagination attendance-pagination" data-attendance-pagination hidden><nav class="page-buttons" id="attendance-page-buttons" aria-label="Halaman siswa"></nav><p class="muted">Pergantian halaman dan pencarian mempertahankan isian. Simpan Absensi & Jurnal menyimpan seluruh <?=count($roster)?> siswa dalam kelas ini.</p></div>
+<section class="panel"><h2>Isi Jurnal Kelas & Agenda Guru</h2><p class="muted">Isi materi mengajar pada kelas/jadwal ini. Jurnal, agenda dan absensi disimpan bersama dalam satu pertemuan.</p><div class="form-grid"><?php ak_field('pertemuan_ke','Pertemuan ke',$meeting['pertemuan_ke']??1,'number');ak_field('jam_ke','Jam ke',$meeting['jam_ke']??'1–2');?></div>
 <?php foreach(['tp_atp'=>'TP / ATP','materi'=>'Materi pembelajaran','kegiatan'=>'Kegiatan pembelajaran','refleksi'=>'Refleksi KBM','catatan'=>'Catatan','tindak_lanjut'=>'Tindak lanjut'] as $key=>$label)ak_textarea($key,$label,$meeting[$key]??'',in_array($key,['materi','kegiatan'],true));
 $teachers=[];foreach(ak_rows("SELECT id_guru,nama_guru FROM guru WHERE status='aktif' ORDER BY nama_guru") as $row)$teachers[$row['id_guru']]=$row['nama_guru'];ak_select('id_guru_pengganti','Guru pengganti (pencatatan, tidak memberi akses)',$teachers,$meeting['id_guru_pengganti']??'',false);
 ak_field('alasan',$meeting?'Alasan koreksi (wajib)':'Catatan pengisian','', 'text',(bool)$meeting);?>

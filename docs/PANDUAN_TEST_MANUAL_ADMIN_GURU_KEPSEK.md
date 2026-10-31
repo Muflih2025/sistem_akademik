@@ -1,5 +1,8 @@
 # Panduan pengujian manual — Admin, Guru Mapel, Kepala Sekolah
 
+> **Pembaruan setelah pembersihan fixture 31 Oktober 2026:** gunakan [SIMULASI_5_HARI.md](SIMULASI_5_HARI.md) untuk akun, ID dan URL terbaru. Contoh acak/ID lama di dokumen ini adalah riwayat checkpoint, tidak lagi menjadi dataset aktif.
+
+
 Lingkungan: **http://127.0.0.1:18125**. Website responsif untuk browser HP/desktop. Data dan akun berikut khusus development. Layanan 8085 serta database sekolah aktif tidak digunakan untuk pengujian ini.
 
 Tunggu pengujian otomatis selesai sebelum melakukan pengisian manual bersamaan. Gunakan jendela Incognito/profil browser berbeda untuk setiap peran, supaya session Admin/Guru/Kepsek tidak tertukar.
