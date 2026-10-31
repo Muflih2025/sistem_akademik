@@ -44,6 +44,10 @@ function save_master(string $table,array $input):string {
             if($data['tanggal_lahir']>=date('Y-m-d') || $data['tanggal_lahir']<'1900-01-01')throw new InputError('Tanggal lahir tidak masuk rentang yang valid.');
             $data['id_kelas']=input_id($input,'id_kelas');active_reference('kelas','id_kelas',$data['id_kelas']);
             if($before && (int)$before['id_kelas']!==$data['id_kelas']){
+                if(app_setting('ACADEMIC_WORKFLOWS')==='1'){
+                    $membership=$pdo->prepare('SELECT 1 FROM ak_anggota_kelas WHERE nis=? LIMIT 1');$membership->execute([$id]);
+                    if($membership->fetch())throw new InputError('Gunakan keanggotaan kelas bertanggal untuk perpindahan siswa. Konteks master lama dipertahankan.');
+                }
                 $q=$pdo->prepare('SELECT (SELECT COUNT(*) FROM nilai WHERE nis=?)+(SELECT COUNT(*) FROM absensi WHERE nis=?)+(SELECT COUNT(*) FROM nilai_ekskul WHERE nis=?)');$q->execute([$id,$id,$id]);
                 if((int)$q->fetchColumn()>0)throw new InputError('Siswa memiliki arsip. Perpindahan kelas memerlukan proses khusus yang menjaga riwayat keanggotaan.');
             }
@@ -100,6 +104,15 @@ function save_schedule(array $input):int {
         $action=input_choice($input,'action',['create','update','delete','deactivate','activate']);$id=$action==='create'?null:input_id($input,'id_jadwal');$before=$id!==null?locked_row('jadwal','id_jadwal',$id):null;
         if(in_array($action,['delete','deactivate'],true)){$pdo->prepare("UPDATE jadwal SET status='nonaktif' WHERE id_jadwal=?")->execute([$id]);audit_change('jadwal',(string)$id,'deactivate',$before,['status'=>'nonaktif']);return $id;}
         if($action==='activate')$input=$before+['action'=>'update'];
+        if($before && app_setting('ACADEMIC_WORKFLOWS')==='1'){
+            $history=$pdo->prepare('SELECT 1 FROM ak_penugasan WHERE id_jadwal=? LIMIT 1');$history->execute([$id]);
+            if($history->fetch() && $action!=='activate'){
+                foreach(['id_guru','id_mapel','id_kelas','id_tahun_ajaran','hari','jam_mulai','jam_selesai','ruang'] as $field){
+                    $value=$input[$field]??'';if(in_array($field,['jam_mulai','jam_selesai'],true) && is_string($value) && strlen($value)===5)$value.=':00';
+                    if(!is_scalar($value) || (string)$value!==(string)($before[$field]??''))throw new InputError('Penugasan telah diverifikasi. Nonaktifkan dan buat jadwal baru agar konteks historis tetap.');
+                }
+            }
+        }
         $data=[];foreach(['id_guru','id_mapel','id_kelas','id_tahun_ajaran'] as $key)$data[$key]=input_id($input,$key);
         active_reference('guru','id_guru',$data['id_guru']);active_reference('mata_pelajaran','id_mapel',$data['id_mapel']);active_reference('kelas','id_kelas',$data['id_kelas']);
         $period=locked_row('tahun_ajaran','id_tahun_ajaran',$data['id_tahun_ajaran']);if($period['status']!=='Aktif' || (int)$period['dikunci'])throw new InputError('Penugasan baru/perubahan harus berada pada periode aktif yang tidak terkunci.');
@@ -125,7 +138,8 @@ function save_period(array $input):int {
             $year=input_text($input,'tahun_ajaran',10);if(!preg_match('/^([0-9]{4})\/([0-9]{4})$/D',$year,$m) || (int)$m[2]!==((int)$m[1]+1))throw new InputError('Format tahun ajaran harus dua tahun berurutan.');
             $data=['tahun_ajaran'=>$year,'semester'=>input_choice($input,'semester',['Ganjil','Genap']),'status'=>input_choice($input,'status',['Aktif','Tidak Aktif']),'dikunci'=>input_choice($input,'dikunci',['0','1']),'rapor_diterbitkan'=>input_choice($input,'rapor_diterbitkan',['0','1'])];
             if($before && ($before['tahun_ajaran']!==$year || $before['semester']!==$data['semester'])){
-                foreach(['nilai','nilai_ekskul','jadwal','catatan_evaluasi'] as $table){$q=$pdo->prepare("SELECT 1 FROM `$table` WHERE id_tahun_ajaran=? LIMIT 1");$q->execute([$id]);if($q->fetch())throw new InputError('Identitas periode yang mempunyai arsip tidak dapat diganti.');}
+                $periodTables=['nilai','nilai_ekskul','jadwal','catatan_evaluasi'];if(app_setting('ACADEMIC_WORKFLOWS')==='1')$periodTables=[...$periodTables,'ak_periode','ak_anggota_kelas','ak_tugas_piket','ak_kalender'];
+                foreach($periodTables as $table){$q=$pdo->prepare("SELECT 1 FROM `$table` WHERE id_tahun_ajaran=? LIMIT 1");$q->execute([$id]);if($q->fetch())throw new InputError('Identitas periode yang mempunyai arsip tidak dapat diganti.');}
             }
             if($before && $before['status']==='Aktif' && $data['status']!=='Aktif')throw new InputError('Aktifkan periode pengganti agar sistem tidak kehilangan periode aktif.');
         }

@@ -36,13 +36,15 @@ $modules = match($role) {
     default => [],
 };
 $current_file = basename($_SERVER['SCRIPT_NAME']);
+if(app_setting('ACADEMIC_WORKFLOWS')==='1')array_unshift($modules,['url'=>'../academic/index.php','label'=>'Ruang Akademik']);
 ?>
 <!doctype html><html lang="id"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($page_title) ?> &middot; <?= APP_NAME ?></title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="/assets/vendor/bootstrap.min.css" rel="stylesheet">
+<link href="/assets/vendor/bootstrap-icons.min.css" rel="stylesheet">
 <link href="../assets/css/app.css" rel="stylesheet">
+<link href="../assets/css/neutral.css" rel="stylesheet">
 <?php if(!empty($crud_ui)): ?><link href="../assets/css/crud.css" rel="stylesheet"><?php endif; ?>
 </head><body class="<?= !empty($crud_ui)?'crud-page':'' ?>">
 

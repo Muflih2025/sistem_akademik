@@ -27,4 +27,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }catch(InputError $errorInput){http_response_code(422);$error='Data autentikasi tidak valid.';}
     catch(Throwable $errorDb){security_log('login_unavailable',['error_type'=>get_class($errorDb)]);http_response_code(503);$error='Layanan login sementara tidak tersedia.';}
 }
-?><!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login · <?= APP_NAME ?></title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="../assets/css/app.css" rel="stylesheet"></head><body class="bg-navy"><div class="container"><div class="row justify-content-center align-items-center min-vh-100"><div class="col-md-5"><div class="card p-4"><h3 class="text-center">SIA SMKN 2 Magelang</h3><p class="text-center text-muted">Silakan masuk ke akun Anda</p><?php if($error): ?><div class="alert alert-danger"><?= e($error) ?></div><?php endif; ?><form method="post"><?= csrf_field() ?><div class="mb-3"><label class="form-label">Username / NIS</label><input class="form-control" name="username" required autofocus></div><div class="mb-3"><label class="form-label">Password</label><input class="form-control" type="password" name="password" required></div><button class="btn btn-primary w-100">Masuk</button></form></div></div></div></div></body></html>
+?><!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login · <?= APP_NAME ?></title><link href="/assets/css/login.css" rel="stylesheet"></head>
+<body class="login-page"><main class="login-shell"><section class="login-card" aria-labelledby="login-title">
+<div class="login-mark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1z M12 5v15"/></svg></div>
+<p class="login-school">SISTEM INFORMASI AKADEMIK<br>SMK Negeri 2 Magelang</p>
+<h1 id="login-title">Masuk ke akun Anda</h1><p class="login-intro">Kelola kegiatan akademik dengan mudah.</p>
+<?php if($error): ?><div class="login-error" role="alert"><?= e($error) ?></div><?php endif; ?>
+<form method="post"><?= csrf_field() ?><label class="login-field"><span>Username / NIS</span><input type="text" name="username" autocomplete="username" maxlength="50" required autofocus></label><label class="login-field"><span>Password</span><input type="password" name="password" autocomplete="current-password" required></label><button type="submit">Masuk</button></form>
+</section><p class="login-footnote">Gunakan akun yang diberikan oleh sekolah.</p></main></body></html>

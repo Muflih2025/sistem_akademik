@@ -1,0 +1,26 @@
+<?php
+require_role('guru','admin','kepala_sekolah');
+if(current_user()['role']!=='guru'){
+    $rows=ak_rows('SELECT n.*,s.nama_siswa,k.nama_kelas,m.nama_mapel,g.nama_guru,r.versi AS versi_aturan FROM ak_nilai n JOIN siswa s ON s.nis=n.nis JOIN kelas k ON k.id_kelas=n.id_kelas JOIN mata_pelajaran m ON m.id_mapel=n.id_mapel JOIN guru g ON g.id_guru=n.id_guru JOIN ak_aturan_nilai r ON r.id=n.id_aturan ORDER BY n.id DESC LIMIT 200');
+    ?><section class="panel"><h2>Supervisi nilai berversi</h2><p>Guru pengampu mengisi nilai sesuai penugasan. Aturan baru tidak menghitung ulang nilai existing atau mengubah snapshot rapor.</p><div class="table-scroll"><table><thead><tr><th>Siswa</th><th>Kelas</th><th>Mapel</th><th>Guru</th><th>Akhir</th><th>Predikat</th><th>Aturan</th></tr></thead><tbody><?php foreach($rows as $r):?><tr><td><?=e($r['nama_siswa'])?></td><td><?=e($r['nama_kelas'])?></td><td><?=e($r['nama_mapel'])?></td><td><?=e($r['nama_guru'])?></td><td><?=e($r['nilai_akhir'])?></td><td><?=e($r['predikat'])?></td><td>v<?=e($r['versi_aturan'])?></td></tr><?php endforeach;?></tbody></table></div></section><?php return;
+}
+$schedules=ak_teacher_schedules();if(!$schedules){echo '<div class="panel">Belum ada penugasan terverifikasi.</div>';return;}
+$scheduleId=isset($_GET['id_jadwal'])?input_id($_GET,'id_jadwal'):(int)$schedules[0]['id_jadwal'];$schedule=ak_schedule($scheduleId);
+$days=['Senin'=>1,'Selasa'=>2,'Rabu'=>3,'Kamis'=>4,'Jumat'=>5];$default=new DateTimeImmutable('today');while((int)$default->format('N')!==$days[$schedule['hari']])$default=$default->modify('-1 day');
+$date=isset($_GET['tanggal'])?input_date($_GET,'tanggal'):$default->format('Y-m-d');ak_schedule($scheduleId,false,$date);
+$options=[];foreach($schedules as $s)$options[$s['id_jadwal']]=$s['nama_kelas'].' · '.$s['nama_mapel'].' · '.$s['hari'];
+$roster=ak_roster((int)$schedule['id_kelas'],(int)$schedule['id_tahun_ajaran'],$date);
+$studentOptions=[];foreach($roster as $s)$studentOptions[$s['nis']]=$s['nomor_absen'].'. '.$s['nama_siswa'];
+$selectedNis=input_text(['nis'=>$_GET['nis']??''],'nis',15,false);if($selectedNis!==''&&!array_key_exists($selectedNis,$studentOptions))deny_access();
+$scope=[$schedule['id_tahun_ajaran'],$schedule['id_kelas'],$schedule['id_mapel'],$schedule['id_guru']];
+$rules=ak_rows('SELECT * FROM ak_aturan_nilai WHERE id_tahun_ajaran=? AND id_kelas=? AND id_mapel=? AND id_guru=? ORDER BY versi DESC',$scope);
+?><form method="get" class="panel form-grid filter"><?php ak_hidden('view','nilai');ak_select('id_jadwal','Penugasan',$options,$scheduleId);ak_field('tanggal','Tanggal roster / penilaian',$date,'date');ak_select('nis','Siswa (kosong = input massal)',$studentOptions,$selectedNis,false);?><button class="secondary">Tampilkan</button></form>
+<details class="panel" <?=$rules?'':'open'?>><summary>Buat versi aturan penilaian</summary><p>Formula tetap: jumlah (nilai × bobot) / 100. Predikat memakai interval KKM yang disimpan pada versi aturan. Setiap nilai menyimpan versi yang digunakan; nilai lama tidak berubah otomatis.</p><form method="post"><?=csrf_field()?><?php ak_hidden('action','aturan_nilai');ak_hidden('id_jadwal',$scheduleId);ak_hidden('tanggal',$date);?><div class="form-grid"><?php foreach(AK_COMPONENTS as $key=>$label)ak_field('bobot_'.$key,$label.' (%)',['tugas'=>30,'uts'=>30,'uas'=>40,'praktik'=>0,'proyek'=>0][$key],'number');?></div><?php ak_field('catatan','Dasar / catatan aturan');?><button type="submit">Simpan versi aturan baru</button></form></details>
+<?php if(!$rules):?><div class="notice">Buat aturan dengan jumlah bobot 100 sebelum mengisi nilai.</div><?php return;endif;
+$ruleOptions=[];foreach($rules as $r)$ruleOptions[$r['id']]='Versi '.$r['versi'].' · KKM '.$r['kkm'].' · '.$r['catatan'];
+$stored=[];foreach(ak_grade_rows($scheduleId) as $g)$stored[$g['nis']]=$g;
+$roster=array_values(array_filter($roster,fn($s)=>$selectedNis==='' || $s['nis']===$selectedNis));
+?>
+<section class="panel"><h2>Input nilai kelas <?=e($schedule['nama_kelas'])?></h2><p>Isi seluruh komponen 0–100. Simpan massal memperbarui roster yang terlihat; revisi memakai alasan dan nomor versi untuk mencegah saling menimpa.</p><form method="post"><?=csrf_field()?><?php ak_hidden('action','nilai');ak_hidden('id_jadwal',$scheduleId);ak_hidden('tanggal',$date);ak_select('id_aturan','Aturan yang dipakai saat menyimpan',$ruleOptions,$rules[0]['id']);?>
+<?php foreach($roster as $student):$nis=$student['nis'];$old=$stored[$nis]??null;$scores=$old?json_decode($old['komponen_json'],true):[];?><details class="panel"><summary><?=e($student['nomor_absen'])?>. <?=e($student['nama_siswa'])?> · <?=$old?'Akhir '.e($old['nilai_akhir']).' ('.e($old['predikat']).'), aturan v'.e($old['versi_aturan']):'Belum dinilai'?></summary><?php ak_hidden('nilai['.$nis.'][revision]',$old['revision']??0);?><div class="form-grid"><?php foreach(AK_COMPONENTS as $key=>$label)ak_field('nilai['.$nis.']['.$key.']',$label,$scores[$key]??'','number');?></div><?php ak_field('nilai['.$nis.'][deskripsi]','Deskripsi capaian',$old['deskripsi']??'');?></details><?php endforeach;?>
+<?php ak_field('alasan','Alasan pengisian / koreksi');?><button type="submit" class="save-button">Simpan Nilai Kelas</button></form><?php ak_exports('nilai',['id_jadwal'=>$scheduleId]);?></section>

@@ -31,6 +31,26 @@ if (isset($entry['role'])) {
     require_role($entry['role']);
 }
 $postRoutes=['/auth/login.php','/auth/logout.php','/auth/change_password.php','/admin/master.php','/admin/users.php','/admin/jadwal.php','/admin/penugasan.php','/admin/tahun_ajaran.php','/admin/nilai.php','/admin/ekskul.php','/admin/export_import.php','/admin/kalender.php','/guru/absen.php','/guru/jurnal.php','/guru/nilai.php','/guru/ekskul.php','/kepsek/evaluasi.php','/kepsek/kalender.php'];
-if($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,$postRoutes,true)){http_response_code(405);header('Allow: GET, HEAD');exit;}
+if($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,[...$postRoutes,'/academic/index.php'],true)){http_response_code(405);header('Allow: GET, HEAD');exit;}
+// Opt-in development workflows: old entrypoints must not create a second live
+// attendance/calendar/report source. R1.5 deployments without this flag retain
+// their audited behavior. Their historical records are not copied or changed.
+if(isset($entry['role']) && function_exists('app_setting') && app_setting('ACADEMIC_WORKFLOWS')==='1'){
+    $academicRoutes=[
+        '/guru/absen.php'=>'pertemuan','/guru/jurnal.php'=>'pertemuan',
+        '/guru/rekap_absen.php'=>'jurnal','/guru/nilai.php'=>'nilai',
+        '/guru/rapor.php'=>'rapor','/siswa/rapor.php'=>'rapor','/kepsek/rapor.php'=>'rapor',
+        '/admin/kalender.php'=>'kalender','/guru/kalender.php'=>'kalender',
+        '/kepsek/kalender.php'=>'kalender','/siswa/kalender.php'=>'kalender',
+        '/admin/export_import.php'=>'impor',
+        '/siswa/absen.php'=>'kehadiran',
+    ];
+    if(isset($academicRoutes[$path])){
+        if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();http_response_code(409);exit('Gunakan formulir Ruang Akademik terbaru; tidak ada data yang disimpan.');}
+        $params=['view'=>$academicRoutes[$path]];
+        foreach(['id_jadwal','tanggal','id_tahun_ajaran'] as $key)if(isset($_GET[$key])&&is_string($_GET[$key]))$params[$key]=$_GET[$key];
+        header('Location: /academic/index.php?'.http_build_query($params));exit;
+    }
+}
 chdir(dirname($root.$path));
 require $root.$path;

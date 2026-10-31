@@ -55,5 +55,5 @@ function operation_error(Throwable $error): string {
 }
 function csv_safe(mixed $value): string {
     $value=(string)$value;
-    return preg_match('/^[=+\-@\t\r]/',$value) ? "'".$value : $value;
+    return preg_match('/^(?:[=+\-@\t\r\n]|[\s\x00-\x1F]+[=+\-@])/u',$value) ? "'".$value : $value;
 }

@@ -153,4 +153,7 @@ function verify_csrf(): void {
 }
 function current_user(): ?array { return function_exists('authenticated_user') ? authenticated_user() : null; }
 function role_label(string $role): string { return ['admin'=>'Administrator','guru'=>'Guru','kepala_sekolah'=>'Kepala Sekolah','siswa'=>'Siswa'][$role] ?? $role; }
-function dashboard_path(string $role): string { return ['admin'=>'admin/index.php','guru'=>'guru/index.php','kepala_sekolah'=>'kepsek/index.php','siswa'=>'siswa/index.php'][$role] ?? 'auth/login.php'; }
+function dashboard_path(string $role): string {
+    if(app_setting('ACADEMIC_WORKFLOWS')==='1' && in_array($role,['admin','guru','kepala_sekolah','siswa'],true))return 'academic/index.php';
+    return ['admin'=>'admin/index.php','guru'=>'guru/index.php','kepala_sekolah'=>'kepsek/index.php','siswa'=>'siswa/index.php'][$role] ?? 'auth/login.php';
+}
