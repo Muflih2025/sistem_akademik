@@ -9,10 +9,25 @@ from r0_http import Browser,csrf
 
 def main():
  os.umask(0o077);p=argparse.ArgumentParser();p.add_argument('--state',required=True);p.add_argument('--port',type=int,default=18091);a=p.parse_args();state=Path(a.state).resolve()
+ control_path=state/'private/service-control.json';control=json.loads(control_path.read_text()) if control_path.exists() else None
+ def service_action(action,name=None):
+  command=['sudo','-n','python3',str(ROOT/'ops/r15_service_control.py'),action,'--state',str(state)]
+  if name is not None:command+=['--name',name]
+  r=subprocess.run(command,capture_output=True)
+  if r.returncode:raise RuntimeError('Isolated staging service action failed; private context redacted')
+  return r.stdout
+ def write_runtime(data):
+  save_json(state/'private/runtime.json',data)
+  if control:service_action('sync')
  config=json.loads((state/'private/runtime.json').read_text());assert config['DB_NAME']=='r1_testing_20261030' and config['APP_ENV']=='testing' and config.get('DB_SOCKET')
- creds=json.loads((state/'private/fixture-login.json').read_text());base='http://127.0.0.1:'+str(a.port);tag=secrets.token_hex(3);run=state/'security'/tag;run.mkdir(mode=0o700);config['SECURITY_STATE_PATH']=str(run);save_json(state/'private/runtime.json',config)
+ creds=json.loads((state/'private/fixture-login.json').read_text());base='http://127.0.0.1:'+str(a.port);tag=secrets.token_hex(3);run=(Path(control['runtime_base']) if control else state)/'security'/tag
+ if control:service_action('mkdir-security',tag)
+ else:run.mkdir(mode=0o700)
+ config['SECURITY_STATE_PATH']=str(run);write_runtime(config)
  results=[];ctx={};password=creds['password'];protected_legacy={}
- error_log_path=state/'logs/php-errors.log';error_log_offset=error_log_path.stat().st_size if error_log_path.exists() else 0
+ error_log_path=state/'logs/php-errors.log'
+ def error_bytes():return service_action('read-log') if control else (error_log_path.read_bytes() if error_log_path.exists() else b'')
+ error_log_offset=len(error_bytes())
  def db(sql,args=None):
   result=subprocess.run(['php',str(ROOT/'tests/r1_db.php'),str(state/'private/inspector.json')],input=json.dumps({'sql':sql,'args':args or []}).encode(),capture_output=True)
   if result.returncode:raise RuntimeError('Fixture helper refused/failed')
@@ -74,9 +89,9 @@ def main():
   submit(admin,'/admin/users.php',{'action':'deactivate','id_user':'50'});status(teacher.request('/guru/index.php'),302);submit(admin,'/admin/users.php',{'action':'activate','id_user':'50'})
  test('session_revoked_when_account_disabled',invalidate_status);teacher=login(creds['teacher_a'])
  def idle_timeout():
-  b=login(creds['student_a']);temp={**config,'SESSION_IDLE_TIMEOUT':'1'};save_json(state/'private/runtime.json',temp)
-  try:time.sleep(2);status(b.request('/siswa/index.php'),302)
-  finally:save_json(state/'private/runtime.json',config)
+  b=login(creds['student_a']);temp={**config,'SESSION_IDLE_TIMEOUT':'1'}
+  try:write_runtime(temp);time.sleep(2);status(b.request('/siswa/index.php'),302)
+  finally:write_runtime(config)
  test('session_idle_timeout',idle_timeout)
  def throttle():
   b=Browser(base);page=b.request('/auth/login.php');token=csrf(page[2]);identity='rate_'+tag
@@ -88,18 +103,17 @@ def main():
   response=Browser(base).request('/auth/login.php');cookie=response[1].get('Set-Cookie','');check('HttpOnly' in cookie and 'SameSite=Lax' in cookie and 'secure' not in cookie.lower())
  test('cookie_localhost_httponly_samesite',cookie_flags)
  def secure_cookie():
-  save_json(state/'private/runtime.json',{**config,'COOKIE_SECURE':'1'})
-  try:check('secure' in Browser(base).request('/auth/login.php')[1].get('Set-Cookie','').lower())
-  finally:save_json(state/'private/runtime.json',config)
+  try:write_runtime({**config,'COOKIE_SECURE':'1'});check('secure' in Browser(base).request('/auth/login.php')[1].get('Set-Cookie','').lower())
+  finally:write_runtime(config)
  test('cookie_secure_when_explicitly_enabled',secure_cookie)
  def rotate_and_logout():
   b=Browser(base);page=b.request('/auth/login.php');old=b.session(config['SESSION_NAME']);status(b.request('/auth/login.php','POST',{'csrf_token':csrf(page[2]),'username':creds['student_a'],'password':password}),302);new=b.session(config['SESSION_NAME']);check(new and new!=old)
   submit(b,'/auth/logout.php',{});status(Browser(base).request('/siswa/index.php',headers={'Cookie':config['SESSION_NAME']+'='+new}),302)
  test('session_rotation_and_logout_old_cookie_replay_denied',rotate_and_logout)
  def absolute_timeout():
-  b=login(creds['student_a']);save_json(state/'private/runtime.json',{**config,'SESSION_MAX_AGE':'1'})
-  try:time.sleep(2);status(b.request('/siswa/index.php'),302)
-  finally:save_json(state/'private/runtime.json',config)
+  b=login(creds['student_a'])
+  try:write_runtime({**config,'SESSION_MAX_AGE':'1'});time.sleep(2);status(b.request('/siswa/index.php'),302)
+  finally:write_runtime(config)
  test('session_absolute_timeout',absolute_timeout)
  def parallel_login():
   attempts=[]
@@ -111,18 +125,22 @@ def main():
   check(codes.count(200)==5 and codes.count(429)==7)
  test('login_parallel_attempts_rate_limit_atomic',parallel_login)
  def runtime_privileges():
-  grants=db('SHOW GRANTS FOR r1_runtime@localhost');text=' '.join(str(v) for r in grants for v in r.values()).upper();check('ALL PRIVILEGES' not in text and not any(x in text for x in ['GRANT CREATE','GRANT ALTER','GRANT DROP']))
+  grants=db("SHOW GRANTS FOR '"+config['DB_USER']+"'@'localhost'");text=' '.join(str(v) for r in grants for v in r.values()).upper();check('ALL PRIVILEGES' not in text and not any(x in text for x in ['GRANT CREATE','GRANT ALTER','GRANT DROP']))
   result=subprocess.run(['php',str(ROOT/'tests/r1_db.php'),str(state/'private/runtime.json')],input=json.dumps({'sql':'UPDATE audit_aktivitas SET action=action WHERE 1=0'}).encode(),capture_output=True);check(result.returncode!=0)
  test('runtime_no_ddl_and_audit_append_only',runtime_privileges)
  def canary_blocks():
   targets=[ROOT/'public'/('.r1-'+tag+'.env'),ROOT/'public'/('r1-'+tag+'.sql'),ROOT/'public'/('r1-'+tag+'.log')]
   try:
+   if control:service_action('create-canaries',tag)
    for target in targets:
-    with target.open('x') as f:f.write('PRIVATE_FIXTURE_ACCESS_CANARY')
+    if not control:
+     with target.open('x') as f:f.write('PRIVATE_FIXTURE_ACCESS_CANARY')
     for method in ['GET','HEAD']:status(admin.request('/'+target.name,method),404)
   finally:
-   for target in targets:
-    if target.exists():target.unlink()
+   if control:service_action('remove-canaries',tag)
+   else:
+    for target in targets:
+     if target.exists():target.unlink()
  test('r0_blocks_sensitive_files_physically_present_in_public',canary_blocks)
  # Core master create/update/archive via actual forms.
  def create_master(table,data,key,find,value):
@@ -355,7 +373,7 @@ def main():
  test('legacy_ambiguous_identity_and_foreign_history_not_repaired_by_guess',lambda:[check(row(f'SELECT * FROM {table} WHERE {pk}=?',[value])==before) for (table,pk,value),before in protected_legacy.items()])
  test('audit_no_password_or_auth_secrets',lambda:check(password not in json.dumps(db('SELECT before_json,after_json FROM audit_aktivitas')) and scalar("SELECT COUNT(*) FROM audit_aktivitas WHERE before_json LIKE '%\\\"password\\\"%' OR after_json LIKE '%\\\"password\\\"%'")==0))
  test('foreign_keys_no_orphan_attendance',lambda:check(scalar('SELECT COUNT(*) FROM absensi a LEFT JOIN users u ON u.id_user=a.created_by LEFT JOIN siswa s ON s.nis=a.nis LEFT JOIN jadwal j ON j.id_jadwal=a.id_jadwal WHERE u.id_user IS NULL OR s.nis IS NULL OR j.id_jadwal IS NULL')==0))
- errors=error_log_path.read_bytes()[error_log_offset:].decode(errors='replace') if error_log_path.exists() else ''
+ errors=error_bytes()[error_log_offset:].decode(errors='replace')
  test('no_php_fatal_errors',lambda:check('PHP Fatal error' not in errors and 'PHP Parse error' not in errors and 'Uncaught ' not in errors))
  results.append({'test':'nisn_validation_not_applicable_no_nisn_column','status':'SKIP','reason':'Existing schema does not use NISN; no invented identifier column.'})
  report={'tests':results,'passed':sum(t['status']=='PASS' for t in results),'failed':sum(t['status']=='FAIL' for t in results),'skipped':sum(t['status']=='SKIP' for t in results),'fixture_only':True,'run':tag,'port':a.port}

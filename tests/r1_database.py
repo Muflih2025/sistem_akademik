@@ -39,7 +39,10 @@ def main():
         env = {k: v for k, v in os.environ.items() if not k.startswith('SIA_')}
         env['SIA_CONFIG_FILE'] = str(state / 'private/owner-config.json')
         for _ in range(2):
-            result = subprocess.run(['php', str(ROOT / 'ops/migrate_r1.php'), '--apply', '--expected-database=r1_testing_20261030'], env=env, capture_output=True)
+            command=['php', str(ROOT / 'ops/migrate_r1.php'), '--apply', '--expected-database=r1_testing_20261030']
+            if (state/'private/service-control.json').exists():
+                command=['sudo','-n','env','SIA_CONFIG_FILE=/etc/sia-r15-staging/20261031/migration-owner.json',*command]
+            result = subprocess.run(command, env=env, capture_output=True)
             if result.returncode:
                 return False
         return snapshot(state / 'private/inspector.json') == before

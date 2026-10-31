@@ -45,6 +45,7 @@ function db(): PDO {
     static $pdo;
     if (!$pdo) {
         if (DB_NAME === '' || DB_USER === '') throw new RuntimeException('Konfigurasi database belum tersedia.');
+        if (strtolower(DB_USER) === 'root') throw new RuntimeException('Akun database aplikasi harus non-root.');
         $transport = DB_SOCKET !== '' ? 'unix_socket='.DB_SOCKET : 'host='.DB_HOST.';port='.DB_PORT;
         $pdo = new PDO('mysql:'.$transport.';dbname='.DB_NAME.';charset=utf8mb4', DB_USER, DB_PASS, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

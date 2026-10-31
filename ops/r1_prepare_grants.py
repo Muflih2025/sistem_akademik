@@ -27,8 +27,8 @@ def main():
     sql=['-- NOT EXECUTED. Separate user authorization is required before applying.',
          '-- Stop if either named account already exists. Do not use --force.',
          f"CREATE USER '{app}'@'localhost' IDENTIFIED BY '{apppass}';",
-         f"GRANT SELECT ON `{database}`.* TO '{app}'@'localhost';"]
-    sql += [f"GRANT INSERT,UPDATE ON `{database}`.`{table}` TO '{app}'@'localhost';" for table in business]
+         '-- Runtime gets no schema-wide SELECT, audit read, migration ledger or normalization-table access.']
+    sql += [f"GRANT SELECT,INSERT,UPDATE ON `{database}`.`{table}` TO '{app}'@'localhost';" for table in business]
     sql += [f"GRANT INSERT ON `{database}`.audit_aktivitas TO '{app}'@'localhost';",
             f"GRANT DELETE ON `{database}`.catatan_evaluasi TO '{app}'@'localhost';",
             f"CREATE USER '{owner}'@'localhost' IDENTIFIED BY '{ownerpass}';",
