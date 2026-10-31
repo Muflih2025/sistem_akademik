@@ -21,7 +21,7 @@ function ak_begin(string $title,string $view): void {
     if ($role==='guru') $links+=['pertemuan'=>'Absensi','jurnal'=>'Jurnal & Agenda','piket'=>'Guru Piket'];
     if (in_array($role,['admin','kepala_sekolah'],true)) $links+=['jurnal'=>'Jurnal','piket'=>'Absensi Harian'];
     $links+=['kalender'=>'Kalender'];
-    $links+=['jadwal'=>'Jadwal'];
+    $links+=['jadwal'=>'Jadwal','jam'=>'Jam Belajar'];
     if ($role!=='siswa') $links+=['nilai'=>'Nilai'];
     $links+=['rapor'=>'Rapor'];
     if($role==='siswa')$links+=['kehadiran'=>'Kehadiran Saya'];

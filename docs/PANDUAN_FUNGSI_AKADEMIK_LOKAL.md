@@ -79,7 +79,8 @@ Server menggunakan unit lokal yang sudah ada, DynamicUser non-root, kode read-on
 # Sudah tersedia di lingkungan ini; hanya bila dependency tes PDF belum ada:
 python3 ops/academic_test_dependencies.py
 # Seluruh suite berurutan, termasuk operasi browser yang menyimpan data:
-python3 tests/run_academic.py
+python3 tests/run_academic.py --with-kelas10 \
+  --baseline-directory /home/muflih/.local/state/sia-academic-dev/20261031/reports/kelas10-baseline
 ```
 
 Tes memakai fixture dengan ID unik, tidak me-reset database. Skenario browser menyimpan, memeriksa DB, reload, mengedit/nonaktifkan dan menguji izin; CSV/XLSX/PDF dibaca kembali. Teks PDF dinormalisasi untuk whitespace/ligatur font sebelum dibandingkan dengan NIS/nama/materi sumber. Parser PDF berada di tooling privat, bukan dependency backend aplikasi.
@@ -87,6 +88,19 @@ Tes memakai fixture dengan ID unik, tidak me-reset database. Skenario browser me
 Log, screenshot, hasil rinci dan backup privat: `/home/muflih/.local/state/sia-academic-dev/20261031/`. `reports/restore-latest.json` mencatat backup/restore ke database baru dan hash. Suite terakhir melakukan restart hanya 18125 dan menguji startup salah credential yang gagal tertutup, kemudian memulihkan konfigurasi benar. Jalankan tes saat tidak ada pengisian manual development.
 
 Jangan mengimpor dump ke database existing, mengganti grant aktif atau memetakan 18 penugasan asli lewat fixture. Untuk memulihkan eksperimen lokal, hentikan service development, simpan checkpoint/backup, lalu gunakan worktree/database baru. Tidak ada rollback DDL destruktif otomatis.
+
+## Data uji kelas X dan referensi jam
+
+Sumber pengganti yang dipakai adalah `/home/muflih/sistem_akademik/data kelas 10 clean.xlsx`: 389 siswa, 11 kelas X. Berkas kelas XI sebelumnya tidak diimpor. NIS, nama, kelamin, kelas dan nomor absen dibaca dari Excel. Rumus NIS hanya diterima untuk pola penambahan satu dari baris sebelumnya, dengan hasil cache diperiksa; rumus bebas tidak dieksekusi.
+
+- Admin `uji_admin`: buka `/admin/master.php?table=siswa`, pilih kelas X dan **Terapkan filter**. Contoh **X PPLG 2** mempunyai 35 siswa, terbagi 20 dan 15 pada dua halaman. Kelas/jurusan juga tersedia di master masing-masing.
+- Guru Piket `uji_piket`: buka `/academic/index.php?view=piket`, tanggal **2026-10-30**, pilih kelas X. Siswa baru seluruhnya Belum Dikonfirmasi sampai ada pengisian yang sah. Excel/CSV/PDF memakai roster keanggotaan yang sama.
+- Semua akun testing yang sudah login dapat membuka **Jam Belajar**: `/academic/index.php?view=jam`. Profil Senin, Selasa–Kamis dan Jumat berasal dari gambar, disimpan berversi di database. Halaman ini hanya membaca referensi; tidak otomatis mengubah jadwal.
+- Guru belum diberi penugasan tambahan untuk kelas X. Admin harus menetapkan guru, mapel, hari, rentang jam dan periode, kemudian memverifikasi rentang penugasan di **Akademik**. Tabel jam bel tidak menyebut guru/mapel, sehingga tidak digunakan untuk mengarang jadwal. Alur guru/jurnal contoh XII tetap tersedia.
+- Keanggotaan kelas X memakai **periode fixture sintetis 2026/2027 Ganjil** yang sudah ada, bukan periode yang diperoleh dari Excel. Excel tidak mempunyai tanggal lahir; nilai `2010-01-01` adalah placeholder **DATA UJI**, diberi keterangan pada alamat, bukan informasi siswa dari sumber. Jangan gunakan sebagai data sekolah resmi.
+- Jumat jam ke-6 **10:50–11:40**, jam ke-7 **13:00–13:30** dipertahankan sesuai gambar; status referensi **perlu konfirmasi**. Jenis jeda 11:40–13:00 belum ditetapkan pengguna.
+
+Impor dilakukan sekali melalui CRUD dan preview/commit yang terautentikasi; script `ops/academic_kelas10.py` menolak menimpa NIS existing. Mengulang dengan sumber yang sudah selesai hanya memverifikasi data, tanpa membuat duplikasi. Peta baris dan backup berada di direktori state privat, tidak masuk Git atau document root. Baseline khusus tugas ini mencatat file Excel baru dan perubahan `.gitignore` yang telah dibuat pengguna; baseline audit lama tetap disimpan.
 
 ## Batas yang masih perlu keputusan
 

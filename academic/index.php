@@ -8,7 +8,7 @@ require_once __DIR__.'/layout.php';
 require_once dirname(__DIR__).'/includes/crud.php';
 require_login();
 if (app_setting('ACADEMIC_WORKFLOWS')!=='1') not_found();
-$view=input_choice(['view'=>$_GET['view']??'beranda'],'view',['beranda','fondasi','pertemuan','jurnal','piket','kalender','nilai','rapor','impor','kehadiran','jadwal']);
+$view=input_choice(['view'=>$_GET['view']??'beranda'],'view',['beranda','fondasi','pertemuan','jurnal','piket','kalender','nilai','rapor','impor','kehadiran','jadwal','jam']);
 if($view==='kehadiran')require_role('siswa');
 if($view==='fondasi')require_role('admin');
 if(in_array($view,['pertemuan','jurnal','piket','nilai','impor'],true))require_role(...($view==='pertemuan'?['guru']:['admin','guru','kepala_sekolah']));
@@ -44,9 +44,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     } catch (Throwable $caught) { $error=operation_error($caught); }
 }
 ob_start();
-$titles=['beranda'=>'Ruang Akademik','fondasi'=>'Fondasi Akademik','pertemuan'=>'Absensi & Pertemuan','jurnal'=>'E-Jurnal Kelas & Agenda Guru','piket'=>'Monitoring Guru Piket','kalender'=>'Kalender Akademik','nilai'=>'Penilaian','rapor'=>'Rapor Semester','impor'=>'Impor & Ekspor','kehadiran'=>'Kehadiran Saya','jadwal'=>'Jadwal Pelajaran'];
+$titles=['beranda'=>'Ruang Akademik','fondasi'=>'Fondasi Akademik','pertemuan'=>'Absensi & Pertemuan','jurnal'=>'E-Jurnal Kelas & Agenda Guru','piket'=>'Monitoring Guru Piket','kalender'=>'Kalender Akademik','nilai'=>'Penilaian','rapor'=>'Rapor Semester','impor'=>'Impor & Ekspor','kehadiran'=>'Kehadiran Saya','jadwal'=>'Jadwal Pelajaran','jam'=>'Jam Belajar'];
 // View files are an explicit allowlist, never a user-supplied path.
-$views=['beranda'=>'home','fondasi'=>'foundation','pertemuan'=>'meeting','jurnal'=>'journal','piket'=>'duty','kalender'=>'calendar','nilai'=>'grades','rapor'=>'reports','impor'=>'transfer','kehadiran'=>'student_attendance','jadwal'=>'schedules'];
+$views=['beranda'=>'home','fondasi'=>'foundation','pertemuan'=>'meeting','jurnal'=>'journal','piket'=>'duty','kalender'=>'calendar','nilai'=>'grades','rapor'=>'reports','impor'=>'transfer','kehadiran'=>'student_attendance','jadwal'=>'schedules','jam'=>'bell_reference'];
 ak_begin($titles[$view],$view);
 if ($error!=='') echo '<div class="notice error" role="alert">'.e($error).'</div>';
 $path=__DIR__.'/views/'.$views[$view].'.php';

@@ -44,3 +44,13 @@ Endpoint utama baru: `GET/POST /academic/index.php?view=...`; seluruh POST memak
 | Produksi, Docker, beban, HP fisik | Belum → Belum / di luar aktivasi ini | 18125 loopback saja | Tidak menyentuh DB aktif | Browser Chromium320–desktop; restart development | Tidak ada deployment/Docker/LAN atau klaim kesiapan produksi |
 
 Semua referensi kasus tersedia dalam `docs/evidence/ACADEMIC_FUNCTIONAL_COMPLETION_TEST_RESULTS.json` dan kode pengujian. Tidak ada fitur yang diberi status lengkap hanya karena GET halaman menghasilkan 200. Delapan kelompok wajib sudah dapat dicoba dengan fixture melalui browser lokal, dengan batas data resmi dan modul tambahan di atas.
+
+## Tambahan dataset pengguna: kelas X dan jam bel
+
+| Fitur | Status | Halaman / operasi DB | Bukti | Batas |
+|---|---|---|---|---|
+| Data dummy Excel kelas X | Lengkap untuk sumber yang diberikan | Master siswa/kelas/jurusan; INSERT 389 siswa, 389 keanggotaan bertanggal, 11 kelas, 3 jurusan tambahan | Seluruh NIS/nama/kelamin/kelas/nomor absen dibandingkan dengan sumber; impor ulang tanpa write/duplikat; browser filter/pagination 35 siswa | Tanggal lahir placeholder diberi label; tidak membuat akun siswa otomatis |
+| Monitoring kelas X oleh Piket | Lengkap untuk roster yang belum diisi | view piket; SELECT anggota, harian dan jadwal | Browser 35 Belum, 0 H/S/I/A; XLSX nyata dibaca kembali dan cocok dengan siswa sumber | Jadwal/pengisian kelas X menunggu penugasan yang disetujui; tidak menganggap semua sudah hadir |
+| Referensi jam dari gambar | Tersedia sebagai referensi berversi | view jam; SELECT `ak_jam_belajar`; migration 007 additive + seed CLI terbatas development | Tiga profil DB, 28 slot pelajaran, Jumat tidak diseragamkan; lima role browser; 320/375/430/768/1440 tanpa overflow tabel | Jumat perlu konfirmasi. Belum otomatis memvalidasi/mengisi jam jadwal; guru/mapel tidak dibuat dari perkiraan |
+
+Hasil suite setelah tambahan ini: **652 PASS, 0 FAIL, 0 SKIP**. Bukti ringkas tambahan: `docs/evidence/KELAS10_JAM_TEST_RESULTS.json`; laporan `LAPORAN_DATA_KELAS10_JAM_2026-10-31.md`. Bukti 613 pengujian checkpoint sebelumnya tetap disimpan sebagai catatan historis.

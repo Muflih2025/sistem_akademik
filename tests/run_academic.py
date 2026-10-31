@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Sequential reproducible verification of the isolated academic development app."""
-import json,os,subprocess,sys,time
+import argparse,json,os,subprocess,sys,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 STATE=Path('/home/muflih/.local/state/sia-academic-dev/20261031')
 
 def main():
+ parser=argparse.ArgumentParser();parser.add_argument('--baseline-directory');parser.add_argument('--with-kelas10',action='store_true');options=parser.parse_args()
  os.umask(0o077);config=json.loads((STATE/'private/runtime.json').read_text())
  assert config['DB_NAME']=='sia_academic_dev_20261031' and config['APP_ENV']=='testing' and config.get('DB_SOCKET')
  env={**os.environ,'PLAYWRIGHT_BROWSERS_PATH':config['PDF_BROWSERS_PATH'],'LD_LIBRARY_PATH':config['PDF_LIBRARY_PATH']}
  suites=[('http',['python3','tests/academic_http.py'],'academic-http-tests.json'),('edges',['python3','tests/academic_edges.py'],'academic-edge-tests.json'),('completion',['python3','tests/academic_completion_http.py'],'completion-http-tests.json'),('functional-browser',['node','tests/academic_functional_browser.cjs'],'functional-browser-tests.json'),('browser',['node','tests/academic_browser.cjs'],'academic-browser-tests.json'),('login',['node','tests/login_layout.cjs'],'login-layout-tests.json'),('integrity',['python3','tests/academic_integrity.py'],'academic-integrity-tests.json')]
+ if options.with_kelas10:
+  suites[-1:-1]=[('kelas10',['python3','tests/academic_kelas10.py'],'kelas10-tests.json'),('kelas10-browser',['node','tests/academic_kelas10.cjs'],'kelas10-browser-tests.json')]
+ if options.baseline_directory:suites[-1][1].extend(['--baseline-directory',options.baseline_directory])
  reports=[]
  for name,args,file in suites:
   start=time.time();log=STATE/'reports'/(name+'-latest.log')

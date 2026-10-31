@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Integrity, privileges, restore and controlled LOCAL restart; never 8085 writes."""
-import gzip,hashlib,json,os,re,secrets,subprocess,sys,urllib.request
+import argparse,gzip,hashlib,json,os,re,secrets,subprocess,sys,urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'ops'));sys.path.insert(0,str(ROOT/'tests'))
 from r0_environment import mysql,save_json,snapshot
@@ -9,6 +9,9 @@ from academic_http import STATE,Browser,csrf
 
 def main():
  os.umask(0o077);results=[];tag=secrets.token_hex(3)
+ parser=argparse.ArgumentParser();parser.add_argument('--baseline-directory');options=parser.parse_args()
+ baseline=Path(options.baseline_directory).resolve() if options.baseline_directory else STATE/'reports'
+ if not baseline.is_relative_to((STATE/'reports').resolve()):raise ValueError('Baseline must be private local evidence')
  def check(v,message='Expected condition not met'):
   if not v:raise AssertionError(message)
  def test(name,fn):
@@ -91,20 +94,20 @@ def main():
  # Compare all protected resources against the pre-development private baselines.
  for name,root in [('target','/home/muflih/sistem_akademik'),('source','/home/muflih/Sistem-Informasi-Akademik-Sekolah-Laravel'),('active-release','/home/muflih/.local/share/sia-releases/r0-531d2f8')]:
   after=manifest(Path(root));save_json(STATE/'reports'/(name+'-after.json'),after)
-  test('unchanged_'+name+'_every_file_hash',lambda after=after,name=name:check(after==json.loads((STATE/'reports'/(name+'-before.json')).read_text())))
- test('unchanged_target_existing_git_changes',lambda:check(command(['git','-C','/home/muflih/sistem_akademik','status','--short'])==(STATE/'reports/git-target-before.txt').read_bytes()))
+  test('unchanged_'+name+'_every_file_hash',lambda after=after,name=name:check(after==json.loads((baseline/(name+'-before.json')).read_text())))
+ test('unchanged_target_existing_git_changes',lambda:check(command(['git','-C','/home/muflih/sistem_akademik','status','--short'])==(baseline/'git-target-before.txt').read_bytes()))
  service=command(['systemctl','show','sistem-akademik.service','--property=User','--property=ActiveState','--property=MainPID','--property=ExecMainStartTimestamp'])
- test('unchanged_8085_service_PID_start_time_user_state',lambda:check(service==(STATE/'reports/service-before.txt').read_bytes()))
- test('unchanged_8085_service_configuration',lambda:check(hashlib.sha256(Path('/etc/systemd/system/sistem-akademik.service.d/90-r0.conf').read_bytes()).hexdigest()==(STATE/'reports/service-before.sha256').read_text()))
+ test('unchanged_8085_service_PID_start_time_user_state',lambda:check(service==(baseline/'service-before.txt').read_bytes()))
+ test('unchanged_8085_service_configuration',lambda:check(hashlib.sha256(Path('/etc/systemd/system/sistem-akademik.service.d/90-r0.conf').read_bytes()).hexdigest()==(baseline/'service-before.sha256').read_text()))
  active=snapshot(Path('/home/muflih/.local/state/sia-r0/activation-20261030/private/active-config.json'));save_json(STATE/'reports/active-database-after.json',active)
- test('unchanged_active_database_every_schema_row_view_trigger_routine_hash',lambda:check(active==json.loads((STATE/'reports/active-database-before.json').read_text())))
+ test('unchanged_active_database_every_schema_row_view_trigger_routine_hash',lambda:check(active==json.loads((baseline/'active-database-before.json').read_text())))
  def legacy_count():
   source=Path('/home/muflih/.local/state/sia-r0/activation-20261030/private/active-config.json')
   rows=json.loads(command(['php',str(ROOT/'ops/read_only_query.php'),str(source)],input=json.dumps({'sql':'SELECT COUNT(*) AS total FROM jadwal'}).encode()))
   check(rows[0]['total']==18)
  test('18_legacy_assignments_preserved_active_read_only_count',legacy_count)
  test('no_new_academic_tables_added_to_active_DB',lambda:check('ak_penugasan' not in active['tables'] and 'ak_pertemuan' not in active['tables']))
- report={'passed':sum(r['status']=='PASS' for r in results),'failed':sum(r['status']=='FAIL' for r in results),'skipped':0,'tests':results,'php_lint_files':len(php_files),'foreign_keys_checked':len(groups),'active_database_unchanged':active==json.loads((STATE/'reports/active-database-before.json').read_text()),'restore':restore_report};save_json(STATE/'reports/academic-integrity-tests.json',report);print(f"{report['passed']} PASS, {report['failed']} FAIL, 0 SKIP");return 1 if report['failed']else 0
+ report={'passed':sum(r['status']=='PASS' for r in results),'failed':sum(r['status']=='FAIL' for r in results),'skipped':0,'tests':results,'baseline_directory':str(baseline),'php_lint_files':len(php_files),'foreign_keys_checked':len(groups),'active_database_unchanged':active==json.loads((baseline/'active-database-before.json').read_text()),'restore':restore_report};save_json(STATE/'reports/academic-integrity-tests.json',report);print(f"{report['passed']} PASS, {report['failed']} FAIL, 0 SKIP");return 1 if report['failed']else 0
 
 if __name__=='__main__':
  try:sys.exit(main())

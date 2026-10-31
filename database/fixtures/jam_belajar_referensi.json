@@ -1,0 +1,42 @@
+{
+  "source": "Transkripsi gambar hari dan waktu yang diberikan pengguna; referensi development, bukan penugasan guru atau kalender resmi.",
+  "profiles": [
+    {
+      "nama": "Senin", "versi": 1, "status": "referensi", "hari": ["Senin"],
+      "catatan": "Jam ke mengikuti gambar. Baris tanpa nomor tidak dihitung sebagai jam pelajaran.",
+      "slots": [
+        [null, "07:00", "07:40", "Upacara"],
+        [1, "07:40", "08:20", "Pembelajaran"], [2, "08:20", "09:00", "Pembelajaran"],
+        [3, "09:00", "09:40", "Pembelajaran"], [null, "09:40", "10:15", "Istirahat"],
+        [4, "10:15", "10:55", "Pembelajaran"], [5, "10:55", "11:35", "Pembelajaran"],
+        [6, "11:35", "12:15", "Pembelajaran"], [null, "12:15", "12:40", "Istirahat"],
+        [7, "12:40", "13:20", "Pembelajaran"], [8, "13:20", "14:00", "Pembelajaran"],
+        [9, "14:00", "14:40", "Pembelajaran"], [10, "14:40", "15:20", "Pembelajaran"]
+      ]
+    },
+    {
+      "nama": "Selasa–Kamis", "versi": 1, "status": "referensi", "hari": ["Selasa", "Rabu", "Kamis"],
+      "catatan": "Jam 5 pada gambar dibaca 10:15–11:00; durasi tidak diseragamkan.",
+      "slots": [
+        [1, "07:00", "07:40", "Pembelajaran"], [2, "07:40", "08:20", "Pembelajaran"],
+        [3, "08:20", "09:00", "Pembelajaran"], [4, "09:00", "09:40", "Pembelajaran"],
+        [null, "09:40", "10:15", "Istirahat"], [5, "10:15", "11:00", "Pembelajaran"],
+        [6, "11:00", "11:45", "Pembelajaran"], [7, "11:45", "12:30", "Pembelajaran"],
+        [null, "12:30", "13:00", "Istirahat"], [8, "13:00", "13:45", "Pembelajaran"],
+        [9, "13:45", "14:30", "Pembelajaran"], [10, "14:30", "15:15", "Pembelajaran"]
+      ]
+    },
+    {
+      "nama": "Jumat", "versi": 1, "status": "perlu_konfirmasi", "hari": ["Jumat"],
+      "catatan": "Transkripsi dipertahankan: jam 6 10:50–11:40 (50 menit), jam 7 mulai 13:00. Jeda 11:40–13:00 belum diklasifikasikan pengguna. Tidak diterapkan otomatis pada jadwal.",
+      "slots": [
+        [null, "07:00", "07:45", "Kegiatan Jumat"], [1, "07:45", "08:15", "Pembelajaran"],
+        [2, "08:15", "08:45", "Pembelajaran"], [3, "08:45", "09:15", "Pembelajaran"],
+        [4, "09:15", "09:45", "Pembelajaran"], [null, "09:45", "10:20", "Istirahat"],
+        [5, "10:20", "10:50", "Pembelajaran"], [6, "10:50", "11:40", "Pembelajaran"],
+        [null, "11:40", "13:00", "Jeda — jenis belum dikonfirmasi"],
+        [7, "13:00", "13:30", "Pembelajaran"], [8, "13:30", "14:00", "Pembelajaran"]
+      ]
+    }
+  ]
+}
