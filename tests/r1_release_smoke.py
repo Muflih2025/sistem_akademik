@@ -25,6 +25,10 @@ def main():
     client=state/'private/stage-admin.cnf';username='r1_review_'+secrets.token_hex(6);password=secrets.token_hex(24)
     hashed=subprocess.check_output(['php','-r','echo password_hash(trim(stream_get_contents(STDIN)),PASSWORD_BCRYPT);'],input=password.encode()).decode()
     mysql(client,"INSERT INTO users(username,password,role,status) VALUES('"+username+"','"+hashed+"','admin','aktif');",database=runtime['DB_NAME'])
+    legacy=query(inspector,'SELECT id_jadwal,id_guru,id_kelas FROM jadwal WHERE id_tahun_ajaran IS NULL ORDER BY id_jadwal LIMIT 1')
+    teachername=username+'_teacher'
+    if legacy:
+        mysql(client,"INSERT INTO users(username,password,role,id_referensi,status) VALUES('"+teachername+"','"+hashed+"','guru','"+str(int(legacy[0]['id_guru']))+"','aktif');",database=runtime['DB_NAME'])
     with_fixture=snapshot(inspector)
     rollback=state/'rollback/r0-531d2f8'
     if not rollback.exists():shutil.copytree('/home/muflih/.local/share/sia-releases/r0-531d2f8',rollback)
@@ -58,6 +62,16 @@ def main():
             test(name+'_logout_invalid_csrf',lambda:status(b.request('/auth/logout.php','POST',{'csrf_token':'invalid'}),419))
             test(name+'_logout_fixture_only',lambda:status(b.request('/auth/logout.php','POST',{'csrf_token':csrf(b.request('/auth/logout.php')[2])}),302))
             test(name+'_guest_after_logout',lambda:status(b.request('/admin/index.php'),302))
+            if name=='r1' and legacy:
+                def held_legacy_roster():
+                    teacher=Browser(base);login=teacher.request('/auth/login.php')
+                    status(teacher.request('/auth/login.php','POST',{'csrf_token':csrf(login[2]),'username':teachername,'password':password}),302)
+                    record=legacy[0]
+                    status(teacher.request('/guru/index.php'),200)
+                    for route in ['/guru/absen.php?id_jadwal=','/guru/jurnal.php?id_jadwal=','/guru/rekap_absen.php?id_jadwal=']:status(teacher.request(route+str(record['id_jadwal'])),403)
+                    status(teacher.request('/guru/rapor.php?id_kelas='+str(record['id_kelas'])),403)
+                    body=teacher.request('/guru/nilai.php');status(body,200);check('Daftar Nilai Tersimpan (0 Siswa)' in body[2])
+                test('migrated_real_legacy_assignments_do_not_expose_current_teacher_rosters',held_legacy_roster)
         finally:
             os.killpg(process.pid,signal.SIGTERM);process.wait(timeout=10);log.close()
     try:
@@ -83,7 +97,7 @@ def main():
         test('production_guard_modified_migration_denied',lambda:check(subprocess.run(['php',str(tamper/'ops/migrate_r1.php'),'--apply',*common],env=env,capture_output=True).returncode==2))
         test('guard_tests_do_not_change_clone',lambda:check(snapshot(inspector)==with_fixture))
     finally:
-        mysql(client,"DELETE FROM users WHERE username='"+username+"';",database=runtime['DB_NAME'])
+        mysql(client,"DELETE FROM users WHERE username IN ('"+username+"','"+teachername+"');",database=runtime['DB_NAME'])
     columns=json.loads((state/'reports/active-columns.json').read_text())
     original=json.loads((state/'reports/original-column-projection.json').read_text())
     test('original_clone_rows_unchanged_after_app_rollback',lambda:check(projection(inspector,columns)==original))

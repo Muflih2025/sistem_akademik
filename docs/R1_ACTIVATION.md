@@ -75,6 +75,6 @@ Gunakan jalur candidate dan plan **yang tercantum pada laporan readiness**, buka
 
 ## Batas pengujian
 
-Regression suite normal memakai database sintetis. Rehearsal memakai salinan privat data existing untuk membuktikan migrasi tanpa perubahan historis dan rollback kode; hanya satu akun admin sintetis sementara ditambahkan untuk smoke lalu dibersihkan. Semua port rehearsal loopback dan dihentikan sesudah tes. Tidak ada akun asli dipakai untuk operasi tulis.
+Regression suite normal memakai database sintetis. Rehearsal memakai salinan privat data existing untuk membuktikan migrasi tanpa perubahan historis dan rollback kode; akun admin dan guru sintetis sementara ditambahkan untuk smoke lalu dibersihkan. Semua port rehearsal loopback dan dihentikan sesudah tes. Tidak ada akun asli dipakai untuk operasi tulis.
 
 Playwright adalah tooling development privat. Uji viewport 320, 375, 430, 768, 1024 dan 1440px menggunakan Chromium, bukan sertifikasi semua perangkat/TLS. Workflow R2/R6, multi-server rate limiting dan deployment publik tidak dikerjakan.
