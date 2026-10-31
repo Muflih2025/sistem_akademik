@@ -7,3 +7,11 @@
 .bell-reference{table-layout:fixed}.bell-reference th,.bell-reference td{padding:.65rem .35rem}.bell-reference th:first-child{width:46px;white-space:normal}.bell-reference th:nth-child(2){width:104px}.bell-reference td.wrap{min-width:0;overflow-wrap:anywhere}.bell-reference th:last-child{white-space:normal;overflow-wrap:anywhere}
 .bell-edit-row{min-width:0;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin:1rem 0}.bell-edit-row legend{font-weight:600;padding:0 .3rem}.bell-edit-row button{margin-top:1rem}.bell-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}.bell-grid>.panel{margin:0 0 1rem}.crud-pager{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;margin-top:1rem}.crud-pager a{display:inline-flex;align-items:center;min-height:44px;padding:.5rem;border:1px solid #d1d5db;border-radius:8px;text-decoration:none}
 @media(min-width:1100px){.bell-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.bell-grid>.panel{padding:1rem}}
+
+/* Pisahkan filter/form dari tabel berikutnya di dalam kartu yang sama. */
+@media screen {
+    .form-grid + .table-scroll,
+    .filter + .table-scroll {
+        margin-top: 1.25rem;
+    }
+}
