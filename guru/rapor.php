@@ -42,22 +42,22 @@ if ($sel_nis && $sel_ta) {
     $q->execute([$sel_ta]); $ta_info = $q->fetch();
 
     // Academic grades
-    $q = $pdo->prepare('SELECT n.*, mp.nama_mapel, mp.kelompok, mp.kkm FROM nilai n JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel WHERE n.nis=? AND n.id_tahun_ajaran=? AND EXISTS(SELECT 1 FROM jadwal j WHERE j.id_guru=? AND j.id_kelas=? AND j.id_mapel=n.id_mapel AND j.status="aktif" AND (j.id_tahun_ajaran=n.id_tahun_ajaran OR j.id_tahun_ajaran IS NULL)) ORDER BY mp.kelompok, mp.nama_mapel');
-    $q->execute([$sel_nis,$sel_ta,$gid,$siswa['id_kelas']]); $grades = $q->fetchAll();
+    $q = $pdo->prepare('SELECT n.*, mp.nama_mapel, mp.kelompok, mp.kkm FROM nilai n JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel WHERE n.nis=? AND n.id_tahun_ajaran=? AND n.id_guru=? AND mp.status="aktif" AND EXISTS(SELECT 1 FROM jadwal j WHERE j.id_guru=? AND j.id_kelas=? AND j.id_mapel=n.id_mapel AND j.status="aktif" AND j.id_tahun_ajaran=n.id_tahun_ajaran) ORDER BY mp.kelompok, mp.nama_mapel');
+    $q->execute([$sel_nis,$sel_ta,$gid,$gid,$siswa['id_kelas']]); $grades = $q->fetchAll();
 
     // Ekskul
-    $q = $pdo->prepare('SELECT ne.*, ek.nama_ekskul FROM nilai_ekskul ne JOIN ekstrakurikuler ek ON ek.id_ekskul=ne.id_ekskul WHERE ne.nis=? AND ne.id_tahun_ajaran=?');
-    $q->execute([$sel_nis, $sel_ta]); $ekskul = $q->fetchAll();
+    $q = $pdo->prepare('SELECT ne.*, ek.nama_ekskul FROM nilai_ekskul ne JOIN ekstrakurikuler ek ON ek.id_ekskul=ne.id_ekskul WHERE ne.nis=? AND ne.id_tahun_ajaran=? AND ek.id_guru_pembina=?');
+    $q->execute([$sel_nis, $sel_ta, $gid]); $ekskul = $q->fetchAll();
 
     // Attendance
-    $q = $pdo->prepare('SELECT status, COUNT(*) as total FROM absensi WHERE nis=? GROUP BY status');
-    $q->execute([$sel_nis]); $abs_raw = $q->fetchAll();
+    $q = $pdo->prepare('SELECT a.status,COUNT(*) AS total FROM absensi a JOIN jadwal j ON j.id_jadwal=a.id_jadwal WHERE a.nis=? AND j.id_guru=? AND j.id_tahun_ajaran=? GROUP BY a.status');
+    $q->execute([$sel_nis,$gid,$sel_ta]); $abs_raw = $q->fetchAll();
     $attendance = ['Hadir'=>0,'Sakit'=>0,'Izin'=>0,'Alpa'=>0];
     foreach ($abs_raw as $a) { $attendance[$a['status']] = (int)$a['total']; }
 
     // Ranking
-    $q = $pdo->prepare('SELECT n2.nis, AVG(n2.nilai_akhir) as rata2 FROM nilai n2 JOIN siswa s2 ON s2.nis=n2.nis WHERE s2.id_kelas=? AND n2.id_tahun_ajaran=? AND EXISTS(SELECT 1 FROM jadwal j WHERE j.id_guru=? AND j.id_kelas=s2.id_kelas AND j.id_mapel=n2.id_mapel AND j.status="aktif" AND (j.id_tahun_ajaran=n2.id_tahun_ajaran OR j.id_tahun_ajaran IS NULL)) GROUP BY n2.nis ORDER BY rata2 DESC');
-    $q->execute([$sel_kelas ?: ($siswa['id_kelas']??0),$sel_ta,$gid]); $rankings = $q->fetchAll();
+    $q = $pdo->prepare('SELECT n2.nis, AVG(n2.nilai_akhir) as rata2 FROM nilai n2 JOIN siswa s2 ON s2.nis=n2.nis WHERE s2.id_kelas=? AND n2.id_tahun_ajaran=? AND n2.id_guru=? AND EXISTS(SELECT 1 FROM jadwal j JOIN mata_pelajaran permitted ON permitted.id_mapel=j.id_mapel AND permitted.status="aktif" WHERE j.id_guru=? AND j.id_kelas=s2.id_kelas AND j.id_mapel=n2.id_mapel AND j.status="aktif" AND j.id_tahun_ajaran=n2.id_tahun_ajaran) GROUP BY n2.nis ORDER BY rata2 DESC');
+    $q->execute([$sel_kelas ?: ($siswa['id_kelas']??0),$sel_ta,$gid,$gid]); $rankings = $q->fetchAll();
     $rank = 0; $total_ranked = count($rankings);
     foreach ($rankings as $i => $rk) { if ($rk['nis'] === $sel_nis) { $rank = $i + 1; break; } }
 
@@ -71,7 +71,7 @@ require __DIR__.'/../includes/header.php'; require __DIR__.'/../includes/sidebar
 ?>
 
 <div class="no-print">
-<h2>Rapor Kelas</h2>
+<h2>Rapor Kelas</h2><p>Rekap terbatas sesuai penugasan dan kepemilikan nilai Anda. Penerbitan rapor resmi dilakukan melalui proses sekolah.</p>
 
 <div class="card p-3 mb-4">
     <form method="get" class="row g-2 align-items-end">

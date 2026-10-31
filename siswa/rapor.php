@@ -3,6 +3,13 @@ require_once __DIR__.'/../config/auth.php';
 require_role('siswa');if($_SERVER['REQUEST_METHOD']==='POST')deny_access();if(isset($_GET['nis']) && input_text($_GET,'nis',15)!==(string)user_reference())deny_access();
 $pdo = db();
 $nis = user_reference();
+// Publication is explicit; grades existing alone never imply publication.
+$hasPublication=(bool)$pdo->query("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='tahun_ajaran' AND COLUMN_NAME='rapor_diterbitkan'")->fetchColumn();
+$published=$hasPublication?$pdo->query('SELECT id_tahun_ajaran,tahun_ajaran,semester FROM tahun_ajaran WHERE rapor_diterbitkan=1 ORDER BY tahun_ajaran DESC,id_tahun_ajaran DESC')->fetchAll():[];
+$selectedPeriod=($_GET['id_tahun_ajaran']??'')!==''?input_id($_GET,'id_tahun_ajaran'):(int)($published[0]['id_tahun_ajaran']??0);
+if($selectedPeriod && !in_array($selectedPeriod,array_map(fn($p)=>(int)$p['id_tahun_ajaran'],$published),true))deny_access();
+if(!$selectedPeriod){$page_title='Rapor Saya';require '../includes/header.php';require '../includes/sidebar.php';echo '<p role="status">Rapor belum diterbitkan atau status publikasi belum dapat diverifikasi.</p>';require '../includes/footer.php';exit;}
+
 
 // Student info
 $q = $pdo->prepare('SELECT s.*, k.nama_kelas, jr.nama_jurusan FROM siswa s JOIN kelas k ON k.id_kelas=s.id_kelas LEFT JOIN jurusan jr ON jr.id_jurusan=k.id_jurusan WHERE s.nis=?');
@@ -14,9 +21,9 @@ $q = $pdo->prepare('SELECT n.*, mp.nama_mapel, mp.kkm, ta.tahun_ajaran, ta.semes
                     FROM nilai n
                     JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel
                     JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran
-                    WHERE n.nis=? AND ta.rapor_diterbitkan=1
+                    WHERE n.nis=? AND ta.rapor_diterbitkan=1 AND ta.id_tahun_ajaran=?
                     ORDER BY ta.tahun_ajaran DESC, ta.semester DESC, mp.nama_mapel');
-$q->execute([$nis]);
+$q->execute([$nis,$selectedPeriod]);
 $grades = $q->fetchAll();
 
 // Ekskul
@@ -24,14 +31,14 @@ $q = $pdo->prepare('SELECT ne.*, ek.nama_ekskul, ta.tahun_ajaran, ta.semester
                     FROM nilai_ekskul ne
                     JOIN ekstrakurikuler ek ON ek.id_ekskul=ne.id_ekskul
                     JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=ne.id_tahun_ajaran
-                    WHERE ne.nis=? AND ta.rapor_diterbitkan=1
+                    WHERE ne.nis=? AND ta.rapor_diterbitkan=1 AND ta.id_tahun_ajaran=?
                     ORDER BY ta.tahun_ajaran DESC');
-$q->execute([$nis]);
+$q->execute([$nis,$selectedPeriod]);
 $ekskul = $q->fetchAll();
 
 // Attendance
-$q = $pdo->prepare('SELECT status, COUNT(*) as total FROM absensi WHERE nis=? GROUP BY status');
-$q->execute([$nis]);
+$q = $pdo->prepare('SELECT a.status,COUNT(*) AS total FROM absensi a JOIN jadwal j ON j.id_jadwal=a.id_jadwal JOIN tahun_ajaran t ON t.id_tahun_ajaran=j.id_tahun_ajaran WHERE a.nis=? AND t.id_tahun_ajaran=? AND t.rapor_diterbitkan=1 GROUP BY a.status');
+$q->execute([$nis,$selectedPeriod]);
 $abs_raw = $q->fetchAll();
 $att = ['Hadir'=>0, 'Sakit'=>0, 'Izin'=>0, 'Alpa'=>0];
 foreach ($abs_raw as $a) {
@@ -44,6 +51,7 @@ require __DIR__.'/../includes/sidebar.php';
 require __DIR__.'/../includes/flash.php';
 ?>
 
+<form method="get" class="no-print mb-3"><label>Periode terbit <select name="id_tahun_ajaran"><?php foreach($published as $p):?><option value="<?=$p['id_tahun_ajaran']?>" <?=$selectedPeriod===(int)$p['id_tahun_ajaran']?'selected':''?>><?=e($p['tahun_ajaran'].' · '.$p['semester'])?></option><?php endforeach;?></select></label><button type="submit">Tampilkan</button></form>
 <div class="d-flex justify-content-between align-items-center no-print mb-3">
     <div>
         <h2 class="mb-0">Rapor Capaian Belajar Siswa</h2>

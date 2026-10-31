@@ -42,7 +42,7 @@ $q = $pdo->prepare('SELECT n.*, s.nama_siswa, k.nama_kelas, mp.nama_mapel, mp.kk
                     JOIN kelas k ON k.id_kelas=s.id_kelas
                     JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel
                     JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran
-                    WHERE n.id_guru=? AND k.status="aktif" AND mp.status="aktif" AND EXISTS(SELECT 1 FROM jadwal scope WHERE scope.id_guru=n.id_guru AND scope.id_kelas=s.id_kelas AND scope.id_mapel=n.id_mapel AND scope.status="aktif" AND (scope.id_tahun_ajaran=n.id_tahun_ajaran OR scope.id_tahun_ajaran IS NULL))
+                    WHERE n.id_guru=? AND k.status="aktif" AND mp.status="aktif" AND EXISTS(SELECT 1 FROM jadwal scope WHERE scope.id_guru=n.id_guru AND scope.id_kelas=s.id_kelas AND scope.id_mapel=n.id_mapel AND scope.status="aktif" AND scope.id_tahun_ajaran=n.id_tahun_ajaran)
                     ORDER BY ta.status DESC, k.nama_kelas, s.nama_siswa');
 $q->execute([$gid]);
 $existing_grades = $q->fetchAll();

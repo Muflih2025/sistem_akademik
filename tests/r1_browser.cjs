@@ -12,7 +12,7 @@ function check(value){if(!value)throw Error('Browser assertion failed');}
  browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:320,height:800}});const page=await context.newPage();let errors=[];page.on('pageerror',()=>errors.push('pageerror'));
  await page.goto('http://127.0.0.1:18091/auth/login.php');await page.locator('input[name=username]').fill(creds.admin);await page.locator('input[name=password]').fill(creds.password);await Promise.all([page.waitForURL('**/admin/index.php'),page.locator('button[type=submit],button:not([type])').filter({hasText:'Masuk'}).click()]);
  const pages=['/admin/master.php?table=siswa','/admin/master.php?table=guru','/admin/master.php?table=kelas','/admin/master.php?table=mata_pelajaran','/admin/users.php','/admin/jadwal.php','/admin/penugasan.php','/admin/tahun_ajaran.php','/admin/export_import.php'];
- for(const width of [320,360,390,768,1024,1440]){
+ for(const width of [320,375,430,768,1024,1440]){
   await page.setViewportSize({width,height:900});
   for(const route of pages){
    await test('responsive_'+width+'_'+route,async()=>{
@@ -44,6 +44,6 @@ function check(value){if(!value)throw Error('Browser assertion failed');}
   }
  });
  await test('browser_no_javascript_errors',async()=>check(errors.length===0));await teacherContext.close();
- const report={passed:results.filter(x=>x.status==='PASS').length,failed:results.filter(x=>x.status==='FAIL').length,skipped:0,tests:results,fixture_only:true,viewports:[320,360,390,768,1024,1440]};fs.writeFileSync(path.join(state,'reports/browser-tests.json'),JSON.stringify(report,null,2));
+ const report={passed:results.filter(x=>x.status==='PASS').length,failed:results.filter(x=>x.status==='FAIL').length,skipped:0,tests:results,fixture_only:true,viewports:[320,375,430,768,1024,1440]};fs.writeFileSync(path.join(state,'reports/browser-tests.json'),JSON.stringify(report,null,2));
  process.stdout.write(report.passed+' PASS, '+report.failed+' FAIL, 0 SKIP\n');process.exitCode=report.failed?1:0;
 })().catch(()=>{process.stdout.write('FAIL browser runner; private credentials redacted.\n');process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();});

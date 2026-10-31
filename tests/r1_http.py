@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R1 black-box integration tests. Writes are confined to the socket-only synthetic DB."""
-import argparse,json,os,sys,secrets,time,subprocess,urllib.request,urllib.error,csv,io,zipfile,concurrent.futures
+import argparse,json,os,sys,secrets,time,subprocess,urllib.request,urllib.error,csv,io,zipfile,concurrent.futures,re
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'ops'))
@@ -251,6 +251,40 @@ def main():
    response=submit(teacher,'/guru/jurnal.php',journal_payload('2026-10-12'),500);check('SQLSTATE' not in response[2] and 'fixture forced failure' not in response[2]);check(scalar("SELECT COUNT(*) FROM jurnal_kelas WHERE id_jadwal=1 AND tanggal='2026-10-12'")==0);check(scalar("SELECT COUNT(*) FROM absensi WHERE id_jadwal=1 AND tanggal='2026-10-12'")==0);check(scalar('SELECT COUNT(*) FROM audit_aktivitas')==before_count)
   finally:db('DROP TRIGGER IF EXISTS r1_test_fail')
  test('journal_mid_transaction_failure_rolls_back_everything',journal_rollback)
+ # Final-review regression: NULL periods must not expand read access across years.
+ def legacy_read_scope():
+  schedules=db('SELECT id_jadwal,status FROM jadwal WHERE id_guru=1 AND id_tahun_ajaran IS NOT NULL')
+  try:
+   db("UPDATE jadwal SET status='nonaktif' WHERE id_guru=1 AND id_tahun_ajaran IS NOT NULL")
+   for path in ['/guru/rapor.php?id_kelas=1&nis=0000001&id_tahun_ajaran=1','/guru/rapor.php?id_kelas=1&nis=0000001&id_tahun_ajaran=2','/guru/export_nilai.php?id_kelas=1&id_mapel=1&id_tahun_ajaran=1&format=csv','/guru/ekskul.php?id_kelas=1&id_tahun_ajaran=1&id_ekskul=1']:status(teacher.request(path),403)
+   body=teacher.request('/guru/nilai.php')[2];check('Daftar Nilai Tersimpan (0 Siswa)' in body);submit(teacher,'/guru/nilai.php',grade,403)
+   status(teacher.request('/guru/absen.php?id_jadwal=5&tanggal=2026-10-29'),200)
+  finally:
+   for schedule in schedules:db('UPDATE jadwal SET status=? WHERE id_jadwal=?',[schedule['status'],schedule['id_jadwal']])
+ test('legacy_null_period_does_not_authorize_grades_exports_or_reports',legacy_read_scope)
+ def report_attendance_scope():
+  ids=[]
+  try:
+   for schedule,date in [(3,'2026-10-07'),(4,'2026-10-05'),(5,'2026-10-08')]:
+    item=db("INSERT INTO absensi(tanggal,nis,id_jadwal,status,created_by) VALUES(?,'0000001',?,'Alpa',50)",[date,schedule]);ids.append(item['id'])
+   body=teacher.request('/guru/rapor.php?id_kelas=1&nis=0000001&id_tahun_ajaran=1')[2];check(re.search(r'<td>Alpa</td><td[^>]*>0 hari</td>',body) is not None)
+   body=student.request('/siswa/rapor.php?id_tahun_ajaran=1')[2];check(re.search(r'Alpa / Tanpa Keterangan \(A\)</td>\s*<td[^>]*>1 Hari</td>',body) is not None)
+  finally:
+   for identity in ids:db('DELETE FROM absensi WHERE id_absen=?',[identity])
+ test('report_attendance_excludes_unknown_period_and_other_teacher_scope',report_attendance_scope)
+ def report_other_owner():
+  schedule=db("INSERT INTO jadwal(id_guru,id_mapel,id_kelas,hari,jam_mulai,jam_selesai,id_tahun_ajaran) VALUES(1,2,1,'Jumat','17:00','18:00',1)")['id']
+  try:
+   body=teacher.request('/guru/rapor.php?id_kelas=1&nis=0000001&id_tahun_ajaran=1')[2];check('Mapel Fixture B' not in body)
+   response=teacher.request('/guru/export_nilai.php?id_kelas=1&id_mapel=2&id_tahun_ajaran=1&format=csv');status(response,200)
+   rows=list(csv.reader(io.StringIO(response[2])));record=next(r for r in rows if len(r)>3 and r[1]=='0000001');check(record[4:8]==['0','0','0','0'])
+  finally:db('DELETE FROM jadwal WHERE id_jadwal=?',[schedule])
+ test('report_and_export_do_not_disclose_grade_owned_by_other_teacher',report_other_owner)
+ test('student_draft_period_URL_denied',lambda:status(student.request('/siswa/rapor.php?id_tahun_ajaran=2'),403))
+ test('student_draft_period_POST_denied',lambda:submit(student,'/siswa/rapor.php',{'id_tahun_ajaran':'2','nis':'0000001'},405))
+ test('student_foreign_period_identity_denied',lambda:status(student.request('/siswa/rapor.php?id_tahun_ajaran=1&nis=0000002'),403))
+ test('supervisor_report_POST_denied',lambda:submit(head,'/kepsek/rapor.php',{'nis':'0000001','id_tahun_ajaran':'1'},405))
+ test('supervisor_conflicting_class_identity_denied',lambda:status(head.request('/kepsek/rapor.php?id_kelas=2&nis=0000001&id_tahun_ajaran=1'),403))
  # Period/publication control and numeric validation.
  def period_data():return {k:str(v) for k,v in row('SELECT * FROM tahun_ajaran WHERE id_tahun_ajaran=1').items()}
  def period_lock():

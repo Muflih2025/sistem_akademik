@@ -52,7 +52,7 @@ Playwright/Chromium dan pustaka browser berada privat di state, tidak menjadi de
 
 `database/migrations/002_r1_security.php` menambahkan status master, kunci/publikasi periode, referensi periode jadwal, guru pembina ekskul, FK RESTRICT dan tabel audit. Kolom baru tidak menebak kepemilikan atau periode historis. Tahun existing memperoleh publikasi rapor default 0; jadwal existing tetap NULL untuk periode. Tidak ada provisioning akun atau reset password.
 
-Runner berikut **hanya menerima staging/testing** dengan owner yang diizinkan. Jangan menunjuk file runtime ke akun owner.
+Runner staging/testing memakai owner yang diizinkan. Final review menambahkan mode production yang hanya tersedia dari paket release dengan manifest hash valid, `--production-release` yang cocok, serta `R1_APPROVED_RELEASE` pada konfigurasi owner privat setelah persetujuan terpisah. Jangan menunjuk file runtime ke akun owner.
 
 ```bash
 SIA_CONFIG_FILE=/home/muflih/.local/state/sia-r1/20261030-r1/private/owner-config.json \
@@ -67,10 +67,12 @@ Penugasan lama tanpa periode dapat dibaca sesuai scope guru tetapi ditolak untuk
 
 1. Tinjau commit R1 dan diff dari `531d2f8`; lakukan UAT empat role pada salinan terbaru yang terisolasi. Tentukan penugasan berperiode, kebijakan publikasi rapor, dan penanganan akun/referensi lama yang tidak valid. Perpindahan kelas siswa berarsip menunggu model riwayat keanggotaan.
 2. Ambil backup privat terbaru kode/konfigurasi/database aktif, verifikasi hash dan restore ke instance baru, lalu bandingkan semua data, FK, view, trigger dan routine. Simpan release/config R0 untuk rollback. Hentikan bila ada drift yang belum dijelaskan.
-3. Tinjau DDL MariaDB serta waktu maintenance/locking. Runner saat ini menolak environment production. Mekanisme migrasi produksi harus ditinjau dan diotorisasi secara eksplisit sebelum eksekusi; jangan mengganti label menjadi testing untuk melewati guard.
+3. Tinjau DDL MariaDB serta waktu maintenance/locking. Mode production memakai paket release yang dipatok ke commit dan seluruh hash berkas, `--expected-database`, `--production-release`, `ALLOW_SCHEMA_CHANGES=1` dan `R1_APPROVED_RELEASE` pada konfigurasi owner. Setting approval tetap kosong sampai persetujuan terpisah; jangan mengganti label environment untuk melewati guard.
 4. Tinjau izin runtime terpisah dari owner, termasuk audit INSERT-only, lokasi sesi/log/upload/export dan permission. **Tidak ada grant aktif yang diubah dalam R1.** Perubahan grant produksi memerlukan persetujuan terpisah.
 5. Baru setelah otorisasi aktivasi, siapkan release terpisah, document root `public/`, router allowlist dan proses non-root. Pertahankan pembatasan jaringan R0. Jangan menjalankan PHP dari root repository atau mengandalkan `.htaccess`.
 6. Uji login/logout empat role, IDOR, CRUD dengan akun fixture di lingkungan yang sesuai, penugasan/periode, CSV dan blok file internal. Bandingkan database aktif dengan rencana perubahan yang diotorisasi. Hindari tes tulis menggunakan akun/data nyata.
 7. Bila verifikasi gagal, rollback kode/config ke R0 dan hentikan perubahan. Pertahankan kolom aditif, audit dan transaksi sah yang sudah masuk; jangan melakukan DROP/TRUNCATE atau restore backup menimpa transaksi baru. Pemulihan database memerlukan rencana dan persetujuan tersendiri.
 
 Tidak ada deployment, restart 8085, perubahan grant aktif atau implementasi R2 yang dilakukan oleh prosedur pengujian di atas.
+
+Final review memperketat scope periode: penugasan NULL tidak memberikan akses nilai/rapor/ekspor lintas tahun. Baca arsip melalui ID jadwal milik guru tetap tersedia; penetapan periode historis tidak ditebak. Panduan aktivasi terbaru tersedia di [R1_ACTIVATION.md](R1_ACTIVATION.md).

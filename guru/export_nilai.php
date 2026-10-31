@@ -47,11 +47,11 @@ if ($selected_kelas && $selected_mapel) {
     $sql = 'SELECT s.nis, s.nama_siswa, s.jenis_kelamin,
                    n.nilai_tugas, n.nilai_uts, n.nilai_uas, n.nilai_akhir
             FROM siswa s
-            LEFT JOIN nilai n ON n.nis = s.nis AND n.id_mapel = ? AND n.id_tahun_ajaran = ?
+            LEFT JOIN nilai n ON n.nis = s.nis AND n.id_mapel = ? AND n.id_tahun_ajaran = ? AND n.id_guru = ?
             WHERE s.id_kelas = ?
             ORDER BY s.nama_siswa';
     $q = $pdo->prepare($sql);
-    $q->execute([$selected_mapel,$ta['id_tahun_ajaran'],$selected_kelas]);
+    $q->execute([$selected_mapel,$ta['id_tahun_ajaran'],$gid,$selected_kelas]);
     $scores = $q->fetchAll();
 }
 
