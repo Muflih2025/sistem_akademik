@@ -6,7 +6,7 @@ $modules = match($role) {
         ['url'=>'../admin/master.php?table=siswa','label'=>'Master Data'],
         ['url'=>'../admin/jadwal.php','label'=>'Jadwal'],
         ['url'=>'../admin/users.php','label'=>'Akun'],
-        ['url'=>'../admin/export_import.php','label'=>'Export / Import'],
+        ['url'=>'../admin/bulk_upload.php','label'=>'Bulk Upload Excel'],
         ['url'=>'../admin/posisi_guru.php','label'=>'Monitoring Guru'],
         ['url'=>'../admin/ekskul.php','label'=>'Ekskul'],
     ],
@@ -17,7 +17,6 @@ $modules = match($role) {
         ['url'=>'../guru/absen.php','label'=>'Absensi'],
         ['url'=>'../guru/rapor.php','label'=>'Rapor'],
         ['url'=>'../guru/ekskul.php','label'=>'Ekskul'],
-        ['url'=>'../guru/export_nilai.php','label'=>'Export'],
     ],
     'kepala_sekolah' => [
         ['url'=>'../kepsek/index.php','label'=>'Dashboard'],
@@ -35,6 +34,7 @@ $modules = match($role) {
     ],
     default => [],
 };
+if($role==='guru'&&app_setting('HOMEROOM_MODE')==='informational')$modules=array_values(array_filter($modules,fn($m)=>$m['url']!=='../guru/rapor.php'));
 $current_file = basename($_SERVER['SCRIPT_NAME']);
 if(app_setting('ACADEMIC_WORKFLOWS')==='1')array_unshift($modules,['url'=>'../academic/index.php','label'=>'Ruang Akademik']);
 ?>
@@ -46,13 +46,14 @@ if(app_setting('ACADEMIC_WORKFLOWS')==='1')array_unshift($modules,['url'=>'../ac
 <link href="../assets/css/app.css" rel="stylesheet">
 <link href="../assets/css/neutral.css" rel="stylesheet">
 <?php if(!empty($crud_ui)): ?><link href="../assets/css/crud.css" rel="stylesheet"><?php endif; ?>
+<link rel="stylesheet" href="/assets/css/pagination.css">
 </head><body class="<?= !empty($crud_ui)?'crud-page':'' ?>">
 
 <div class="navbar-top">
   <a class="brand" href="<?= e('../'.dashboard_path($role)) ?>">SIA SMKN 2 Magelang</a>
   <div class="user-info">
     <span><?= e(current_user()['username']) ?> &middot; <?= e(role_label($role)) ?></span>
-    <a class="btn btn-outline-light" href="../auth/change_password.php">Ganti Password</a>
+
     <form method="post" action="../auth/logout.php" class="d-inline mb-0"><?= csrf_field() ?><button class="btn btn-warning text-dark">Keluar</button></form>
   </div>
 </div>

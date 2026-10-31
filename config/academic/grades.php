@@ -84,7 +84,7 @@ function ak_build_report(array $input): int {
         $payload=['siswa'=>['nis'=>$nis,'nama'=>$student['nama_siswa'],'kelas'=>$student['nama_kelas'],'jurusan'=>$student['nama_jurusan'],'nomor_absen'=>$student['nomor_absen']],
             'periode'=>['tahun_ajaran'=>$period['tahun_ajaran'],'semester'=>$period['semester'],'mulai'=>$period['mulai'],'selesai'=>$period['selesai'],'batas_rekap'=>$date],
             'nilai'=>$grades,'kehadiran_harian'=>$counts,'formula_predikat'=>'weighted_kkm_v1','dibuat_pada'=>date(DATE_ATOM),
-            'source_hash'=>ak_report_sources_hash($nis,$periodId,(int)$student['id_kelas'],$date),'workflow_version'=>2];
+            'source_hash'=>ak_report_sources_hash($nis,$periodId,(int)$student['id_kelas'],$date),'workflow_version'=>app_setting('HOMEROOM_MODE')==='informational'?3:2];
         $json=json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);$hash=hash('sha256',$json);
         $version=1+(int)ak_query('SELECT COALESCE(MAX(versi),0) FROM ak_rapor_snapshot WHERE nis=? AND id_tahun_ajaran=?',[$nis,$periodId])->fetchColumn();
         ak_query('INSERT INTO ak_rapor_snapshot(nis,id_tahun_ajaran,id_kelas,versi,payload_json,payload_hash,created_by) VALUES(?,?,?,?,?,?,?)',[$nis,$periodId,$student['id_kelas'],$version,$json,$hash,ak_actor()]);$id=(int)db()->lastInsertId();
@@ -94,6 +94,7 @@ function ak_build_report(array $input): int {
 }
 function ak_report(int $id): array {
     require_role('admin','kepala_sekolah','siswa','guru');
+    if(current_user()['role']==='guru'&&app_setting('HOMEROOM_MODE')==='informational')deny_access();
     $row=ak_one('SELECT r.*,s.status,s.revision,s.verified_by,s.published_by FROM ak_rapor_snapshot r JOIN ak_rapor_status s ON s.id_snapshot=r.id WHERE r.id=?',[$id]);
     if(!$row || (current_user()['role']==='siswa' && ((string)$row['nis']!==(string)user_reference() || $row['status']!=='diterbitkan')))deny_access();
     if(!hash_equals($row['payload_hash'],hash('sha256',$row['payload_json'])))throw new InputError('Integritas snapshot gagal. Rapor tidak dapat ditampilkan.');
@@ -107,7 +108,7 @@ function ak_transition_report(array $input): void {
         $id=input_id($input,'id');$snapshot=ak_report($id);ak_period((int)$snapshot['id_tahun_ajaran'],true);
         $before=ak_one('SELECT * FROM ak_rapor_status WHERE id_snapshot=? FOR UPDATE',[$id]);ak_check_revision($input,$before);
         $next=input_choice($input,'status',['terverifikasi','diterbitkan','ditarik']);$reason=input_text($input,'alasan',500);
-        if($next!=='ditarik' && !ak_approved_wali_review($snapshot))throw new InputError('Wali kelas yang ditugaskan harus menyetujui snapshot ini sebelum verifikasi/penerbitan admin.');
+        if($next!=='ditarik' && app_setting('HOMEROOM_MODE')!=='informational' && !ak_approved_wali_review($snapshot))throw new InputError('Wali kelas yang ditugaskan harus menyetujui snapshot ini sebelum verifikasi/penerbitan admin.');
         if($next!=='ditarik' && !hash_equals($snapshot['payload']['source_hash']??'',ak_report_sources_hash($snapshot['nis'],(int)$snapshot['id_tahun_ajaran'],(int)$snapshot['id_kelas'],$snapshot['payload']['periode']['batas_rekap'])))throw new InputError('Sumber nilai, kehadiran, atau konteks akademik telah berubah. Buat dan verifikasi snapshot baru sebelum penerbitan.');
         $allowed=['draft'=>['terverifikasi'],'terverifikasi'=>['diterbitkan','ditarik'],'diterbitkan'=>['ditarik'],'ditarik'=>[]];
         if(!in_array($next,$allowed[$before['status']],true))throw new InputError('Transisi rapor tidak diizinkan. Buat snapshot baru untuk revisi.');

@@ -20,13 +20,13 @@ function ak_begin(string $title,string $view): void {
     if ($role==='admin') $links+=['fondasi'=>'Akademik','piket'=>'Guru Piket','kenaikan'=>'Naik Kelas','alumni'=>'Alumni'];
     if ($role==='guru') $links+=['pertemuan'=>'Absensi','jurnal'=>'Jurnal & Agenda','piket'=>'Guru Piket'];
     if (in_array($role,['admin','kepala_sekolah'],true)) $links+=['jurnal'=>'Jurnal','piket'=>'Absensi Harian'];
+    if(in_array($role,['admin','kepala_sekolah'],true))$links+=['pemantauan'=>'Guru Mengajar'];
     $links+=['kalender'=>'Kalender'];
     $links+=['jadwal'=>'Jadwal','jam'=>'Jam Belajar'];
     if ($role!=='siswa') $links+=['nilai'=>'Nilai'];
-    $links+=['rapor'=>'Rapor'];
+    if($role!=='guru'||app_setting('HOMEROOM_MODE')!=='informational')$links+=['rapor'=>'Rapor'];
     if($role==='siswa')$links+=['kehadiran'=>'Kehadiran Saya'];
-    if ($role!=='siswa') $links+=['impor'=>'Impor / Ekspor'];
-    ?><!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($title)?> · SIA SMKN 2 Magelang</title><link rel="stylesheet" href="/assets/css/academic.css"><script src="/assets/js/academic.js" defer></script></head><body>
+    ?><!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($title)?> · SIA SMKN 2 Magelang</title><link rel="stylesheet" href="/assets/css/academic.css"><link rel="stylesheet" href="/assets/css/pagination.css"><script src="/assets/js/academic.js" defer></script></head><body>
     <header class="top"><a class="brand" href="<?=e(ak_link('beranda'))?>">SIA <span>SMKN 2 Magelang</span></a><div class="identity"><span><?=e(current_user()['username'])?> · <?=e(role_label($role))?></span><form method="post" action="/auth/logout.php"><?=csrf_field()?><button class="secondary">Keluar</button></form></div></header>
     <nav class="desktop-nav" aria-label="Modul akademik"><?php foreach($links as $key=>$label):?><a href="<?=e(ak_link($key))?>" <?= $view===$key?'aria-current="page"':'' ?>><?=e($label)?></a><?php endforeach;?></nav>
     <main><div class="page-heading"><p class="eyebrow">SISTEM INFORMASI AKADEMIK</p><h1><?=e($title)?></h1><p class="muted">Lingkungan pengembangan · data pengujian sintetis</p></div>

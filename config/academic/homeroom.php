@@ -32,6 +32,7 @@ function ak_save_wali(array $input): int {
     });
 }
 function ak_review_report(array $input): void {
+    if(app_setting('HOMEROOM_MODE')==='informational')deny_access();
     permission('teach');
     db_transaction(function()use($input):void {
         $report=ak_report(input_id($input,'id'));

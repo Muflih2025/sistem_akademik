@@ -11,7 +11,7 @@ async function login(role){const context=await browser.newContext({viewport:{wid
 (async()=>{browser=await chromium.launch();
  const admin=await login('admin'),cid=data.class_ids['X PPLG 2'];
  await test('admin_filtered_imported_class_pagination_35_persistent_students',async()=>{
-  await admin.goto(base+'/admin/master.php?table=siswa&id_kelas='+cid);check((await admin.locator('.crud-pager').innerText()).includes('35 data'));check(await admin.locator('tbody tr').count()===20);
+  await admin.goto(base+'/admin/master.php?table=siswa&per_page=20&id_kelas='+cid);check((await admin.locator('.crud-pager').innerText()).includes('35 data'));check(await admin.locator('tbody tr').count()===20);
   await admin.getByRole('link',{name:'Berikutnya',exact:true}).click();check(await admin.locator('tbody tr').count()===15);await admin.reload();check(await admin.locator('tbody tr').count()===15);
  });
  const duty=await login('duty');

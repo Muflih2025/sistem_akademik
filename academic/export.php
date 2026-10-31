@@ -16,7 +16,8 @@ try {
     }
     header('Cache-Control: no-store, private');
     header('Content-Type: '.['csv'=>'text/csv; charset=utf-8','xlsx'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','pdf'=>'application/pdf'][$format]);
-    header('Content-Disposition: attachment; filename="sia-'.$kind.'-'.date('Ymd').'.'.$format.'"');
+    $filename=$kind==='template'?'template-'.input_choice($_GET,'module',array_keys(AK_IMPORT_HEADERS)):$kind;
+    header('Content-Disposition: attachment; filename="sia-'.$filename.'-'.date('Ymd').'.'.$format.'"');
     header('Content-Length: '.strlen($output));
     echo $output;
 } catch(Throwable $error) {echo e(operation_error($error));}

@@ -8,6 +8,7 @@ function master_definitions():array {
         'siswa'=>['label'=>'Siswa','pk'=>'nis','fields'=>['nama_siswa','jenis_kelamin','tanggal_lahir','alamat','id_kelas']],
         'guru'=>['label'=>'Guru','pk'=>'id_guru','fields'=>['nip','nama_guru','email','no_hp']],
         'mata_pelajaran'=>['label'=>'Mata Pelajaran','pk'=>'id_mapel','fields'=>['kode_mapel','nama_mapel','kelompok','kkm']],
+        'ak_ruang'=>['label'=>'Ruang & Laboratorium','pk'=>'id_ruang','fields'=>['kode_ruang','nama_ruang','jenis']],
     ];
 }
 function locked_row(string $table,string $pk,string|int $id):array {
@@ -63,6 +64,11 @@ function save_master(string $table,array $input):string {
                 $q=$pdo->prepare('SELECT id FROM ak_anggota_kelas WHERE id_kelas=? LIMIT 1');$q->execute([$id]);
                 if($q->fetch())throw new InputError('Tingkat dan jurusan kelas beranggota historis tidak dapat diganti. Buat kelas baru; nama tetap dapat diperbaiki.');
             }
+        }elseif($table==='ak_ruang'){
+            $data['kode_ruang']=input_text($input,'kode_ruang',20);$data['nama_ruang']=input_text($input,'nama_ruang',20);$data['jenis']=input_choice($input,'jenis',['Kelas','Laboratorium']);
+            foreach(['kode_ruang','nama_ruang']as $field)unique_value($table,$field,$data[$field],$pk,$id);
+            if($before&&$before['nama_ruang']!==$data['nama_ruang']){$q=$pdo->prepare('SELECT id_jadwal FROM jadwal WHERE ruang=? LIMIT 1');$q->execute([$before['nama_ruang']]);if($q->fetch())throw new InputError('Nama ruang telah dipakai jadwal. Nonaktifkan dan buat ruang baru agar histori tetap.');}
+            $data['updated_by']=(int)current_user()['id_user'];if(!$before)$data['created_by']=(int)current_user()['id_user'];
         }elseif($table==='mata_pelajaran'){
             $data['kode_mapel']=input_text($input,'kode_mapel',10);unique_value($table,'kode_mapel',$data['kode_mapel'],$pk,$id);
             $data['kelompok']=input_choice($input,'kelompok',['Muatan Nasional','Muatan Kewilayahan','Produktif']);$data['kkm']=input_number($input,'kkm',1,100);
@@ -123,6 +129,9 @@ function save_schedule(array $input):int {
         $data['hari']=input_choice($input,'hari',['Senin','Selasa','Rabu','Kamis','Jumat']);
         foreach(['jam_mulai','jam_selesai'] as $key){$time=input_text($input,$key,8);if(!preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?$/D',$time))throw new InputError('Jam tidak valid.');$data[$key]=strlen($time)===5?$time.':00':$time;}
         if($data['jam_mulai']>=$data['jam_selesai'])throw new InputError('Jam selesai harus sesudah jam mulai.');$data['ruang']=input_text($input,'ruang',20,false)?:null;
+        if(app_setting('ROOM_CATALOG_ENFORCED')==='1'&&$data['ruang']!==null&&(!$before||$data['ruang']!==$before['ruang'])){
+            $q=$pdo->prepare("SELECT id_ruang FROM ak_ruang WHERE nama_ruang=? AND status='aktif' FOR UPDATE");$q->execute([$data['ruang']]);if(!$q->fetch())throw new InputError('Pilih ruang aktif dari master ruang/laboratorium.');
+        }
         if($before){$q=$pdo->prepare('SELECT (SELECT COUNT(*) FROM absensi WHERE id_jadwal=?)+(SELECT COUNT(*) FROM jurnal_kelas WHERE id_jadwal=?)');$q->execute([$id,$id]);$used=(int)$q->fetchColumn();$gradeCheck=$pdo->prepare('SELECT COUNT(*) FROM nilai n JOIN siswa s ON s.nis=n.nis WHERE n.id_guru=? AND n.id_mapel=? AND s.id_kelas=? AND (? IS NULL OR n.id_tahun_ajaran=?)');$gradeCheck->execute([$before['id_guru'],$before['id_mapel'],$before['id_kelas'],$before['id_tahun_ajaran'],$before['id_tahun_ajaran']]);$used+=(int)$gradeCheck->fetchColumn();if($used>0)foreach($data as $key=>$value)if((string)$value!==(string)$before[$key])throw new InputError('Penugasan sudah memiliki arsip. Nonaktifkan dan buat penugasan baru untuk perubahan konteks.');}
         $q=$pdo->prepare("SELECT id_jadwal FROM jadwal WHERE status='aktif' AND hari=? AND (id_tahun_ajaran=? OR id_tahun_ajaran IS NULL) AND jam_mulai<? AND jam_selesai>? AND (id_guru=? OR id_kelas=? OR (? IS NOT NULL AND ruang=?)) AND id_jadwal<>? LIMIT 1 FOR UPDATE");
         $q->execute([$data['hari'],$data['id_tahun_ajaran'],$data['jam_selesai'],$data['jam_mulai'],$data['id_guru'],$data['id_kelas'],$data['ruang'],$data['ruang'],$id??0]);if($q->fetch())throw new InputError('Bentrok jadwal guru, kelas, atau ruang.');

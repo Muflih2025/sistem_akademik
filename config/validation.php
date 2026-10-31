@@ -30,7 +30,9 @@ function input_date(array $input, string $key): string {
     if (!$date || $date->format('Y-m-d') !== $value) throw new InputError('Tanggal tidak valid.');
     return $value;
 }
+function allows_test_password(): bool {return app_setting('APP_ENV')==='testing'&&defined('DB_NAME')&&DB_NAME==='sia_academic_dev_20261031'&&DB_SOCKET!==''&&app_setting('ALLOW_TEST_PASSWORD')==='1';}
 function valid_new_password(string $value): void {
+    if($value==='password'&&allows_test_password())return;
     if (strlen($value)<10 || strlen($value)>72 || in_array(strtolower($value),['password123','1234567890','qwerty12345'],true)) throw new InputError('Password baru harus 10–72 byte dan tidak memakai password umum.');
 }
 function db_transaction(callable $callback): mixed {

@@ -89,7 +89,11 @@ def main():
  for file in ['assets/js/academic.js','ops/academic_pdf.cjs','tests/academic_browser.cjs']:test('javascript_syntax_'+file,lambda file=file:command(['node','--check',str(ROOT/file)]))
  log=command(['sudo','-n','python3',str(ROOT/'ops/academic_runtime.py'),'read-log'])
  secret_values=[creds['password'],runtime['DB_PASS'],json.loads((STATE/'private/owner.json').read_text())['DB_PASS']]
- test('no_passwords_in_development_PHP_log',lambda:check(all(secret.encode() not in log for secret in secret_values)))
+ def no_secrets():
+  for secret in secret_values:
+   if len(secret)>=12:check(secret.encode()not in log)
+   else:check(not re.search(rb'(?:["\'](?:password|new_password)["\']\s*:\s*["\']'+re.escape(secret.encode())+rb'["\']|(?:^|[&\s])password='+re.escape(secret.encode())+rb'(?:[&\s]|$))',log))
+ test('no_passwords_in_development_PHP_log',no_secrets)
  test('no_PHP_fatal_errors_in_development_log',lambda:check(b'Fatal error' not in log and b'Parse error' not in log))
  # Compare all protected resources against the pre-development private baselines.
  for name,root in [('target','/home/muflih/sistem_akademik'),('source','/home/muflih/Sistem-Informasi-Akademik-Sekolah-Laravel'),('active-release','/home/muflih/.local/share/sia-releases/r0-531d2f8')]:

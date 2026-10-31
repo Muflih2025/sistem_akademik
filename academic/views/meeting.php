@@ -12,7 +12,7 @@ $meeting=ak_one('SELECT * FROM ak_pertemuan WHERE id_jadwal=? AND tanggal=?',[$s
 $roster=ak_roster((int)$schedule['id_kelas'],(int)$schedule['id_tahun_ajaran'],$date);
 $stored=[]; if($meeting) foreach(ak_meeting_rows((int)$meeting['id']) as $row) $stored[$row['nis']]=$row;
 $options=[];foreach($schedules as $row)$options[$row['id_jadwal']]=$row['nama_kelas'].' · '.$row['nama_mapel'].' · '.$row['hari'].' '.substr($row['jam_mulai'],0,5);
-?><form method="get" class="panel form-grid"><?php ak_hidden('view','pertemuan');ak_select('id_jadwal','Jadwal mengajar',$options,$scheduleId);ak_field('tanggal','Tanggal',$date,'date');?><button class="secondary">Tampilkan kelas</button></form>
+?><p><a class="button secondary" href="<?=e(ak_link('pertemuan',['upload'=>1,'module'=>'absensi','id_jadwal'=>$scheduleId,'tanggal'=>$date]))?>">Bulk Upload Excel Absensi</a></p><form method="get" class="panel form-grid"><?php ak_hidden('view','pertemuan');ak_select('id_jadwal','Jadwal mengajar',$options,$scheduleId);ak_field('tanggal','Tanggal',$date,'date');?><button class="secondary">Tampilkan kelas</button></form>
 <section class="panel class-heading"><div><p class="eyebrow">ABSENSI KELAS</p><h2><?=e($schedule['nama_kelas'])?></h2><p><?=e($schedule['nama_mapel'])?> · <?=e($schedule['hari'])?>, <?=e($date)?></p><p class="muted"><?=count($roster)?> siswa · <?=e($schedule['nama_guru'])?></p></div><span class="pill"><?=$meeting?'Tersimpan · versi '.e($meeting['revision']):'Belum diisi'?></span></section>
 <?php if(!$roster):?><div class="notice">Anggota kelas pada tanggal ini belum ditetapkan. Pengisian dinonaktifkan.</div><?php return;endif;?>
 <form method="post" id="meeting-form" data-attendance-form>

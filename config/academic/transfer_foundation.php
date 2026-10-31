@@ -25,6 +25,7 @@ function ak_preview_foundation_import(string $module,array $input,array $rows): 
             foreach([$start,$end] as $time)if(!preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?$/D',$time))throw new InputError('Format jam tidak valid.');
             $start=str_pad($start,8,':00');$end=str_pad($end,8,':00');if($start>=$end)throw new InputError('Jam selesai harus sesudah jam mulai.');
             $room=input_text($row,'ruang',20,false);input_text($row,'catatan',500);
+            if(app_setting('ROOM_CATALOG_ENFORCED')==='1'&&$room!==''&&!ak_one("SELECT id_ruang FROM ak_ruang WHERE nama_ruang=? AND status='aktif'",[$room]))throw new InputError('Ruang belum terdaftar atau nonaktif.');
             if(ak_one("SELECT id_jadwal FROM jadwal WHERE status='aktif' AND (id_tahun_ajaran=? OR id_tahun_ajaran IS NULL) AND hari=? AND jam_mulai<? AND jam_selesai>? AND (id_guru=? OR id_kelas=? OR (?<>'' AND ruang=?)) LIMIT 1",[$period['id_tahun_ajaran'],$day,$end,$start,$guru,$class,$room,$room]))throw new InputError('Jadwal bentrok dengan database.');
             foreach($prior as $old)if($old['hari']===$day&&$old['jam_mulai']<$end&&$old['jam_selesai']>$start&&($old['id_guru']===$row['id_guru']||$old['id_kelas']===$row['id_kelas']||($room!==''&&$old['ruang']===$room)))throw new InputError('Jadwal bentrok di dalam batch.');
             $row['jam_mulai']=$start;$row['jam_selesai']=$end;

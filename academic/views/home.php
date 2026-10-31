@@ -17,3 +17,5 @@ $cards=match($role){
 };
 foreach($cards as [$key,$label,$text]):?><a class="panel module-card" href="<?=e(ak_link($key))?>"><h2><?=e($label)?></h2><p><?=e($text)?></p><span>Buka →</span></a><?php endforeach;?></div>
 <section class="panel"><h2>Alur data</h2><p>Penugasan + anggota kelas bertanggal → pertemuan → absensi sesi, jurnal dan agenda. Rekap harian sekolah ditetapkan terpisah melalui rekonsiliasi Guru Piket; bukti yang belum lengkap tidak dihitung Hadir atau Alpa.</p></section>
+
+<?php if($role==='kepala_sekolah')require __DIR__.'/teaching_monitor.php';?>

@@ -9,6 +9,7 @@ $routes = [
     '/errors/404.php' => ['type' => 'page'],
     '/academic/index.php' => ['type' => 'page'],
     '/academic/export.php' => ['type' => 'page'],
+    '/assets/css/pagination.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
     '/assets/css/academic.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
     '/assets/js/academic.js' => ['type'=>'asset','mime'=>'application/javascript; charset=utf-8'],
     '/assets/css/neutral.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
@@ -22,7 +23,7 @@ $routes = [
     '/assets/css/app.css' => ['type' => 'asset', 'mime' => 'text/css; charset=utf-8'],
 ];
 $pages = [
-    'admin' => ['index', 'master', 'penugasan', 'users', 'jadwal', 'tahun_ajaran', 'nilai', 'ekskul', 'kalender', 'export_import', 'export_nilai', 'posisi_guru'],
+    'admin' => ['bulk_upload','index', 'master', 'penugasan', 'users', 'jadwal', 'tahun_ajaran', 'nilai', 'ekskul', 'kalender', 'export_import', 'export_nilai', 'posisi_guru'],
     'guru' => ['index', 'jadwal', 'absen', 'jurnal', 'rekap_absen', 'nilai', 'rapor', 'ekskul', 'kalender', 'export_nilai'],
     'kepsek' => ['index', 'akademik', 'evaluasi', 'tahun_ajaran', 'rapor', 'posisi_guru', 'kalender'],
     'siswa' => ['index', 'jadwal', 'absen', 'rapor', 'kalender'],

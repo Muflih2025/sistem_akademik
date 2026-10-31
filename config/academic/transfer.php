@@ -4,6 +4,7 @@ require_once __DIR__.'/calendar.php';
 require_once __DIR__.'/grades.php';
 require_once dirname(__DIR__).'/import_service.php';
 require_once __DIR__.'/transfer_foundation.php';
+require_once __DIR__.'/transfer_master.php';
 
 const AK_IMPORT_HEADERS=[
     'absensi'=>['nis','status','keterangan'],
@@ -11,6 +12,10 @@ const AK_IMPORT_HEADERS=[
     'kalender'=>['mulai','selesai','judul','jenis','status','catatan'],
     'siswa'=>['nis','nama_siswa','jenis_kelamin','tanggal_lahir','id_kelas','alamat'],
     'guru'=>['nip','nama_guru','email','no_hp'],
+    'jurusan'=>['kode_jurusan','nama_jurusan'],
+    'ak_ruang'=>['kode_ruang','nama_ruang','jenis'],
+    'kelas'=>['nama_kelas','tingkat','id_jurusan'],
+    'mata_pelajaran'=>['kode_mapel','nama_mapel','kelompok','kkm'],
     'anggota'=>['nis','id_kelas','nomor_absen','mulai','selesai'],
     'penugasan'=>['id_guru','id_mapel','id_kelas','hari','jam_mulai','jam_selesai','ruang','mulai','selesai','catatan'],
 ];
@@ -27,21 +32,30 @@ function ak_preview_import(array $input,array $file): array {
     // A new upload attempt invalidates the old preview, including validation failures.
     unset($_SESSION['ak_import']);
     $module=input_choice($input,'module',array_keys(AK_IMPORT_HEADERS));
+    if(isset(AK_MASTER_IMPORT_KEYS[$module])||in_array($module,['anggota','penugasan'],true))permission('master.manage');
+    elseif($module==='kalender')permission('calendar.manage');
+    else require_role('guru');
     if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK || !is_string($file['tmp_name']??null) || !is_uploaded_file($file['tmp_name']))throw new InputError('Unggah berkas CSV / XLSX yang valid.');
     $extension=strtolower(pathinfo(is_string($file['name']??null)?$file['name']:'',PATHINFO_EXTENSION));
     if(!in_array($extension,['csv','xlsx'],true))throw new InputError('Hanya CSV dan XLSX.');
     $rows=import_rows($file['tmp_name'],$extension);
     $headers=array_map(fn($v)=>trim(ltrim((string)$v,"\xEF\xBB\xBF")),array_shift($rows));
     if($headers!==AK_IMPORT_HEADERS[$module])throw new InputError('Header harus tepat sesuai template, termasuk urutan kolom.');
-    $seen=[];$normalized=[];
+    $seen=[];$normalized=[];$roomNames=[];
     foreach($rows as $i=>$row) {
-        if(count($row)!==count($headers))throw new InputError('Jumlah kolom tidak cocok pada baris '.($i+2).'.');
-        $entry=array_combine($headers,$row);$key=$module==='kalender'?implode('|',[$entry['mulai'],$entry['selesai'],$entry['judul']]):($module==='penugasan'?implode('|',$entry):($module==='guru'?$entry['nip']:$entry['nis']));
-        if(isset($seen[$key]))throw new InputError('Data duplikat pada baris '.($i+2).'.');$seen[$key]=true;$normalized[]=$entry;
+        if(count($row)>count($headers))throw new InputError('Jumlah kolom tidak cocok pada baris '.($i+2).'.');
+        $row=array_pad($row,count($headers),'');
+        $entry=array_combine($headers,array_map(static fn($v)=>trim((string)$v),$row));
+        if($module==='ak_ruang'){$name=mb_strtolower($entry['nama_ruang'],'UTF-8');if(isset($roomNames[$name]))throw new InputError('Nama ruang ganda pada baris '.($i+2).'.');$roomNames[$name]=true;}
+        $key=$module==='kalender'?implode('|',[$entry['mulai'],$entry['selesai'],$entry['judul']]):($module==='penugasan'?implode('|',$entry):$entry[AK_MASTER_IMPORT_KEYS[$module]??'nis']);
+        $key=mb_strtolower($key,'UTF-8');
+        if(isset($seen[$key]))throw new InputError('Data duplikat pada baris '.($i+2).' (juga baris '.$seen[$key].').');$seen[$key]=$i+2;$normalized[]=$entry;
     }
     $context=['module'=>$module,'alasan'=>input_text($input,'alasan',500)];
     if(in_array($module,['anggota','penugasan'],true)) {
         $context+=ak_preview_foundation_import($module,$input,$normalized);
+    }elseif(in_array($module,['kelas','jurusan','mata_pelajaran','ak_ruang'],true)) {
+        foreach($normalized as $i=>$row){try{ak_validate_master_import($module,$row);}catch(InputError $error){throw new InputError('Baris '.($i+2).': '.$error->getMessage());}}
     }elseif(in_array($module,['siswa','guru'],true)) {
         permission('master.manage');
         foreach($normalized as $row) {
@@ -105,8 +119,9 @@ function ak_commit_import(array $input): int {
     $context=$preview['context'];
     $count=db_transaction(function()use($preview,$context,$input):int {
         if(in_array($preview['module'],['anggota','penugasan'],true))return ak_commit_foundation_import($preview,$input);
-        if(in_array($preview['module'],['siswa','guru'],true)) {
-            foreach($preview['rows'] as $row)save_master($preview['module'],$row+['action'=>'create']);
+        if(isset(AK_MASTER_IMPORT_KEYS[$preview['module']])) {
+            foreach($preview['rows'] as $i=>$row){try{save_master($preview['module'],$row+['action'=>'create']);}catch(InputError $error){throw new InputError('Baris '.($i+2).': '.$error->getMessage());}}
+            ak_audit('impor_master',bin2hex(random_bytes(8)),'tambah_batch',null,['modul'=>$preview['module'],'jumlah'=>count($preview['rows'])],$context['alasan']);
             return count($preview['rows']);
         }
         if($preview['module']==='kalender') {

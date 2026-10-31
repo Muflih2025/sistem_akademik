@@ -1,5 +1,7 @@
 # Panduan fungsi dan uji manual lokal
 
+> Konfigurasi staf terbaru: bulk Excel di `/admin/bulk_upload.php`; wali sebagai informasi, verifikasi rapor oleh Admin; akun uji yang dicantumkan memakai password development `password`. Gunakan [panduan manual terbaru](PANDUAN_TEST_MANUAL_ADMIN_GURU_KEPSEK.md). Langkah persetujuan wali pada bagian lama di bawah adalah riwayat alur kompatibilitas, bukan alur operasional saat ini.
+
 Kelanjutan checkpoint `d53c95f`. Gunakan worktree `/home/muflih/sia-academic-dev`, branch `development/academic-workflows-20261031`. Seluruh contoh di bawah memakai data development sintetis, bukan data asli sekolah.
 
 ## Membuka aplikasi dan akun
@@ -79,7 +81,7 @@ Server menggunakan unit lokal yang sudah ada, DynamicUser non-root, kode read-on
 # Sudah tersedia di lingkungan ini; hanya bila dependency tes PDF belum ada:
 python3 ops/academic_test_dependencies.py
 # Seluruh suite berurutan, termasuk operasi browser yang menyimpan data:
-python3 tests/run_academic.py --with-kelas10 --with-progression \
+python3 tests/run_academic.py --with-kelas10 --with-progression --with-bulk-master --with-staff \
   --baseline-directory /home/muflih/.local/state/sia-academic-dev/20261031/reports/kelas10-baseline
 ```
 
