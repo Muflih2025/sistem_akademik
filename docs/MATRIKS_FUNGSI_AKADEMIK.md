@@ -101,3 +101,5 @@ Pengujian unggahan per modul sesudah perubahan navigasi: **6 PASS, 0 FAIL, 0 SKI
 ## Checkpoint simulasi lima hari setelah pembersihan fixture
 
 Data development kini 389 siswa Excel + 22 siswa demo, 36 kelas, 29 ruang; fixture acak dihapus melalui manifest/backup dan akun arsip dinonaktifkan tanpa menghapus audit. Kepala Sekolah melihat/filter nomor jam (acuan jam terbaru), guru/kelas/ruang/status jurnal. Absensi memiliki pagination 10/20/50 dengan seluruh roster tetap disimpan atomik; bukan LIMIT yang memotong payload. Alias URL pendek memakai allowlist dan otorisasi yang sama, URL lama tetap bekerja. Bukti baru: 7 skenario isi melalui browser + 12 skenario review (19 PASS, 0 FAIL, 0 SKIP), bukan run ulang suite historis 869. Lihat `SIMULASI_5_HARI.md` dan laporan pembersihan/simulasi terbaru.
+
+Laporan penutupan: [LAPORAN_PEMBERSIHAN_SIMULASI_5HARI_2026-11-01.md](../LAPORAN_PEMBERSIHAN_SIMULASI_5HARI_2026-11-01.md).
