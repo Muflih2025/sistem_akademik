@@ -9,6 +9,7 @@ Dokumen ini adalah runbook yang harus ditinjau operator. Tidak menjalankan deplo
 3. Admin menerima daftar 18 penugasan yang periodenya belum terverifikasi. Tidak ada akses nilai lintas periode dari penugasan NULL. Tanpa penugasan berperiode yang telah ditinjau, transaksi baru dan pembacaan nilai/rapor guru dapat diblokir. Ini dampak operasional yang harus diterima sebelum aktivasi; bukan alasan memberi akses tambahan atau backfill semua data ke periode aktif.
 4. Kebijakan sementara rapor disetujui: semua periode existing default belum terbit; tidak dianggap terbit karena nilai ada. Publikasi eksplisit admin hanya gate sementara. Workflow penerbitan, persetujuan dan snapshot rapor lengkap tetap R6.
 5. Backup terbaru, restore terisolasi dan jendela maintenance tersedia. Hentikan jika ada drift yang tidak dijelaskan atau backup/restore gagal. Data asli tidak boleh direset untuk meloloskan pemeriksaan.
+6. Pisahkan akses filesystem runtime dari rahasia owner dan backup lama. Akun OS layanan existing adalah `muflih`; mengganti DB_USER saja tidak cukup jika worker masih bisa membaca file root database lama milik user yang sama. Rencana service menempatkan kode di `/opt/sia/releases`, runtime config root-owned di `/etc/sia-r1`, data writable di `/var/lib/sia-r1`, rahasia owner di direktori operator/root, dan memakai `ProtectHome=true` serta `ProtectSystem=strict`. Instalasi direktori/permission dan pengujian namespace service ini memerlukan tindakan operator; belum dilakukan pada layanan aktif.
 
 ## Paket yang disiapkan
 
@@ -16,7 +17,7 @@ Dokumen ini adalah runbook yang harus ditinjau operator. Tidak menjalankan deplo
 - Archive candidate dan salinan read-only terpisah di state review privat. Tidak ada `git pull`, checkout atau reset pada working tree pengguna.
 - Rencana privat grant/config di `activation-plan/`, dibuat oleh `ops/r1_prepare_grants.py`. Generator **tidak terhubung ke database**. SQL berisi password acak: jangan cat, commit, tempel ke laporan atau kirim melalui chat.
 - Konfigurasi owner dan runtime terpisah, masing-masing mode 0600. Approval owner sengaja kosong. Runtime tidak menyimpan approval/DDL flag.
-- Patch service review-only ada di state; menunjuk candidate public/router dan konfigurasi runtime baru, mempertahankan user non-root, loopback, NoNewPrivileges, UMask 0077 serta direktori log/upload privat. Belum dipasang.
+- Patch service review-only ada di state; menunjuk salinan candidate yang akan dipasang operator di `/opt/sia/releases`, public/router dan konfigurasi runtime di `/etc/sia-r1`, mempertahankan user non-root, loopback, NoNewPrivileges, UMask 0077 serta direktori log/upload privat `/var/lib/sia-r1`. Home/backup/owner credentials dibatasi oleh namespace service. Belum dipasang.
 
 ## Urutan operator setelah persetujuan
 
@@ -57,14 +58,14 @@ Gunakan jalur candidate dan plan **yang tercantum pada laporan readiness**, buka
        --expected-database=DATABASE_YANG_DISETUJUI --expected-environment=production
    ```
 
-9. Set COOKIE_SECURE sesuai terminasi HTTPS; pada HTTP loopback tetap 0. Gunakan nama session R1 yang baru, lokasi session/security/log/upload di luar code, direktori 0700 dan file 0600. Jangan memakai session R0 untuk R1. State pembatasan login harus persisten saat restart. Verifikasi disk space dan jalur export: CSV dialirkan ke response, impor menggunakan upload temp privat; tidak ada direktori export publik baru.
+9. Operator memasang kode root-owned dan tidak writable oleh worker di `/opt/sia/releases/r1-COMMIT`, runtime config root-owned/group layanan mode 0640 di `/etc/sia-r1`, serta subdirektori session/security/log/upload milik layanan mode 0700 di `/var/lib/sia-r1`. Owner config dan grant SQL berada di direktori operator/root mode 0700/0600, bukan direktori yang dapat dibaca worker. Set COOKIE_SECURE sesuai terminasi HTTPS; pada HTTP loopback tetap 0. Gunakan nama session R1 yang baru. State pembatasan login harus persisten saat restart. Verifikasi disk space dan jalur export: CSV dialirkan ke response, impor menggunakan upload temp privat; tidak ada direktori export publik baru. Uji `ProtectHome` benar-benar menghalangi pembacaan rahasia lama sebelum membuka lalu lintas.
 10. Baru setelah seluruh gate PASS dan persetujuan deployment, pasang patch service yang telah ditinjau, reload konfigurasi, restart **service 8085 yang disetujui**, dan periksa status/binding/proses non-root. Tidak ada langkah ini yang dikerjakan saat review.
 11. Jalankan HEAD/GET login/public dan blok SQL/Git/env/log/config/Adminer; periksa log fatal secara privat. Login/logout empat role memakai akun fixture khusus yang disetujui operator, CSRF, role guard, halaman admin/guru, rapor draft dan export. Jangan menciptakan akun otomatis pada login atau menggunakan akun sekolah untuk tes tulis.
 12. Sebelum membuka penulisan, ulangi fingerprint data asli dan verifikasi migrasi/privilege. Sesudah ada transaksi sah baru, drift harus direkonsiliasi dengan audit; jangan menganggap semua perubahan sebagai korupsi dan memulihkan backup menimpanya.
 
 ## Rollback aplikasi
 
-- Hentikan aktivasi/ingress tulis jika smoke test gagal. Kembalikan konfigurasi service dan release ke R0 yang disimpan, memakai konfigurasi runtime yang dapat membaca skema aditif. Tidak memindahkan document root ke root proyek.
+- Hentikan aktivasi/ingress tulis jika smoke test gagal. Gunakan patch rollback ke salinan R0 yang telah dipasang operator di `/opt/sia/releases/r0-531d2f8`, memakai runtime database terbatas yang sudah diuji, tetap dengan namespace filesystem yang membatasi home/owner secret. Jangan otomatis mengembalikan runtime root database lama. Tidak memindahkan document root ke root proyek.
 - Ganti nama session ketika rollback; R0 tidak memakai fingerprint sesi R1. Jangan mempertahankan sesi lintas versi.
 - R0 sudah diuji login/logout admin fixture, halaman admin/master, role guard, CSRF dan blok berkas pada database salinan setelah migrasi R1, dengan akun runtime terbatas. Hasil review membuktikan kompatibilitas alur baca/autentikasi tersebut; bukan izin menguji operasi destruktif R0 pada arsip aktif.
 - Pertahankan kolom/tabel aditif, audit dan transaksi yang sah. Tidak ada down migration, DROP TABLE atau TRUNCATE. Jangan restore backup menimpa transaksi yang masuk setelah aktivasi.

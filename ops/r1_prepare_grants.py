@@ -15,10 +15,10 @@ def main():
     active=json.loads(config.read_text());database=active['DB_NAME'];assert re.fullmatch('[A-Za-z0-9_]+',database)
     output.mkdir(mode=0o700)
     for directory in ['sessions','security','logs','uploads']:(output/directory).mkdir(mode=0o700)
-    suffix=a.release_commit[:8];app='sia_r1_app_'+suffix;owner='sia_r1_deploy_'+suffix
+    suffix=a.release_commit[:8];runtime_target=Path('/var/lib/sia-r1')/suffix;app='sia_r1_app_'+suffix;owner='sia_r1_deploy_'+suffix
     apppass=secrets.token_hex(32);ownerpass=secrets.token_hex(32)
     connection={k:v for k,v in active.items() if k in ['DB_HOST','DB_PORT','DB_SOCKET','DB_NAME']}
-    runtime={**connection,'APP_ENV':'production','DB_USER':app,'DB_PASS':apppass,'ALLOW_SCHEMA_CHANGES':'0','SESSION_NAME':'SIA_R1_'+suffix.upper(),'SESSION_PATH':str(output/'sessions'),'SECURITY_STATE_PATH':str(output/'security'),'SECURITY_LOG':str(output/'logs/security.jsonl'),'COOKIE_SECURE':'0','R1_APPROVED_RELEASE':''}
+    runtime={**connection,'APP_ENV':'production','DB_USER':app,'DB_PASS':apppass,'ALLOW_SCHEMA_CHANGES':'0','SESSION_NAME':'SIA_R1_'+suffix.upper(),'SESSION_PATH':str(runtime_target/'sessions'),'SECURITY_STATE_PATH':str(runtime_target/'security'),'SECURITY_LOG':str(runtime_target/'logs/security.jsonl'),'COOKIE_SECURE':'0','R1_APPROVED_RELEASE':''}
     deployment={**connection,'APP_ENV':'production','DB_USER':owner,'DB_PASS':ownerpass,'ALLOW_SCHEMA_CHANGES':'1','R1_APPROVED_RELEASE':''}
     save_json(output/'runtime.json',runtime);save_json(output/'deployment-owner.json',deployment)
     cnf(output/'runtime-client.cnf',runtime);cnf(output/'owner-client.cnf',deployment)

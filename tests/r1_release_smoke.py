@@ -48,7 +48,13 @@ def main():
             test(name+'_login_fixture_only',lambda:status(b.request('/auth/login.php','POST',{'csrf_token':csrf(page[2]),'username':username,'password':password}),302))
             test(name+'_admin_page_after_additive_migration',lambda:status(b.request('/admin/index.php'),200))
             test(name+'_master_page_after_additive_migration',lambda:status(b.request('/admin/master.php?table=siswa'),200))
-            test(name+'_role_guard',lambda:status(b.request('/guru/index.php'),403))
+            def role_guard():
+                response=b.request('/guru/index.php')
+                if name=='r0_rollback':
+                    # R0 denies with a redirect; verify its target and final 403.
+                    status(response,302);check(response[1].get('Location','').endswith('/errors/403.php'));status(b.request('/errors/403.php'),403)
+                else:status(response,403)
+            test(name+'_role_guard',role_guard)
             test(name+'_logout_invalid_csrf',lambda:status(b.request('/auth/logout.php','POST',{'csrf_token':'invalid'}),419))
             test(name+'_logout_fixture_only',lambda:status(b.request('/auth/logout.php','POST',{'csrf_token':csrf(b.request('/auth/logout.php')[2])}),302))
             test(name+'_guest_after_logout',lambda:status(b.request('/admin/index.php'),302))
