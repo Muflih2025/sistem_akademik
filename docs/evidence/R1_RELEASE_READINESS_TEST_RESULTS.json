@@ -1,0 +1,1443 @@
+{
+  "review_date": "2026-10-31",
+  "candidate_commit": "042ea9c197dde03e48031108657ecbb7aedd869c",
+  "decision": "BLOCKED",
+  "production_untouched": true,
+  "suites": {
+    "http-tests-latest.json": {
+      "tests": [
+        {
+          "test": "auth_correct_four_roles",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_reject_disabled",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_reject_unknown",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_missing_csrf",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_wrong_credential_generic",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_csrf_array",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_csrf_invalid",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_guest_endpoint",
+          "status": "PASS"
+        },
+        {
+          "test": "auth_no_ddl_no_account_seed",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/absen.php?id_jadwal=2",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/jurnal.php?id_jadwal=2&tanggal=2026-10-20",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/rekap_absen.php?id_jadwal=2",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/rapor.php?id_kelas=2",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/rapor.php?nis=0000002",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/rapor.php?id_kelas=1&nis=0000002",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/export_nilai.php?id_kelas=2&id_mapel=2&format=csv",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/export_nilai.php?id_kelas=1&id_mapel=2&format=csv",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/ekskul.php?id_kelas=2&id_ekskul=1",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_GET_/guru/ekskul.php?id_kelas=1&id_ekskul=2",
+          "status": "PASS"
+        },
+        {
+          "test": "teacher_own_class",
+          "status": "PASS"
+        },
+        {
+          "test": "teacher_report_subject_scope",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_grade_POST_foreign_class",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_grade_POST_foreign_subject",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_grade_POST_foreign_student",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_grade_POST_foreign_grade_id",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_grade_POST_inactive_period",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_grade_POST_foreign_teacher",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_weight_POST",
+          "status": "PASS"
+        },
+        {
+          "test": "idor_extracurricular_POST",
+          "status": "PASS"
+        },
+        {
+          "test": "student_other_identity",
+          "status": "PASS"
+        },
+        {
+          "test": "student_own_report",
+          "status": "PASS"
+        },
+        {
+          "test": "student_unpublished_period_hidden",
+          "status": "PASS"
+        },
+        {
+          "test": "student_cannot_mutate_teacher_endpoint",
+          "status": "PASS"
+        },
+        {
+          "test": "student_own_read_endpoint_rejects_POST",
+          "status": "PASS"
+        },
+        {
+          "test": "head_read_report",
+          "status": "PASS"
+        },
+        {
+          "test": "head_cannot_edit_grades",
+          "status": "PASS"
+        },
+        {
+          "test": "head_cannot_activate_period",
+          "status": "PASS"
+        },
+        {
+          "test": "teacher_cannot_create_users",
+          "status": "PASS"
+        },
+        {
+          "test": "master_table_whitelist",
+          "status": "PASS"
+        },
+        {
+          "test": "invalid_GET_array_safe",
+          "status": "PASS"
+        },
+        {
+          "test": "session_revoked_when_account_disabled",
+          "status": "PASS"
+        },
+        {
+          "test": "session_idle_timeout",
+          "status": "PASS"
+        },
+        {
+          "test": "login_rate_limit_across_attempts",
+          "status": "PASS"
+        },
+        {
+          "test": "cookie_localhost_httponly_samesite",
+          "status": "PASS"
+        },
+        {
+          "test": "cookie_secure_when_explicitly_enabled",
+          "status": "PASS"
+        },
+        {
+          "test": "session_rotation_and_logout_old_cookie_replay_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "session_absolute_timeout",
+          "status": "PASS"
+        },
+        {
+          "test": "login_parallel_attempts_rate_limit_atomic",
+          "status": "PASS"
+        },
+        {
+          "test": "runtime_no_ddl_and_audit_append_only",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_blocks_sensitive_files_physically_present_in_public",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_create_all_core_master_and_leading_zero_nis",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_update_only_targeted_rows",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_nis_duplicate",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_nis_identity_immutable",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_student_invalid_nis",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_student_invalid_date",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_student_future_birth",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_student_invalid_class",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_student_array_name",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_update_nonexistent_no_false_success",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_invalid_email",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_mapel_enum_validation",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_search_filter",
+          "status": "PASS"
+        },
+        {
+          "test": "crud_pagination_real_rows",
+          "status": "PASS"
+        },
+        {
+          "test": "extracurricular_assignment_crud_archive_and_no_false_success",
+          "status": "PASS"
+        },
+        {
+          "test": "extracurricular_nested_array_rejected_without_warning",
+          "status": "PASS"
+        },
+        {
+          "test": "users_create_with_valid_reference_no_default_account",
+          "status": "PASS"
+        },
+        {
+          "test": "users_duplicate_reference",
+          "status": "PASS"
+        },
+        {
+          "test": "users_bad_reference",
+          "status": "PASS"
+        },
+        {
+          "test": "users_bad_role",
+          "status": "PASS"
+        },
+        {
+          "test": "users_reference_numeric_coercion_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "users_reference_alias_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "users_duplicate_username",
+          "status": "PASS"
+        },
+        {
+          "test": "users_reject_common_password",
+          "status": "PASS"
+        },
+        {
+          "test": "users_update_identity_revokes_session",
+          "status": "PASS"
+        },
+        {
+          "test": "users_role_change_revokes_session",
+          "status": "PASS"
+        },
+        {
+          "test": "users_reference_change_revokes_session",
+          "status": "PASS"
+        },
+        {
+          "test": "users_explicit_password_reset_revokes_session",
+          "status": "PASS"
+        },
+        {
+          "test": "self_password_change_revokes_all_sessions",
+          "status": "PASS"
+        },
+        {
+          "test": "users_last_admin_protected",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_create_and_teacher_assignment",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_update",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_duplicate",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_teacher_overlap",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_class_overlap",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_room_overlap",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_invalid_order",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_inactive_year",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_invalid_fk",
+          "status": "PASS"
+        },
+        {
+          "test": "assignment_alias_adjacent_and_archive",
+          "status": "PASS"
+        },
+        {
+          "test": "weights_scoped_create_update_no_duplicate_and_validation",
+          "status": "PASS"
+        },
+        {
+          "test": "export_csv_metadata_formula_escaped",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_foreign_schedule_POST",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_foreign_student_POST",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_wrong_record_id",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_closed_period",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_unknown_legacy_period_no_guess",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_wrong_weekday",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_user_identity_upsert_read_and_audit",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_delete_denied_archive_preserved",
+          "status": "PASS"
+        },
+        {
+          "test": "journal_and_attendance_atomic_success",
+          "status": "PASS"
+        },
+        {
+          "test": "journal_missing_roster_not_assumed_present",
+          "status": "PASS"
+        },
+        {
+          "test": "journal_mid_transaction_failure_rolls_back_everything",
+          "status": "PASS"
+        },
+        {
+          "test": "legacy_null_period_does_not_authorize_grades_exports_or_reports",
+          "status": "PASS"
+        },
+        {
+          "test": "report_attendance_excludes_unknown_period_and_other_teacher_scope",
+          "status": "PASS"
+        },
+        {
+          "test": "report_and_export_do_not_disclose_grade_owned_by_other_teacher",
+          "status": "PASS"
+        },
+        {
+          "test": "student_draft_period_URL_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "student_draft_period_POST_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "student_foreign_period_identity_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "supervisor_report_POST_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "supervisor_conflicting_class_identity_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "locked_period_denies_teacher_and_admin_grade_writes",
+          "status": "PASS"
+        },
+        {
+          "test": "student_report_publication_gate",
+          "status": "PASS"
+        },
+        {
+          "test": "period_invalid_activation_preserves_active",
+          "status": "PASS"
+        },
+        {
+          "test": "grade_numeric_validation_-1",
+          "status": "PASS"
+        },
+        {
+          "test": "grade_numeric_validation_101",
+          "status": "PASS"
+        },
+        {
+          "test": "grade_numeric_validation_abc",
+          "status": "PASS"
+        },
+        {
+          "test": "grade_zero_valid_and_existing_record_preserved",
+          "status": "PASS"
+        },
+        {
+          "test": "new_history_foreign_keys_and_actor",
+          "status": "PASS"
+        },
+        {
+          "test": "schedule_history_binding_immutable",
+          "status": "PASS"
+        },
+        {
+          "test": "student_history_class_not_rewritten",
+          "status": "PASS"
+        },
+        {
+          "test": "archive_master_preserves_history_and_revokes_linked_account",
+          "status": "PASS"
+        },
+        {
+          "test": "import_valid_csv_no_default_account",
+          "status": "PASS"
+        },
+        {
+          "test": "import_batch_rollback_unknown_class",
+          "status": "PASS"
+        },
+        {
+          "test": "import_inline_sparse_xlsx_leading_zero",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/db_sia_smkn2_magelang.sql",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/db_sia_smkn2_magelang.sql",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/.git/config",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/.git/config",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/.env",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/.env",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/adminer.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/adminer.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/db.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/db.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/config/config.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/config/config.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/ops/migrate_r1.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/ops/migrate_r1.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/tests/r1_db.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/tests/r1_db.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_GET_/%2e%2e/config/config.php",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_block_HEAD_/%2e%2e/config/config.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/index.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/master.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/nilai.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/ekskul.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/kalender.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/export_nilai.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_admin_/admin/posisi_guru.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_logout_admin",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/index.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/absen.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/jurnal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/rekap_absen.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/nilai.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/rapor.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/ekskul.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/kalender.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_guru_/guru/export_nilai.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_logout_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_siswa_/siswa/index.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_siswa_/siswa/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_siswa_/siswa/absen.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_siswa_/siswa/rapor.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_siswa_/siswa/kalender.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_logout_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/index.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/akademik.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/evaluasi.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/rapor.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/posisi_guru.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_route_kepala_sekolah_/kepsek/kalender.php",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_logout_kepala_sekolah",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_export_teacher",
+          "status": "PASS"
+        },
+        {
+          "test": "regression_export_admin",
+          "status": "PASS"
+        },
+        {
+          "test": "legacy_ambiguous_identity_and_foreign_history_not_repaired_by_guess",
+          "status": "PASS"
+        },
+        {
+          "test": "audit_no_password_or_auth_secrets",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_keys_no_orphan_attendance",
+          "status": "PASS"
+        },
+        {
+          "test": "no_php_fatal_errors",
+          "status": "PASS"
+        },
+        {
+          "test": "nisn_validation_not_applicable_no_nisn_column",
+          "status": "SKIP",
+          "reason": "Existing schema does not use NISN; no invented identifier column."
+        }
+      ],
+      "passed": 187,
+      "failed": 0,
+      "skipped": 1,
+      "fixture_only": true,
+      "run": "a36e1f",
+      "port": 18091
+    },
+    "browser-tests.json": {
+      "passed": 59,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "responsive_320_/admin/master.php?table=siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/master.php?table=guru",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/master.php?table=kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/master.php?table=mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/master.php?table=siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/master.php?table=guru",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/master.php?table=kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/master.php?table=mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_375_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/master.php?table=siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/master.php?table=guru",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/master.php?table=kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/master.php?table=mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_430_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/master.php?table=siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/master.php?table=guru",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/master.php?table=kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/master.php?table=mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_768_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/master.php?table=siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/master.php?table=guru",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/master.php?table=kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/master.php?table=mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1024_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/master.php?table=siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/master.php?table=guru",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/master.php?table=kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/master.php?table=mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/users.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/jadwal.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/penugasan.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/tahun_ajaran.php",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_1440_/admin/export_import.php",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_create_student_from_real_form",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_form_input_associations",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_existing_form_associations",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_real_browser_submit_and_backend_readback",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_no_javascript_errors",
+          "status": "PASS"
+        }
+      ],
+      "fixture_only": true,
+      "viewports": [
+        320,
+        375,
+        430,
+        768,
+        1024,
+        1440
+      ]
+    },
+    "database-tests.json": {
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "fixture_server_has_no_tcp_networking",
+          "status": "PASS"
+        },
+        {
+          "test": "repeat_migration_twice_changes_no_schema_data_accounts_or_objects",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_ekskul_id_ekskul",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_ekskul_nis",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_ekskul_id_tahun_ajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_catatan_evaluasi_id_tahun_ajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_catatan_evaluasi_created_by",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_normalisasi_2nf_nilai_nis",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_normalisasi_2nf_nilai_kd_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_audit_aktivitas_actor_id",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jadwal_id_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jadwal_id_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jadwal_id_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jadwal_id_tahun_ajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_kelas_id_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jurnal_kelas_id_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jurnal_kelas_id_jadwal",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jurnal_kelas_id_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_jurnal_kelas_id_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_id_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_id_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_nis",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_nilai_id_tahun_ajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_absensi_created_by",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_absensi_id_jadwal",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_absensi_nis",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_siswa_id_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_ekstrakurikuler_id_guru_pembina",
+          "status": "PASS"
+        },
+        {
+          "test": "database_verification_queries_do_not_mutate_fixture",
+          "status": "PASS"
+        }
+      ],
+      "foreign_keys_checked": 26,
+      "fixture_only": true
+    },
+    "integrity-tests.json": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "target_all_file_hashes_unchanged",
+          "status": "PASS"
+        },
+        {
+          "test": "source_all_file_hashes_unchanged",
+          "status": "PASS"
+        },
+        {
+          "test": "active-release_all_file_hashes_unchanged",
+          "status": "PASS"
+        },
+        {
+          "test": "target_existing_git_changes_preserved",
+          "status": "PASS"
+        },
+        {
+          "test": "active_service_configuration_unchanged",
+          "status": "PASS"
+        },
+        {
+          "test": "active_service_still_nonroot_running",
+          "status": "PASS"
+        },
+        {
+          "test": "active_database_all_tables_rows_schema_views_triggers_routines_unchanged",
+          "status": "PASS"
+        },
+        {
+          "test": "preserved_r0_backup_sha256_and_gzip_readable",
+          "status": "PASS"
+        },
+        {
+          "test": "preserved_r0_restore_evidence_pass",
+          "status": "PASS"
+        },
+        {
+          "test": "active_8085_public_login_reachable",
+          "status": "PASS"
+        },
+        {
+          "test": "active_8085_internal_files_still_blocked",
+          "status": "PASS"
+        },
+        {
+          "test": "active_8085_binding_remains_loopback",
+          "status": "PASS"
+        }
+      ],
+      "active_database_read_only": true,
+      "active_base_tables": 23,
+      "active_views": 1,
+      "active_rows": 203
+    },
+    "release-smoke.json": {
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "r1_guest_login_200",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_guest_admin_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_internal_files_blocked",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_login_fixture_only",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_admin_page_after_additive_migration",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_master_page_after_additive_migration",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_role_guard",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_logout_invalid_csrf",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_logout_fixture_only",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_guest_after_logout",
+          "status": "PASS"
+        },
+        {
+          "test": "migrated_real_legacy_assignments_do_not_expose_current_teacher_rosters",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_guest_login_200",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_guest_admin_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_internal_files_blocked",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_login_fixture_only",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_admin_page_after_additive_migration",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_master_page_after_additive_migration",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_role_guard",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_logout_invalid_csrf",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_logout_fixture_only",
+          "status": "PASS"
+        },
+        {
+          "test": "r0_rollback_guest_after_logout",
+          "status": "PASS"
+        },
+        {
+          "test": "r1_and_r0_auth_smoke_change_no_clone_data_or_schema",
+          "status": "PASS"
+        },
+        {
+          "test": "production_guard_missing_private_approval_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "production_guard_wrong_database_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "production_guard_wrong_release_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "production_mode_readonly_check_on_clone",
+          "status": "PASS"
+        },
+        {
+          "test": "production_mode_explicit_apply_on_clone_idempotent",
+          "status": "PASS"
+        },
+        {
+          "test": "production_guard_modified_migration_denied",
+          "status": "PASS"
+        },
+        {
+          "test": "guard_tests_do_not_change_clone",
+          "status": "PASS"
+        },
+        {
+          "test": "original_clone_rows_unchanged_after_app_rollback",
+          "status": "PASS"
+        },
+        {
+          "test": "frozen_runtime_preflight_least_privilege_passes",
+          "status": "PASS"
+        },
+        {
+          "test": "migration_owner_rejected_as_application_runtime",
+          "status": "PASS"
+        },
+        {
+          "test": "read_only_fingerprint_capture",
+          "status": "PASS"
+        },
+        {
+          "test": "read_only_fingerprint_verify",
+          "status": "PASS"
+        },
+        {
+          "test": "fingerprint_wrong_database_baseline_rejected",
+          "status": "PASS"
+        }
+      ],
+      "candidate_commit": "042ea9c197dde03e48031108657ecbb7aedd869c",
+      "clone_only": true,
+      "production_mode_test_uses_clone_only": true,
+      "ports": [
+        18101,
+        18102
+      ],
+      "servers_stopped": true
+    }
+  },
+  "total": {
+    "passed": 322,
+    "failed": 0,
+    "skipped": 1
+  },
+  "gates": {
+    "production_runtime_still_root": "BLOCKED",
+    "new_grants_not_authorized_or_applied": "BLOCKED",
+    "service_filesystem_isolation_not_installed_or_runtime_verified": "BLOCKED"
+  },
+  "additional_checks": {
+    "migration-rehearsal.json": {
+      "status": "PASS",
+      "copy_data_exact": true,
+      "original_columns_unchanged": true,
+      "original_data_unchanged_after_migration": true,
+      "source_unchanged": true,
+      "migration_applied_twice": true,
+      "old_tables": 24,
+      "original_rows": 203,
+      "foreign_keys_checked": 26,
+      "views_restored": 1,
+      "objects_restored": 3,
+      "runtime_denials": {
+        "ddl": true,
+        "audit_update": true,
+        "historical_delete": true,
+        "other_database": true
+      },
+      "runtime_nonroot": true,
+      "owner_separate": true,
+      "production_grants_changed": false,
+      "no_drop_table_or_truncate": true,
+      "clone_only_definer_and_database_normalization": true
+    },
+    "clone-runtime-preflight.json": {
+      "status": "PASS",
+      "checks": {
+        "database_matches": true,
+        "environment_matches": true,
+        "runtime_not_root": true,
+        "runtime_no_ddl_or_admin_grants": true,
+        "no_unreviewed_role_grants": true,
+        "no_global_privileges": true,
+        "no_other_database_privileges": true,
+        "audit_insert_only_writes": true,
+        "no_academic_delete_privilege": true,
+        "required_schema_present": true,
+        "required_foreign_keys_present": true,
+        "session_path_private_writable": true,
+        "security_state_path_private_writable": true,
+        "runtime_migration_disabled": true
+      }
+    },
+    "final-preservation.json": {
+      "status": "PASS",
+      "candidate_commit": "042ea9c197dde03e48031108657ecbb7aedd869c",
+      "checks": {
+        "target_unchanged": true,
+        "source_unchanged": true,
+        "active-release_unchanged": true,
+        "active_database_unchanged": true,
+        "service_override_unchanged": true,
+        "target_git_unchanged": true,
+        "planned_production_accounts_not_created": true,
+        "candidate_archive_hash_valid": true,
+        "candidate_all_file_hashes_valid": true,
+        "candidate_read_only": true,
+        "production_approval_setting_empty": true,
+        "rehearsed_migration_matches_final_rc": true,
+        "rollback_has_distinct_session": true,
+        "smoke_no_fatal_errors": true
+      }
+    },
+    "service-plan-validation.json": {
+      "syntax_status": "PASS",
+      "r1_and_rollback_syntax_valid": true,
+      "installed": false,
+      "namespace_runtime_test_performed": false
+    }
+  }
+}
