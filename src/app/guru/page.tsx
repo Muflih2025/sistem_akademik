@@ -1,3 +1,5 @@
+'use client';
+
 import PortalLayout from '@/components/PortalLayout';
 import Link from 'next/link';
 import {

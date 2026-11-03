@@ -1,35 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { School, KeyRound, User, AlertCircle, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
-
-const PRESET_ACCOUNTS: Record<string, { username: string; roleName: string }> = {
-  admin: { username: 'uji_admin', roleName: 'Administrator (uji_admin)' },
-  guru: { username: 'uji_guru', roleName: 'Guru Utama (uji_guru - XII PPLG 2)' },
-  guru_lain: { username: 'uji_guru_lain', roleName: 'Guru Kedua (uji_guru_lain - XII PPLG 1)' },
-  piket: { username: 'uji_piket', roleName: 'Guru Piket (uji_piket)' },
-  kepsek: { username: 'uji_kepsek', roleName: 'Kepala Sekolah (uji_kepsek)' },
-  siswa: { username: 'uji_siswa', roleName: 'Siswa (uji_siswa - XII PPLG 2)' },
-  siswa_lain: { username: 'uji_siswa_lain', roleName: 'Siswa Pembanding (uji_siswa_lain - XII PPLG 1)' },
-};
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const [selectedRole, setSelectedRole] = useState('guru');
+  const router = useRouter();
   const [username, setUsername] = useState('uji_guru');
   const [password, setPassword] = useState('password');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleRoleSelect = (roleKey: string) => {
-    setSelectedRole(roleKey);
-    const preset = PRESET_ACCOUNTS[roleKey];
-    if (preset) {
-      setUsername(preset.username);
-      setPassword('password');
-      setError('');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,128 +27,116 @@ export default function LoginPage() {
         if (typeof window !== 'undefined') {
           localStorage.setItem('sia_user', JSON.stringify(data.user));
         }
-        window.location.href = data.redirect;
+        router.push(data.redirect || '/guru');
       } else {
-        setError(data.error || 'Username atau password salah.');
+        setError(data.error || 'Username atau password salah/nonaktif.');
       }
     } catch {
-      setError('Gagal menghubungi server autentikasi.');
+      setError('Layanan login sementara tidak tersedia.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-        {/* Header */}
-        <div className="bg-blue-600 px-6 py-8 text-white text-center">
-          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-xs">
-            <School className="w-8 h-8 text-white" />
+    <div className="login-page min-h-screen grid place-items-center p-6 bg-[#f3f4f6]">
+      <main className="login-shell w-full max-w-[420px]">
+        <section className="login-card p-8 bg-white border border-[#e5e7eb] rounded-[20px] shadow-[0_8px_32px_rgba(17,16,0,0.024)]">
+          {/* Logo Mark */}
+          <div className="login-mark grid place-items-center w-12 h-12 rounded-[14px] bg-[#111] text-white mb-6" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1z M12 5v15" />
+            </svg>
           </div>
-          <h2 className="text-xl font-bold tracking-tight">SIA SMKN 2 MAGELANG</h2>
-          <p className="text-xs text-blue-100 mt-1">
-            Masuk dengan akun terdaftar untuk mengakses layanan
+
+          <p className="login-school text-xs font-semibold leading-relaxed mb-3 text-[#575b63]">
+            SISTEM INFORMASI AKADEMIK<br />
+            SMK Negeri 2 Magelang
           </p>
-        </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Pilihan Akun Uji Coba
-            </label>
-            <select
-              value={selectedRole}
-              onChange={(e) => handleRoleSelect(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-slate-800"
-            >
-              {Object.entries(PRESET_ACCOUNTS).map(([key, val]) => (
-                <option key={key} value={key}>
-                  {val.roleName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Username
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <User className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Masukkan username"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-slate-800 placeholder-slate-400"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Password
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <KeyRound className="w-4 h-4" />
-              </span>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-slate-800 placeholder-slate-400"
-              />
-            </div>
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#111] mb-2.5">
+            Masuk ke akun Anda
+          </h1>
+          <p className="login-intro text-sm text-[#60646c] mb-7">
+            Kelola kegiatan akademik dengan mudah.
+          </p>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-800">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-              <span>{error}</span>
+            <div className="login-error bg-[#f3f4f6] border border-[#d1d5db] border-l-4 border-l-[#111] rounded-[10px] text-[#111] p-3 text-sm mb-5" role="alert">
+              {error}
             </div>
           )}
 
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
-            <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
-            <span>
-              Simulasi siap: Pilih akun dari dropdown di atas (password default:{' '}
-              <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-semibold">password</code>).
-            </span>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <label className="login-field flex flex-col gap-2 min-w-0">
+              <span className="text-sm font-semibold text-[#111]">Username / NIS</span>
+              <input
+                type="text"
+                name="username"
+                autoComplete="username"
+                maxLength={50}
+                required
+                autoFocus
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full min-h-[48px] px-3.5 py-3 text-base text-[#111] bg-white border border-[#d1d5db] rounded-[10px] focus:outline-2 focus:outline-[#111] focus:outline-offset-2"
+              />
+            </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition active:scale-[0.99] disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Memproses...
-              </>
-            ) : (
-              <>
-                Masuk ke Portal
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+            <label className="login-field flex flex-col gap-2 min-w-0">
+              <span className="text-sm font-semibold text-[#111]">Password</span>
+              <input
+                type="password"
+                name="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full min-h-[48px] px-3.5 py-3 text-base text-[#111] bg-white border border-[#d1d5db] rounded-[10px] focus:outline-2 focus:outline-[#111] focus:outline-offset-2"
+              />
+            </label>
 
-          <div className="text-center pt-2">
-            <Link href="/" className="text-xs text-slate-500 hover:text-slate-800 underline">
-              Kembali ke Beranda
-            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full min-h-[50px] px-4 py-3 mt-2 border border-[#111] rounded-[10px] bg-[#111] text-white text-base font-semibold hover:bg-[#2c2c2c] transition duration-150 cursor-pointer disabled:opacity-50"
+            >
+              {loading ? 'Memproses...' : 'Masuk'}
+            </button>
+          </form>
+
+          {/* Quick Account Helper */}
+          <div className="mt-6 pt-4 border-t border-[#f3f4f6] text-[11px] text-[#60646c]">
+            <span className="font-semibold text-[#111]">Akun Uji (Password: password):</span>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {[
+                { u: 'uji_admin', l: 'Admin' },
+                { u: 'uji_guru', l: 'Guru' },
+                { u: 'uji_guru_lain', l: 'Guru 2' },
+                { u: 'uji_piket', l: 'Piket' },
+                { u: 'uji_kepsek', l: 'Kepsek' },
+                { u: 'uji_siswa', l: 'Siswa' },
+              ].map((acc) => (
+                <button
+                  key={acc.u}
+                  type="button"
+                  onClick={() => {
+                    setUsername(acc.u);
+                    setPassword('password');
+                  }}
+                  className="px-2 py-0.5 rounded bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#111] border border-[#e5e7eb] text-[11px] font-mono cursor-pointer"
+                >
+                  {acc.u}
+                </button>
+              ))}
+            </div>
           </div>
-        </form>
-      </div>
+        </section>
+
+        <p className="login-footnote text-xs leading-relaxed text-center mt-6 text-[#60646c]">
+          Gunakan akun yang diberikan oleh sekolah.
+        </p>
+      </main>
     </div>
   );
 }
