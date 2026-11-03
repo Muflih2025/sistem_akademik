@@ -9,18 +9,20 @@ import {
   Settings,
   ShieldCheck,
   CheckCircle,
-  FileSpreadsheet
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const navItems = [
-    { label: 'Dashboard', href: '/admin', icon: ShieldCheck },
-    { label: 'Master Data', href: '/admin', icon: Settings },
-    { label: 'Pengguna', href: '/admin', icon: Users },
-    { label: 'Tahun Ajaran', href: '/admin', icon: Calendar },
-    { label: 'Plotting & Jam', href: '/admin', icon: Clock },
-    { label: 'Nilai & Verifikasi', href: '/admin', icon: Award },
-    { label: 'Bulk Upload', href: '/admin', icon: Upload },
+    { label: 'Master Data', href: '/admin/master.php', icon: Settings },
+    { label: 'Pengguna & Akun', href: '/admin/users.php', icon: Users },
+    { label: 'Penugasan Guru', href: '/admin/penugasan.php', icon: ShieldCheck },
+    { label: 'Tahun Ajaran', href: '/admin/tahun_ajaran.php', icon: Calendar },
+    { label: 'Jadwal Pelajaran', href: '/admin/jadwal.php', icon: Clock },
+    { label: 'Nilai & Verifikasi', href: '/admin/nilai.php', icon: Award },
+    { label: 'Bulk Upload Data', href: '/admin/bulk_upload.php', icon: Upload },
+    { label: 'Ekspor Impor', href: '/admin/export_import.php', icon: BookOpen },
   ];
 
   const stats = [
@@ -33,11 +35,20 @@ export default function AdminDashboard() {
   return (
     <PortalLayout roleTitle="Administrator Akademik" roleBadge="Admin" navItems={navItems}>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard Administrator</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Pengelolaan master data, pengguna, dan alur administrasi akademik semester berjalan.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard Administrator</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Pengelolaan master data, pengguna, dan alur administrasi akademik semester berjalan.
+            </p>
+          </div>
+          <a
+            href="/admin/index.php"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-xs transition"
+          >
+            Buka Panel Admin PHP
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
 
         {/* Stats Grid */}
@@ -61,42 +72,33 @@ export default function AdminDashboard() {
           })}
         </div>
 
-        {/* Fast Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <Upload className="w-5 h-5 text-blue-600" />
-              Kelola Master & Bulk Upload
-            </h3>
-            <p className="text-sm text-slate-500 mt-1">
-              Impor atau ekspor data siswa, mata pelajaran, penugasan guru piket, dan jam mengajar mingguan.
-            </p>
-            <div className="mt-4 flex gap-3">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition">
-                Import Excel/CSV
-              </button>
-              <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
-                Download Template
-              </button>
-            </div>
-          </div>
-
-          <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-              Status Verifikasi Rapor
-            </h3>
-            <p className="text-sm text-slate-500 mt-1">
-              24 dari 24 kelas telah mengirimkan nilai capaian. Buku rapor digital siap dipublikasikan.
-            </p>
-            <div className="mt-4 flex gap-3">
-              <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition">
-                Verifikasi Rapor
-              </button>
-              <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
-                Rekap Cetak Massal
-              </button>
-            </div>
+        {/* Action quick links */}
+        <div>
+          <h3 className="font-bold text-slate-900 text-sm mb-3">Modul Administrasi Utama</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs hover:border-blue-400 hover:shadow-md transition flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm text-slate-900 group-hover:text-blue-600 transition">
+                        {item.label}
+                      </h4>
+                      <p className="text-xs text-slate-400">Buka modul</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-blue-600 transition" />
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -6,36 +6,63 @@ import {
   Clock,
   BarChart3,
   TrendingUp,
-  Users
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 
 export default function KepsekDashboard() {
   const navItems = [
-    { label: 'Ringkasan Eksekutif', href: '/kepsek', icon: BarChart3 },
-    { label: 'Monitoring KBM', href: '/kepsek', icon: Clock },
-    { label: 'Distribusi Nilai', href: '/kepsek', icon: TrendingUp },
-    { label: 'Progres Rapor', href: '/kepsek', icon: Award },
-    { label: 'Kalender Akademik', href: '/kepsek', icon: Calendar },
+    { label: 'Jadwal & Ruang', href: '/kepsek/jadwal.php', icon: Clock },
+    { label: 'Evaluasi & Nilai', href: '/kepsek/evaluasi.php', icon: TrendingUp },
+    { label: 'Rekap Rapor', href: '/kepsek/rapor.php', icon: Award },
+    { label: 'Posisi Guru', href: '/kepsek/posisi_guru.php', icon: BarChart3 },
+    { label: 'Kalender Pendidikan', href: '/kepsek/kalender.php', icon: Calendar },
   ];
 
   return (
     <PortalLayout roleTitle="Portal Kepala Sekolah" roleBadge="Pimpinan" navItems={navItems}>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Monitoring & Evaluasi KBM</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Pengawasan real-time keterlaksanaan jadwal mengajar dan ketuntasan penilaian belajar.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Monitoring & Evaluasi KBM</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Pengawasan real-time keterlaksanaan jadwal mengajar dan ketuntasan penilaian belajar.
+            </p>
+          </div>
+          <a
+            href="/kepsek/index.php"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-xs transition"
+          >
+            Buka Panel Kepsek PHP
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
 
-        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
-          <h3 className="font-bold text-slate-900 mb-2">Keterlaksanaan Jam Pelajaran Minggu Ini</h3>
-          <p className="text-sm text-slate-500 mb-4">
-            99.2% jam tatap muka terlaksana sesuai plotting jadwal kurikulum nasional.
-          </p>
-          <div className="w-full bg-slate-100 rounded-full h-3">
-            <div className="bg-emerald-500 h-3 rounded-full" style={{ width: '99.2%' }}></div>
-          </div>
+        {/* Action quick links */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs hover:border-blue-400 hover:shadow-md transition flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-slate-900 group-hover:text-blue-600 transition">
+                      {item.label}
+                    </h4>
+                    <p className="text-xs text-slate-400">Buka evaluasi</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-blue-600 transition" />
+              </a>
+            );
+          })}
         </div>
       </div>
     </PortalLayout>
