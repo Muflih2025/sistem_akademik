@@ -1,0 +1,848 @@
+{
+  "date": "2026-11-04",
+  "branch": "rebase-tsx",
+  "commit": "3d13bf9",
+  "scope": "Audit of concurrent application changes; one gradeRows return-type annotation fixed during the audit.",
+  "baseline": {
+    "passed": 11,
+    "failed": 35,
+    "errors": 0,
+    "core": {
+      "branch": "rebase-tsx",
+      "commit": "3d13bf9",
+      "method": "Actual Next HTTP/browser on schema-only synthetic fixture; original database read-only",
+      "url": "http://127.0.0.1:18129",
+      "passed": 9,
+      "failed": 17,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "AUTH_five_fixture_accounts_login",
+          "status": "PASS",
+          "observed": {
+            "accounts": 5
+          }
+        },
+        {
+          "id": "ADMIN_users_matches_database_schema",
+          "status": "FAIL",
+          "observed": {
+            "http": 500,
+            "error": "no such column: id"
+          }
+        },
+        {
+          "id": "ADMIN_master_read_API",
+          "status": "PASS",
+          "observed": {
+            "http": 200,
+            "rows": 2
+          }
+        },
+        {
+          "id": "AUTH_guest_admin_page_denied",
+          "status": "FAIL",
+          "observed": {
+            "http": 200
+          }
+        },
+        {
+          "id": "RBAC_student_cannot_read_school_master",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": 3
+          }
+        },
+        {
+          "id": "ABSENSI_class_filter_isolates_roster",
+          "status": "FAIL",
+          "observed": {
+            "class_one_rows": 3,
+            "class_two_rows": 3,
+            "identical": true
+          }
+        },
+        {
+          "id": "ABSENSI_schedule_filter_isolates_sessions",
+          "status": "FAIL",
+          "observed": {
+            "identical": true,
+            "source_has_schedule_id": false
+          }
+        },
+        {
+          "id": "ABSENSI_new_date_loads_roster_with_pending",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": 0
+          }
+        },
+        {
+          "id": "ABSENSI_save_compatible_with_schema",
+          "status": "FAIL",
+          "observed": {
+            "http": 500,
+            "error": "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint"
+          }
+        },
+        {
+          "id": "JURNAL_save_compatible_with_schema",
+          "status": "FAIL",
+          "observed": {
+            "http": 500,
+            "error": "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint"
+          }
+        },
+        {
+          "id": "RAPOR_student_draft_denied",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "fixture_status": "draft"
+          }
+        },
+        {
+          "id": "ADMIN_master_write_implemented",
+          "status": "FAIL",
+          "observed": {
+            "http": 405
+          }
+        },
+        {
+          "id": "NILAI_create_really_persists",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": 0,
+            "claimed_success": true
+          }
+        },
+        {
+          "id": "JADWAL_teacher_own_scope",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": 3,
+            "teachers": [
+              "1",
+              "2"
+            ]
+          }
+        },
+        {
+          "id": "KEPSEK_open_panel_goes_to_other_page",
+          "status": "FAIL",
+          "observed": {
+            "href": "/kepsek"
+          }
+        },
+        {
+          "id": "KEPSEK_navigation_matches_server_role",
+          "status": "FAIL",
+          "observed": {
+            "labels": "Beranda | Mengajar | Penilaian | Guru Piket",
+            "role": "kepala_sekolah"
+          }
+        },
+        {
+          "id": "KEPSEK_feature_cards_have_real_routes",
+          "status": "PASS",
+          "observed": {
+            "cards": 5
+          }
+        },
+        {
+          "id": "AUTH_logout_revokes_session",
+          "status": "FAIL",
+          "observed": {
+            "http_after_logout": 200
+          }
+        },
+        {
+          "id": "ADMIN_bulk_upload_has_real_file_input",
+          "status": "FAIL",
+          "observed": {
+            "file_inputs": 0
+          }
+        },
+        {
+          "id": "JADWAL_GUI_uses_API_field_names",
+          "status": "FAIL",
+          "observed": {
+            "fixture_subject_visible": false
+          }
+        },
+        {
+          "id": "UI_header_logout_and_overflow_320",
+          "status": "PASS",
+          "observed": {
+            "width": 320,
+            "scrollWidth": 320,
+            "headerTop": 0,
+            "logoutTop": 34
+          }
+        },
+        {
+          "id": "UI_header_logout_and_overflow_375",
+          "status": "PASS",
+          "observed": {
+            "width": 375,
+            "scrollWidth": 375,
+            "headerTop": 0,
+            "logoutTop": 19
+          }
+        },
+        {
+          "id": "UI_header_logout_and_overflow_430",
+          "status": "PASS",
+          "observed": {
+            "width": 430,
+            "scrollWidth": 430,
+            "headerTop": 0,
+            "logoutTop": 19
+          }
+        },
+        {
+          "id": "UI_header_logout_and_overflow_768",
+          "status": "PASS",
+          "observed": {
+            "width": 768,
+            "scrollWidth": 768,
+            "headerTop": 0,
+            "logoutTop": 19
+          }
+        },
+        {
+          "id": "UI_header_logout_and_overflow_1440",
+          "status": "PASS",
+          "observed": {
+            "width": 1440,
+            "scrollWidth": 1440,
+            "headerTop": 0,
+            "logoutTop": 19
+          }
+        },
+        {
+          "id": "INTEGRITY_original_database_files_unchanged",
+          "status": "PASS",
+          "observed": {
+            "unchanged": true
+          }
+        }
+      ]
+    },
+    "additional_one_off_probes": {
+      "commit": "3d13bf9",
+      "method": "Additional HTTP and Chromium probes on external schema-only synthetic fixture",
+      "passed": 2,
+      "failed": 18,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "AUTH_guest_users_API_denied",
+          "status": "FAIL",
+          "observed": {
+            "http": 500,
+            "error": "no such column: id"
+          }
+        },
+        {
+          "id": "AUTH_guest_piket_API_denied",
+          "status": "FAIL",
+          "observed": {
+            "http": 200
+          }
+        },
+        {
+          "id": "ROUTING_piket_has_no_self_redirect",
+          "status": "FAIL",
+          "observed": {
+            "http": 307,
+            "location": "/piket"
+          }
+        },
+        {
+          "id": "RBAC_student_attendance_own_scope",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": 3,
+            "other_students": 2
+          }
+        },
+        {
+          "id": "RBAC_teacher_cannot_read_other_teacher_journal",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "teacher": "2"
+          }
+        },
+        {
+          "id": "RBAC_teacher_grades_own_assignments",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "teachers": [
+              "1",
+              "2"
+            ]
+          }
+        },
+        {
+          "id": "RBAC_teacher_cannot_change_other_teacher_grades",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": [
+              {
+                "id": "901",
+                "id_tahun_ajaran": "1",
+                "nilai_akhir": "91.00"
+              },
+              {
+                "id": "902",
+                "id_tahun_ajaran": "2",
+                "nilai_akhir": "91.00"
+              }
+            ]
+          }
+        },
+        {
+          "id": "NILAI_update_does_not_overwrite_another_period",
+          "status": "FAIL",
+          "observed": {
+            "rows": [
+              {
+                "id": "901",
+                "id_tahun_ajaran": "1",
+                "nilai_akhir": "91.00"
+              },
+              {
+                "id": "902",
+                "id_tahun_ajaran": "2",
+                "nilai_akhir": "91.00"
+              }
+            ]
+          }
+        },
+        {
+          "id": "RBAC_student_export_has_no_other_students",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "other_student_exposed": true
+          }
+        },
+        {
+          "id": "NILAI_rejects_non_numeric_input",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "stored": {
+              "nilai_akhir": "NaN",
+              "komponen_json": "{\"tugas\":null,\"uts\":80,\"uas\":80,\"praktik\":0,\"proyek\":0}"
+            }
+          }
+        },
+        {
+          "id": "NILAI_rejects_101",
+          "status": "PASS",
+          "observed": {
+            "http": 422
+          }
+        },
+        {
+          "id": "AUTH_password_change_invalidates_old_token",
+          "status": "FAIL",
+          "observed": {
+            "change_http": 200,
+            "old_token_http": 200
+          }
+        },
+        {
+          "id": "AUTH_role_change_applies_to_existing_session",
+          "status": "FAIL",
+          "observed": {
+            "http": 400,
+            "error": "Data nilai kosong."
+          }
+        },
+        {
+          "id": "KALENDER_month_filter_applied",
+          "status": "FAIL",
+          "observed": {
+            "http": 200,
+            "rows": 2
+          }
+        },
+        {
+          "id": "ADMIN_piket_save_really_persists",
+          "status": "FAIL",
+          "observed": {
+            "post_requests": [],
+            "rows_before": 0,
+            "rows_after": 0,
+            "value_after_reload": "Senin - Jumat"
+          }
+        },
+        {
+          "id": "ADMIN_report_publication_really_persists",
+          "status": "FAIL",
+          "observed": {
+            "post_requests": [],
+            "status_after_click": "draft",
+            "alert": "Seluruh nilai kelas telah disahkan dan siap diterbitkan!"
+          }
+        },
+        {
+          "id": "NILAI_GUI_loads_saved_components",
+          "status": "FAIL",
+          "observed": {
+            "input_values": [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          }
+        },
+        {
+          "id": "SISWA_report_identity_uses_logged_in_student",
+          "status": "FAIL",
+          "observed": {
+            "logged_in_fixture_nis": "9000001",
+            "fixture_name_visible": false,
+            "hardcoded_nis_visible": true
+          }
+        },
+        {
+          "id": "SISWA_draft_not_labelled_as_published",
+          "status": "FAIL",
+          "observed": {
+            "database_status": "draft",
+            "published_label_visible": true
+          }
+        },
+        {
+          "id": "INTEGRITY_original_database_unchanged_extended",
+          "status": "PASS",
+          "observed": {
+            "unchanged": true
+          }
+        }
+      ]
+    }
+  },
+  "second_snapshot": {
+    "commit": "3d13bf9",
+    "snapshot": "working-tree copy created after concurrent application edits were observed",
+    "method": "Actual HTTP/Chromium on isolated schema-only synthetic database",
+    "passed": 15,
+    "failed": 11,
+    "errors": 0,
+    "tests": [
+      {
+        "id": "ADMIN_users_query",
+        "status": "FAIL",
+        "observed": {
+          "http": 500,
+          "error": "no such column: id"
+        }
+      },
+      {
+        "id": "AUTH_guest_piket_denied",
+        "status": "PASS",
+        "observed": {
+          "http": 401
+        }
+      },
+      {
+        "id": "ROUTING_no_piket_self_redirect",
+        "status": "PASS",
+        "observed": {
+          "http": 200,
+          "location": null
+        }
+      },
+      {
+        "id": "RBAC_student_master_denied",
+        "status": "FAIL",
+        "observed": {
+          "http": 200,
+          "rows": 3
+        }
+      },
+      {
+        "id": "RBAC_teacher_schedule_scoped",
+        "status": "PASS",
+        "observed": {
+          "http": 200,
+          "rows": 2
+        }
+      },
+      {
+        "id": "ABSENSI_new_session_roster_pending",
+        "status": "PASS",
+        "observed": {
+          "http": 200,
+          "rows": 2
+        }
+      },
+      {
+        "id": "RBAC_other_schedule_denied",
+        "status": "PASS",
+        "observed": {
+          "http": 403
+        }
+      },
+      {
+        "id": "ABSENSI_and_journal_persist",
+        "status": "PASS",
+        "observed": {
+          "http": 200,
+          "meetings": 1,
+          "sessions": 2,
+          "daily_rows": 3
+        }
+      },
+      {
+        "id": "ABSENSI_reload_saved_statuses",
+        "status": "PASS",
+        "observed": {
+          "http": 200,
+          "statuses": [
+            "H",
+            "S"
+          ]
+        }
+      },
+      {
+        "id": "ABSENSI_stale_revision_denied",
+        "status": "PASS",
+        "observed": {
+          "http": 409
+        }
+      },
+      {
+        "id": "ABSENSI_atomic_rollback",
+        "status": "PASS",
+        "observed": {
+          "http": 500,
+          "meetings": 1,
+          "sessions": 2,
+          "history_unchanged": true
+        }
+      },
+      {
+        "id": "NILAI_create_persists",
+        "status": "PASS",
+        "observed": {
+          "http": 200,
+          "saved_grade": "80.00"
+        }
+      },
+      {
+        "id": "NILAI_other_period_preserved",
+        "status": "PASS",
+        "observed": {
+          "other_period_grade": "60"
+        }
+      },
+      {
+        "id": "RBAC_other_teacher_grade_write_denied",
+        "status": "PASS",
+        "observed": {
+          "http": 403
+        }
+      },
+      {
+        "id": "NILAI_non_numeric_denied",
+        "status": "PASS",
+        "observed": {
+          "http": 422
+        }
+      },
+      {
+        "id": "RBAC_student_export_scoped",
+        "status": "FAIL",
+        "observed": {
+          "http": 200,
+          "other_student_exposed": true
+        }
+      },
+      {
+        "id": "RAPOR_draft_denied",
+        "status": "FAIL",
+        "observed": {
+          "http": 200
+        }
+      },
+      {
+        "id": "ABSENSI_GUI_uses_session_contract",
+        "status": "FAIL",
+        "observed": {
+          "fixture_students_visible": false
+        }
+      },
+      {
+        "id": "NILAI_GUI_displays_saved_components",
+        "status": "FAIL",
+        "observed": {
+          "input_values": []
+        }
+      },
+      {
+        "id": "ADMIN_piket_save_persists",
+        "status": "FAIL",
+        "observed": {
+          "value_after_reload": "Senin - Jumat",
+          "duty_rows": 0
+        }
+      },
+      {
+        "id": "ADMIN_publication_persists",
+        "status": "FAIL",
+        "observed": {
+          "snapshot_status": "draft"
+        }
+      },
+      {
+        "id": "SISWA_report_identity",
+        "status": "FAIL",
+        "observed": {
+          "fixture_identity_visible": false,
+          "hardcoded_identity_visible": true
+        }
+      },
+      {
+        "id": "SISWA_report_draft_not_published",
+        "status": "FAIL",
+        "observed": {
+          "published_label_visible": true
+        }
+      },
+      {
+        "id": "KEPSEK_navigation_role",
+        "status": "PASS",
+        "observed": {
+          "menu": "Beranda | Monitoring | Nilai & Rapor | Akademik"
+        }
+      },
+      {
+        "id": "AUTH_logout_ends_session",
+        "status": "FAIL",
+        "observed": {
+          "http_after_logout": 200
+        }
+      },
+      {
+        "id": "INTEGRITY_original_database_unchanged",
+        "status": "PASS",
+        "observed": {
+          "unchanged": true
+        }
+      }
+    ]
+  },
+  "second_snapshot_source_manifest": {
+    "src/components/PortalLayout.tsx": "c678cd9695366b741bd790cb5af478346ed481595787f2349c6b08fe6b8532d4",
+    "src/app/globals.css": "61a6cdeb999f98e547a23914a742207a9e392d52b40b662807b662e2fc798dd1",
+    "src/app/layout.tsx": "33441d0735b4ba24fca49475cbeb689f8c903bbb86059db2c2bb199843e43130",
+    "src/app/page.tsx": "b0b83019935698052c271b448df48d80dad47772a920280ce64ab58a23c5907d",
+    "src/lib/auth.ts": "64311dc00b0f9aa755392e1edc59b3fefb5eb46961e919fbd0979954d07ea728",
+    "src/lib/db.ts": "b38edf43f4b99c0ac9d684845167cf41df927e639bf7b2b205aab7594780a2bb",
+    "src/lib/academic.ts": "8e93b25c2382629b3831188962bd7d6fdf4ad40b3c40426436be4e9d03243a20",
+    "src/app/kepsek/page.tsx": "4c8aaed1e34d61c8603e291f540920b2fbfcf7e41a5eb6149d4b88972ed26453",
+    "src/app/admin/page.tsx": "defe4688436c178d355ee408ad80fea1fc3ec94867741edd6673e5db18407e4d",
+    "src/app/guru/page.tsx": "932d24ceee5416cda7165932f70af1caf8cad6de30d868f59119bedd5b4d583e",
+    "src/app/siswa/page.tsx": "e91a4be63fcb705912786a672ee0d89b6229f5929b210fab609a1e3edb4464a2",
+    "src/app/piket/page.tsx": "f445e035490cabaa682c480a5fca9ae0003945e3a7ac93b1e91792bc8d44fe99",
+    "src/app/api/rapor/route.ts": "f7fca1ebee21c411a0fa7f4e44583a4192faab092523dced66a1d0bb2ea0cca3",
+    "src/app/api/nilai/route.ts": "f1ef87d457f09e0bc627c79ae56b1a4bd3f45f3086d778c38a1622a5c700a171",
+    "src/app/api/jurnal/route.ts": "527aa4ddf59cad7c04ff4e4503553376124e835353c22db534c679ac474fae95",
+    "src/app/api/auth/route.ts": "4005253e1d489269dae88bc9b367c37376b764b68ee151d466cbc5691722e823",
+    "src/app/api/users/route.ts": "e89d2644df60fe7ae863c925aa2b0fa382d7de10a769c2cafaaf7a9fe138aa0e",
+    "src/app/api/export/route.ts": "d5a6036b8d8dc49a467f4f0cf4a2c2464ea6e95c5a6ed4c6400d54ba72c5b328",
+    "src/app/api/master/route.ts": "5154536e943d037606e12469d0ad44d90d7fae9e5dd0584eff79a0d322d0d782",
+    "src/app/api/absensi/route.ts": "427b4ace2fc1891a530dd6f9bcd6709148d767658f979af6652cec9c00c09cb4",
+    "src/app/api/jadwal/route.ts": "41ca68de57ee1811c9208ab4ac5216440e8df8669329162bd741529d6e1b865e",
+    "src/app/api/kalender/route.ts": "72db45d29e4862b7a26b8a79f0d4b3fdb0d2442e91a9adc357d804b19ec39246",
+    "src/app/api/piket/route.ts": "7e32e805064d9fe4c03dac0ac7d331911cfc9dc3cb28a37e75f56bea67351738",
+    "src/app/api/auth/change-password/route.ts": "63eeac28289472277ed22777d815800b76faec393866220d97222381b7f4af01",
+    "src/app/siswa/rapor/page.tsx": "b1ac713f6877789b691f438c65ee8ffb3195c6f97d5ec4f25067ce8feb02edb1",
+    "src/app/siswa/jadwal/page.tsx": "4e9bd7d7ef85fab204f968e15910981a1e7c7db6077dd46a3f1fd68842bb1dbd",
+    "src/app/siswa/kalender/page.tsx": "9db7f948c6d77858a1204ad36fd01db488a2b657e7ac105fe31dede30b393de4",
+    "src/app/siswa/absen/page.tsx": "154f5c5e1bfd788291f6aede619910479a4dcc6c0026cf40048021d0d54fb7d8",
+    "src/app/auth/login/page.tsx": "2c05d6c0aa9363399ff686f8649ce59fbf26e4cee16cf313817e126a286defa1",
+    "src/app/auth/change-password/page.tsx": "6c4b5b97b795dfb8b90f8d9acf020279558115d9e814f8449bf816dc8db93e07",
+    "src/app/guru/rapor/page.tsx": "85e328f9d899e550a894eba0ee47aa69b0becbda33cb113fc4ebe8e3fa71e2c7",
+    "src/app/guru/nilai/page.tsx": "b2dcdff87aeff88f7ea0f821e020d734e465c441ae9917631dccfd6c66a2bab5",
+    "src/app/guru/jurnal/page.tsx": "ca4adf2711e038fbb8942fc46fe5dc7b5cc3e2186a83de8513698ab717dbffe8",
+    "src/app/guru/jadwal/page.tsx": "7fdc584c11241316b6975e2583ad261b8525c37fae80b7e07f3305c56ff91230",
+    "src/app/guru/kalender/page.tsx": "081b705bd684b26d17f017364c64332e838e78d67dbb5a41fc3297de50331ef1",
+    "src/app/guru/absen/page.tsx": "9a85672cda59723a5099df959cf2f93ba71eeacea72b40d46ff636d6ceeb8131",
+    "src/app/admin/export-import/page.tsx": "d59bb84429a5c7b973f9309b4a7379f5aabfa595e0413dbc69440b270ea071cc",
+    "src/app/admin/penugasan/page.tsx": "755a36c6c999bff9183e03ca10e55710f9fcd6f025470d0769f0543acb26d3ae",
+    "src/app/admin/nilai/page.tsx": "7340457a9f9edb6ed2f6a409c6e957b8e279ee5ac484c18f3074b0abd3725597",
+    "src/app/admin/tahun-ajaran/page.tsx": "f78d1bb10a801b36b7ef1b4738c610ca8e9836d58962c649547899e76b38e23b",
+    "src/app/admin/users/page.tsx": "25d47a77421deb1ab4dce1af00bb9f48d7381b88eec8a2a4de54351073101cf4",
+    "src/app/admin/bulk-upload/page.tsx": "aef6c4442f0b22bb5740cf5d06f135d671a6329168f5ebbb53cc16f982fa414d",
+    "src/app/admin/master/page.tsx": "5be37fcbd219ba852233a6d2f3bcea3e622d4e7d01d6c1371cfc5aa6b10c11b6",
+    "src/app/admin/jadwal/page.tsx": "7cd2a96166ae0c3f5b8deb68b4d4293ff2d4ba4f1f01ec5e19bcd92e2d800281",
+    "src/app/kepsek/rapor/page.tsx": "7b95358ca214d49da07807a005fd4522a244a000acb6d254684d7f92075a7a81",
+    "src/app/kepsek/posisi-guru/page.tsx": "6990a16c617371b652ed3961fec032e9209e38da21f9a6c64a999de644823779",
+    "src/app/kepsek/jadwal/page.tsx": "e94f473864386f4f2c68ded687039b0ba0bb99387def04453a6671d8ebd1b761",
+    "src/app/kepsek/evaluasi/page.tsx": "5df63de3289b7025cc05f38522168c63b6ad66781987295a2c39ab2583f5118d",
+    "src/app/kepsek/kalender/page.tsx": "20289daff122b369fd5cfa7af505d269a4ab3ccbcc03c6eceb8c75e81b46dcab",
+    "next.config.ts": "b5a6eaf35742606610b220e743afaa1dbd57f48d65060765c507ea67c9373c60",
+    "package.json": "8c1226aa4d6a066ceeacae724933176be993addf43e79c591f0fbc65ce421e3b",
+    "tsconfig.json": "dab1375e3e98ef585fbceab2ba2a4edfd4e385c8856e5b892e6f88cc8cee1150"
+  },
+  "source_files_changed_after_second_snapshot": [
+    "src/app/piket/page.tsx",
+    "src/app/guru/rapor/page.tsx",
+    "src/app/guru/nilai/page.tsx",
+    "src/app/guru/jurnal/page.tsx",
+    "src/app/guru/jadwal/page.tsx",
+    "src/app/guru/absen/page.tsx"
+  ],
+  "source_files_added_after_second_snapshot": [
+    "src/components/academic/TeachingContext.tsx",
+    "src/components/academic/MeetingEditor.tsx",
+    "src/components/academic/GradeBook.tsx",
+    "src/components/academic/Notice.tsx"
+  ],
+  "verification": {
+    "typecheck": "PASS",
+    "production_build": "PASS",
+    "original_database_hashes_unchanged": true
+  },
+  "limitations": [
+    "Counts describe focused checks, not unique bugs or complete PHP feature parity.",
+    "Second snapshot UI failures may be superseded by ongoing workspace edits; source file differences are recorded.",
+    "Additional baseline probes were run as a one-off Node/Playwright script; durable regression runner covers the second snapshot contract."
+  ],
+  "refreshed_gui": {
+    "method": "Chromium on refreshed six GUI routes, four components and current academic helper; explicit fixture schedule/date; waits for controls and POST responses",
+    "passed": 7,
+    "failed": 0,
+    "errors": 0,
+    "tests": [
+      {
+        "id": "ABSENSI_GUI_refreshed_roster",
+        "status": "PASS",
+        "observed": {
+          "fixture_students_visible": true
+        }
+      },
+      {
+        "id": "ABSENSI_GUI_refreshed_save",
+        "status": "PASS",
+        "observed": {
+          "http": 200
+        }
+      },
+      {
+        "id": "ABSENSI_GUI_refreshed_reload",
+        "status": "PASS",
+        "observed": {
+          "selected": "true"
+        }
+      },
+      {
+        "id": "NILAI_GUI_refreshed_components",
+        "status": "PASS",
+        "observed": {
+          "value": "80"
+        }
+      },
+      {
+        "id": "NILAI_GUI_refreshed_save",
+        "status": "PASS",
+        "observed": {
+          "http": 200
+        }
+      },
+      {
+        "id": "NILAI_GUI_refreshed_reload",
+        "status": "PASS",
+        "observed": {
+          "value": "90"
+        }
+      },
+      {
+        "id": "JADWAL_GUI_refreshed_names",
+        "status": "PASS",
+        "observed": {
+          "fixture_subject_visible": true
+        }
+      }
+    ]
+  },
+  "refreshed_gui_source_manifest": {
+    "src/components/PortalLayout.tsx": "c678cd9695366b741bd790cb5af478346ed481595787f2349c6b08fe6b8532d4",
+    "src/app/globals.css": "61a6cdeb999f98e547a23914a742207a9e392d52b40b662807b662e2fc798dd1",
+    "src/app/layout.tsx": "33441d0735b4ba24fca49475cbeb689f8c903bbb86059db2c2bb199843e43130",
+    "src/app/page.tsx": "b0b83019935698052c271b448df48d80dad47772a920280ce64ab58a23c5907d",
+    "src/lib/auth.ts": "64311dc00b0f9aa755392e1edc59b3fefb5eb46961e919fbd0979954d07ea728",
+    "src/lib/db.ts": "b38edf43f4b99c0ac9d684845167cf41df927e639bf7b2b205aab7594780a2bb",
+    "src/lib/academic.ts": "552e4bcdddd1bd14ff6f334a9cfe3291f20021206f4bc048787ff54cb84d4954",
+    "src/app/kepsek/page.tsx": "4c8aaed1e34d61c8603e291f540920b2fbfcf7e41a5eb6149d4b88972ed26453",
+    "src/app/admin/page.tsx": "defe4688436c178d355ee408ad80fea1fc3ec94867741edd6673e5db18407e4d",
+    "src/app/guru/page.tsx": "932d24ceee5416cda7165932f70af1caf8cad6de30d868f59119bedd5b4d583e",
+    "src/app/siswa/page.tsx": "e91a4be63fcb705912786a672ee0d89b6229f5929b210fab609a1e3edb4464a2",
+    "src/app/piket/page.tsx": "27ffe16c706b15cd9eb4f059e72faf200c7b78451aa59dd446f68c7fbbcef1ec",
+    "src/app/api/rapor/route.ts": "f7fca1ebee21c411a0fa7f4e44583a4192faab092523dced66a1d0bb2ea0cca3",
+    "src/app/api/nilai/route.ts": "f1ef87d457f09e0bc627c79ae56b1a4bd3f45f3086d778c38a1622a5c700a171",
+    "src/app/api/jurnal/route.ts": "527aa4ddf59cad7c04ff4e4503553376124e835353c22db534c679ac474fae95",
+    "src/app/api/auth/route.ts": "4005253e1d489269dae88bc9b367c37376b764b68ee151d466cbc5691722e823",
+    "src/app/api/users/route.ts": "e89d2644df60fe7ae863c925aa2b0fa382d7de10a769c2cafaaf7a9fe138aa0e",
+    "src/app/api/export/route.ts": "d5a6036b8d8dc49a467f4f0cf4a2c2464ea6e95c5a6ed4c6400d54ba72c5b328",
+    "src/app/api/master/route.ts": "5154536e943d037606e12469d0ad44d90d7fae9e5dd0584eff79a0d322d0d782",
+    "src/app/api/absensi/route.ts": "427b4ace2fc1891a530dd6f9bcd6709148d767658f979af6652cec9c00c09cb4",
+    "src/app/api/jadwal/route.ts": "41ca68de57ee1811c9208ab4ac5216440e8df8669329162bd741529d6e1b865e",
+    "src/app/api/kalender/route.ts": "72db45d29e4862b7a26b8a79f0d4b3fdb0d2442e91a9adc357d804b19ec39246",
+    "src/app/api/piket/route.ts": "7e32e805064d9fe4c03dac0ac7d331911cfc9dc3cb28a37e75f56bea67351738",
+    "src/app/api/auth/change-password/route.ts": "63eeac28289472277ed22777d815800b76faec393866220d97222381b7f4af01",
+    "src/app/siswa/rapor/page.tsx": "b1ac713f6877789b691f438c65ee8ffb3195c6f97d5ec4f25067ce8feb02edb1",
+    "src/app/siswa/jadwal/page.tsx": "4e9bd7d7ef85fab204f968e15910981a1e7c7db6077dd46a3f1fd68842bb1dbd",
+    "src/app/siswa/kalender/page.tsx": "9db7f948c6d77858a1204ad36fd01db488a2b657e7ac105fe31dede30b393de4",
+    "src/app/siswa/absen/page.tsx": "154f5c5e1bfd788291f6aede619910479a4dcc6c0026cf40048021d0d54fb7d8",
+    "src/app/auth/login/page.tsx": "2c05d6c0aa9363399ff686f8649ce59fbf26e4cee16cf313817e126a286defa1",
+    "src/app/auth/change-password/page.tsx": "6c4b5b97b795dfb8b90f8d9acf020279558115d9e814f8449bf816dc8db93e07",
+    "src/app/guru/rapor/page.tsx": "f909c9877815a337811c48fe2a26a364bc8e44a9abeecb71402816a277c97af4",
+    "src/app/guru/nilai/page.tsx": "f55e7aeb7ef43fe260458609d6fae64f2e654a9ae3d4521b3562340f5e8d192f",
+    "src/app/guru/jurnal/page.tsx": "d97ef3b89a8201929e3cbca077912ad50c71e049cf9665310fc64d1e70a0b8ce",
+    "src/app/guru/jadwal/page.tsx": "22a8021cba7e0dd702e922e17460caed29ef998b9019f73d2e2d601639f00d46",
+    "src/app/guru/kalender/page.tsx": "081b705bd684b26d17f017364c64332e838e78d67dbb5a41fc3297de50331ef1",
+    "src/app/guru/absen/page.tsx": "a7644f53bc0d3deee93d810b356918fbf5c8e6cb7701eb8d594515b3ba7ffea9",
+    "src/app/admin/export-import/page.tsx": "d59bb84429a5c7b973f9309b4a7379f5aabfa595e0413dbc69440b270ea071cc",
+    "src/app/admin/penugasan/page.tsx": "755a36c6c999bff9183e03ca10e55710f9fcd6f025470d0769f0543acb26d3ae",
+    "src/app/admin/nilai/page.tsx": "7340457a9f9edb6ed2f6a409c6e957b8e279ee5ac484c18f3074b0abd3725597",
+    "src/app/admin/tahun-ajaran/page.tsx": "f78d1bb10a801b36b7ef1b4738c610ca8e9836d58962c649547899e76b38e23b",
+    "src/app/admin/users/page.tsx": "25d47a77421deb1ab4dce1af00bb9f48d7381b88eec8a2a4de54351073101cf4",
+    "src/app/admin/bulk-upload/page.tsx": "aef6c4442f0b22bb5740cf5d06f135d671a6329168f5ebbb53cc16f982fa414d",
+    "src/app/admin/master/page.tsx": "5be37fcbd219ba852233a6d2f3bcea3e622d4e7d01d6c1371cfc5aa6b10c11b6",
+    "src/app/admin/jadwal/page.tsx": "7cd2a96166ae0c3f5b8deb68b4d4293ff2d4ba4f1f01ec5e19bcd92e2d800281",
+    "src/app/kepsek/rapor/page.tsx": "7b95358ca214d49da07807a005fd4522a244a000acb6d254684d7f92075a7a81",
+    "src/app/kepsek/posisi-guru/page.tsx": "6990a16c617371b652ed3961fec032e9209e38da21f9a6c64a999de644823779",
+    "src/app/kepsek/jadwal/page.tsx": "e94f473864386f4f2c68ded687039b0ba0bb99387def04453a6671d8ebd1b761",
+    "src/app/kepsek/evaluasi/page.tsx": "5df63de3289b7025cc05f38522168c63b6ad66781987295a2c39ab2583f5118d",
+    "src/app/kepsek/kalender/page.tsx": "20289daff122b369fd5cfa7af505d269a4ab3ccbcc03c6eceb8c75e81b46dcab",
+    "src/components/academic/TeachingContext.tsx": "6502e06e01b1a543642726fa99c054744f3b98f60182e0e36c31cd9e7604c164",
+    "src/components/academic/MeetingEditor.tsx": "805f45e48614cf519520869b8f2ab98480c3a2afd0cb2f2b3a065a794c196d73",
+    "src/components/academic/GradeBook.tsx": "f92c90d5b8d8ad0025113bf22ada0694afb0e980a60a24703efc8c39c4fc048f",
+    "src/components/academic/Notice.tsx": "d647c93b3799fb96af6f8453edbabc11ef7eda067e84d22d23fd350b93a65b40"
+  },
+  "remaining_workspace_differences_from_refreshed_gui": [
+    "src/app/api/nilai/route.ts"
+  ]
+}

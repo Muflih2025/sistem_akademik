@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """Create-only external Next review copy using schema metadata and synthetic rows."""
 from pathlib import Path
-import sqlite3,shutil,os,secrets,json,subprocess,hashlib
+import sqlite3,shutil,os,secrets,json,subprocess,hashlib,argparse
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--state',type=Path,default=Path.home()/'.local/state/sia-tsx-review-20261103')
+parser.add_argument('--port',type=int,default=18128)
+parser.add_argument('--serve',action='store_true')
+args=parser.parse_args()
+if not 1024 <= args.port <= 65535:parser.error('--port must be between 1024 and 65535')
 os.umask(0o077)
-root=Path(__file__).resolve().parents[1];state=Path.home()/'.local/state/sia-tsx-review-20261103';state.mkdir(mode=0o700,exist_ok=True)
+root=Path(__file__).resolve().parents[1];state=args.state.expanduser().resolve()
+if state==root or root in state.parents:parser.error('--state must be outside the repository')
+state.mkdir(mode=0o700,exist_ok=True)
 app=state/'app'
 if app.exists():raise SystemExit('Review copy already exists; preserved. Use its existing synthetic fixture, never reset the original database.')
 app.mkdir(mode=0o700)
@@ -50,6 +58,6 @@ def fingerprint():
 print('Isolated Next review copy and synthetic fixture created. No school rows copied; original DB hashes captured.')
 
 # The review server is explicitly requested with --serve; no original server is managed.
-if '--serve' in __import__('sys').argv:
+if args.serve:
  os.chdir(app);os.environ['SESSION_SECRET']=json.loads((state/'private.json').read_text())['session_secret'];os.environ['NEXT_TELEMETRY_DISABLED']='1'
- os.execvp('node',['node',str(root/'node_modules/next/dist/bin/next'),'dev','--webpack','--hostname','127.0.0.1','--port','18128'])
+ os.execvp('node',['node',str(root/'node_modules/next/dist/bin/next'),'dev','--webpack','--hostname','127.0.0.1','--port',str(args.port)])

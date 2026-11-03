@@ -1,8 +1,9 @@
 'use strict';
 // Audit only. HTTP writes target an external synthetic review database, never data/sia.db.
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
-const ROOT=path.resolve(__dirname,'..'),STATE=path.join(require('os').homedir(),'.local/state/sia-tsx-review-20261103');
-const BASE='http://127.0.0.1:18128',secrets=JSON.parse(fs.readFileSync(path.join(STATE,'private.json')));
+const ROOT=path.resolve(__dirname,'..'),STATE=path.resolve(process.env.SIA_REVIEW_STATE||path.join(require('os').homedir(),'.local/state/sia-tsx-review-20261103'));
+const BASE=process.env.SIA_REVIEW_BASE||'http://127.0.0.1:18128',secrets=JSON.parse(fs.readFileSync(path.join(STATE,'private.json')));
+if(!/^http:\/\/127\.0\.0\.1:\d+$/.test(BASE))throw Error('Review server must use an explicit loopback port');
 const Database=require('better-sqlite3');
 const fixturePath=path.join(STATE,'app/data/sia.db');
 if(fixturePath.startsWith(ROOT+path.sep)||!fs.existsSync(fixturePath))throw Error('Isolated review fixture required');
@@ -53,5 +54,6 @@ async function login(username){const r=await request('/api/auth',{}, {username,p
  }finally{await browser.close();}
 })().catch(e=>{results.push({id:'review_runner',status:'ERROR',error_type:e.name});console.error('REVIEW ERROR '+e.name);}).finally(()=>{
  db.close();const before=JSON.parse(fs.readFileSync(path.join(STATE,'reports/original-db-before.json'))),after={};for(const name of Object.keys(before))after[name]=crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'data',name))).digest('hex');record('INTEGRITY_original_database_files_unchanged',JSON.stringify(before)===JSON.stringify(after),{unchanged:JSON.stringify(before)===JSON.stringify(after)});
- const report={branch:'rebase-tsx',commit:'b4843b1',method:'Actual Next HTTP/browser on schema-only synthetic fixture; original database read-only',url:BASE,passed:results.filter(x=>x.status==='PASS').length,failed:results.filter(x=>x.status==='FAIL').length,errors:results.filter(x=>x.status==='ERROR').length,tests:results};fs.writeFileSync(path.join(STATE,'reports/tsx-findings.json'),JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log(`${report.passed} PASS, ${report.failed} FAIL, ${report.errors} ERROR`);process.exitCode=report.errors?2:0;
+ const git=(...args)=>require('child_process').execFileSync('git',args,{cwd:ROOT,encoding:'utf8'}).trim();
+ const report={branch:git('branch','--show-current'),commit:git('rev-parse','--short','HEAD'),method:'Actual Next HTTP/browser on schema-only synthetic fixture; original database read-only',url:BASE,passed:results.filter(x=>x.status==='PASS').length,failed:results.filter(x=>x.status==='FAIL').length,errors:results.filter(x=>x.status==='ERROR').length,tests:results};fs.writeFileSync(path.join(STATE,'reports/tsx-findings.json'),JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log(`${report.passed} PASS, ${report.failed} FAIL, ${report.errors} ERROR`);process.exitCode=report.errors?2:report.failed?1:0;
 });
