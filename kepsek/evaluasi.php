@@ -1,1 +1,121 @@
-<?php require_once '../config/auth.php';require_role('kepala_sekolah');$pdo=db();if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();$q=$pdo->prepare('INSERT INTO catatan_evaluasi(judul,isi,id_tahun_ajaran,created_by) VALUES(?,?,?,?)');$q->execute([trim($_POST['judul']),trim($_POST['isi'])?:'Catatan kosong',$_POST['id_tahun_ajaran']?:null,current_user()['id_user']]);flash('success','Catatan evaluasi disimpan.');redirect('evaluasi.php');}$years=$pdo->query('SELECT * FROM tahun_ajaran ORDER BY id_tahun_ajaran DESC')->fetchAll();$rows=$pdo->query('SELECT c.*,ta.tahun_ajaran,ta.semester FROM catatan_evaluasi c LEFT JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=c.id_tahun_ajaran ORDER BY c.created_at DESC')->fetchAll();$page_title='Catatan Evaluasi';require '../includes/header.php';require '../includes/sidebar.php';require '../includes/flash.php'; ?><h2>Catatan Evaluasi Akademik</h2><div class="card p-3 mb-4"><form method="post"><?= csrf_field() ?><input class="form-control mb-2" name="judul" placeholder="Judul evaluasi" required><select class="form-select mb-2" name="id_tahun_ajaran"><option value="">Tahun ajaran (opsional)</option><?php foreach($years as $y): ?><option value="<?= $y['id_tahun_ajaran'] ?>"><?= e($y['tahun_ajaran'].' · '.$y['semester']) ?></option><?php endforeach; ?></select><textarea class="form-control mb-2" name="isi" rows="4" placeholder="Isi catatan" required></textarea><button class="btn btn-primary">Simpan catatan</button></form></div><?php foreach($rows as $r): ?><div class="card p-3 mb-2"><h5><?= e($r['judul']) ?></h5><small><?= e(($r['tahun_ajaran']??'').' '.($r['semester']??'').' · '.$r['created_at']) ?></small><p class="mb-0 mt-2"><?= nl2br(e($r['isi'])) ?></p></div><?php endforeach; ?><?php require '../includes/footer.php';
+<?php
+require_once __DIR__.'/../config/auth.php'; require_role('kepala_sekolah');
+$pdo = db();
+
+$tahun_list = $pdo->query('SELECT * FROM tahun_ajaran ORDER BY status DESC, tahun_ajaran DESC')->fetchAll();
+$sel_ta = (int)($_GET['id_tahun_ajaran'] ?? $_POST['id_tahun_ajaran'] ?? 0);
+if (!$sel_ta) { foreach ($tahun_list as $t) { if ($t['status']==='Aktif') { $sel_ta=(int)$t['id_tahun_ajaran']; break; } } }
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+    $action = $_POST['action'] ?? 'save';
+    try {
+        if ($action === 'delete') {
+            $q = $pdo->prepare('DELETE FROM catatan_evaluasi WHERE id_evaluasi=?');
+            $q->execute([(int)$_POST['id_evaluasi']]);
+            flash('success', 'Catatan evaluasi dihapus.');
+        } else {
+            $judul = trim($_POST['judul'] ?? '');
+            $isi = trim($_POST['isi'] ?? '');
+            if (!$judul || !$isi) throw new RuntimeException('Judul dan isi wajib diisi.');
+            
+            $uid = (int)current_user()['id_user'];
+            if (!empty($_POST['id_evaluasi'])) {
+                $q = $pdo->prepare('UPDATE catatan_evaluasi SET judul=?, isi=?, id_tahun_ajaran=? WHERE id_evaluasi=?');
+                $q->execute([$judul, $isi, $sel_ta, (int)$_POST['id_evaluasi']]);
+                flash('success', 'Catatan evaluasi diperbarui.');
+            } else {
+                $q = $pdo->prepare('INSERT INTO catatan_evaluasi (judul, isi, id_tahun_ajaran, created_by) VALUES (?,?,?,?)');
+                $q->execute([$judul, $isi, $sel_ta, $uid]);
+                flash('success', 'Catatan evaluasi ditambahkan.');
+            }
+        }
+        redirect("evaluasi.php?id_tahun_ajaran=$sel_ta");
+    } catch (Throwable $e) {
+        $error = $e->getMessage();
+    }
+}
+
+$edit = null;
+if (isset($_GET['edit'])) {
+    $q = $pdo->prepare('SELECT * FROM catatan_evaluasi WHERE id_evaluasi=?');
+    $q->execute([(int)$_GET['edit']]); $edit = $q->fetch();
+}
+
+$q = $pdo->prepare('SELECT ce.*, ta.tahun_ajaran, ta.semester, u.username 
+    FROM catatan_evaluasi ce 
+    JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=ce.id_tahun_ajaran 
+    LEFT JOIN users u ON u.id_user=ce.created_by 
+    WHERE ce.id_tahun_ajaran=? ORDER BY ce.created_at DESC');
+$q->execute([$sel_ta]); $rows = $q->fetchAll();
+
+$page_title = 'Catatan Evaluasi';
+require __DIR__.'/../includes/header.php'; require __DIR__.'/../includes/sidebar.php'; require __DIR__.'/../includes/flash.php';
+?>
+<h2>Catatan Evaluasi</h2>
+
+<?php if ($error): ?><div class="alert alert-danger"><?= e($error) ?></div><?php endif; ?>
+
+<div class="card p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-5">
+            <label class="form-label">Tahun Ajaran</label>
+            <select class="form-select" name="id_tahun_ajaran" onchange="this.form.submit()">
+                <?php foreach ($tahun_list as $t): ?>
+                <option value="<?= $t['id_tahun_ajaran'] ?>" <?= $sel_ta==$t['id_tahun_ajaran']?'selected':'' ?>><?= e($t['tahun_ajaran'].' - '.$t['semester']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </form>
+
+    <h5><?= $edit ? 'Edit Catatan' : 'Tambah Catatan Baru' ?></h5>
+    <form method="post" class="row g-2">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="save">
+        <input type="hidden" name="id_tahun_ajaran" value="<?= $sel_ta ?>">
+        <?php if ($edit): ?><input type="hidden" name="id_evaluasi" value="<?= $edit['id_evaluasi'] ?>"><?php endif; ?>
+        <div class="col-12">
+            <label class="form-label">Judul</label>
+            <input type="text" class="form-control" name="judul" required value="<?= e($edit['judul'] ?? '') ?>">
+        </div>
+        <div class="col-12">
+            <label class="form-label">Isi Catatan</label>
+            <textarea class="form-control" name="isi" rows="4" required><?= e($edit['isi'] ?? '') ?></textarea>
+        </div>
+        <div class="col-12">
+            <button class="btn btn-primary"><?= $edit ? 'Simpan Perubahan' : 'Tambah Catatan' ?></button>
+            <?php if ($edit): ?><a href="evaluasi.php?id_tahun_ajaran=<?= $sel_ta ?>" class="btn btn-secondary ms-2">Batal</a><?php endif; ?>
+        </div>
+    </form>
+</div>
+
+<div class="card p-3">
+    <h5>Daftar Catatan (<?= count($rows) ?>)</h5>
+    <?php if ($rows): ?>
+    <?php foreach ($rows as $r): ?>
+    <div class="border rounded p-3 mb-2">
+        <div class="d-flex justify-content-between">
+            <h6 class="mb-1"><?= e($r['judul']) ?></h6>
+            <div class="text-nowrap">
+                <a href="?id_tahun_ajaran=<?= $sel_ta ?>&edit=<?= $r['id_evaluasi'] ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form method="post" class="d-inline" onsubmit="return confirm('Hapus catatan ini?')">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id_evaluasi" value="<?= $r['id_evaluasi'] ?>">
+                    <input type="hidden" name="id_tahun_ajaran" value="<?= $sel_ta ?>">
+                    <button class="btn btn-sm btn-outline-danger">Hapus</button>
+                </form>
+            </div>
+        </div>
+        <p class="mb-1"><?= nl2br(e($r['isi'])) ?></p>
+        <small class="text-muted">Oleh: <?= e($r['username']??'-') ?> | <?= e($r['created_at']) ?></small>
+    </div>
+    <?php endforeach; ?>
+    <?php else: ?>
+    <p class="text-muted text-center py-3">Belum ada catatan evaluasi.</p>
+    <?php endif; ?>
+</div>
+
+<?php require __DIR__.'/../includes/footer.php'; ?>
