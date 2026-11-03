@@ -33,6 +33,15 @@ Gunakan profil browser terpisah atau logout saat berganti peran. Beberapa tab In
 - Satu agenda kalender disahkan dan satu agenda impor Excel masih draft.
 - Data Uji/Bulk/F acak dari pengujian lama dihapus setelah backup/restore terverifikasi; audit log tetap disimpan. Database aktif dan layanan 8085 tidak dipakai untuk simulasi ini.
 
+## Navigasi modul dan fitur
+
+Pilih **modul utama di atas**, kemudian **fitur di sidebar kiri**. Pada layar HP, klik **Menu fitur** untuk membuka/menutup daftar fitur modul. Navigasi bawah tetap menyediakan akses cepat. Tautan langsung di panduan ini tetap berlaku.
+
+- Admin: **Master Data** → Siswa/Guru/Kelas/Jurusan/Mapel/Ruang/Bulk Upload Excel; **Akademik** → Periode & Penugasan/Jadwal/Tahun Ajaran/Jam/Kalender/Naik Kelas/Alumni/Ekskul; **Pengaturan** → Manajemen Akun.
+- Guru: **Mengajar** → Absensi & Isi Jurnal/Riwayat & Cetak/Jadwal/Kalender/Jam; **Penilaian** → Input & Rekap Nilai/Nilai Ekstrakurikuler.
+- Guru dengan tugas Piket aktif: modul **Guru Piket** → Pantau & Rekap Absensi. Izin backend tetap menentukan cakupan tanggal/kelas dan hak koreksi.
+- Kepsek: **Monitoring** → Guru Mengajar/Jurnal Kelas & Agenda Guru/Absensi Harian; **Nilai & Rapor** → Rekap Nilai/Rapor Siswa/Catatan Evaluasi.
+
 ## 1. Guru: buka hari mengajar dan isi jurnal kelas
 
 Login **`uji_guru`**. Pilih tanggal yang sesuai dengan jadwal berikut:

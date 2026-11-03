@@ -1,4 +1,9 @@
-<?php $role = current_user()['role']; $cf = basename($_SERVER['SCRIPT_NAME']); ?>
+<?php
+if(app_setting('ACADEMIC_WORKFLOWS')==='1'){
+    echo '<div class="sia-shell">';sia_navigation_sidebar($sia_navigation);
+    echo '<main class="sia-content" id="sia-main"><div class="container-fluid">';return;
+}
+$role = current_user()['role']; $cf = basename($_SERVER['SCRIPT_NAME']); ?>
 <aside class="col-lg-2 sidebar">
     <div class="list-group list-group-flush">
 

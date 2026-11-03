@@ -12,6 +12,8 @@ $routes = [
     '/academic/export.php' => ['type' => 'page'],
     '/assets/css/pagination.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
     '/assets/css/academic.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
+    '/assets/css/navigation.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
+    '/assets/js/navigation.js' => ['type'=>'asset','mime'=>'application/javascript; charset=utf-8'],
     '/assets/js/academic.js' => ['type'=>'asset','mime'=>'application/javascript; charset=utf-8'],
     '/assets/css/neutral.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],
     '/assets/css/login.css' => ['type'=>'asset','mime'=>'text/css; charset=utf-8'],

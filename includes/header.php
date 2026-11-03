@@ -1,4 +1,12 @@
 <?php require_once __DIR__.'/../config/auth.php'; $page_title = $page_title ?? APP_NAME; $role = current_user()['role'];
+if(app_setting('ACADEMIC_WORKFLOWS')==='1'){
+    require_once __DIR__.'/app_navigation.php';
+    $sia_navigation=sia_navigation();
+    ?><!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($page_title)?> · <?=e(APP_NAME)?></title>
+    <link rel="stylesheet" href="/assets/vendor/bootstrap.min.css"><link rel="stylesheet" href="/assets/vendor/bootstrap-icons.min.css"><link rel="stylesheet" href="/assets/css/app.css"><link rel="stylesheet" href="/assets/css/neutral.css">
+    <?php if(!empty($crud_ui)):?><link rel="stylesheet" href="/assets/css/crud.css"><?php endif;?><link rel="stylesheet" href="/assets/css/pagination.css"><link rel="stylesheet" href="/assets/css/navigation.css"><script src="/assets/js/navigation.js" defer></script></head><body class="sia-app <?=!empty($crud_ui)?'crud-page':''?>">
+    <?php sia_navigation_header($sia_navigation);return;
+}
 // Module tabs per role
 $modules = match($role) {
     'admin' => [
