@@ -18,6 +18,8 @@ tmp/
 !.env.example
 *.cnf
 *.sql
+!db_sia_smkn2_magelang.sql
+!database/db_sia_smkn2_magelang.sql
 *.sql.*
 *.sqlite
 *.sqlite3
