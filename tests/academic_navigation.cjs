@@ -1,7 +1,8 @@
 'use strict';
 // Real, read-only navigation across both academic and retained Admin templates.
 const fs=require('fs'),path=require('path'),cp=require('child_process');
-const root=path.resolve(__dirname,'..'),state='/home/muflih/.local/state/sia-academic-dev/20261031',base='http://127.0.0.1:18125';
+const root=path.resolve(__dirname,'..'),state='/home/muflih/.local/state/sia-academic-dev/20261031',base=process.env.SIA_TEST_BASE_URL||'http://127.0.0.1:18125';
+if(!['http://127.0.0.1:18125','http://127.0.0.1:18126'].includes(base))throw Error('Only isolated local development ports accepted');
 const cfg=JSON.parse(fs.readFileSync(state+'/private/runtime.json'));
 if(cfg.APP_ENV!=='testing'||cfg.DB_NAME!=='sia_academic_dev_20261031'||!cfg.DB_SOCKET||cfg.ALLOW_SCHEMA_CHANGES!=='0')throw Error('Refuse wrong environment');
 const {chromium}=require(cfg.PDF_PLAYWRIGHT_PATH),results=[],contexts=[];

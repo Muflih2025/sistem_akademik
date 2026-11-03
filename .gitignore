@@ -34,3 +34,8 @@ __pycache__/
 /config/local*
 /db.php
 /adminer.php
+
+# Dependency installs and developer-local tooling.
+node_modules/
+.pnpm-store/
+*.xlsx
