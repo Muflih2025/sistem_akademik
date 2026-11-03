@@ -1,0 +1,15 @@
+{
+  "name": "sia-smkn2-magelang",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Website akademik PHP native dengan perintah development pnpm",
+  "scripts": {
+    "dev": "node ops/dev.cjs",
+    "dev:setup": "node ops/dev.cjs --setup",
+    "dev:check": "node ops/dev.cjs --check"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}

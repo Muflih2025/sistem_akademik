@@ -5,9 +5,9 @@ $pdo = db();
 $kelas_list = $pdo->query('SELECT k.*, jr.nama_jurusan FROM kelas k LEFT JOIN jurusan jr ON jr.id_jurusan=k.id_jurusan ORDER BY k.nama_kelas')->fetchAll();
 $tahun_list = $pdo->query('SELECT * FROM tahun_ajaran ORDER BY status DESC, tahun_ajaran DESC')->fetchAll();
 
-$sel_kelas = (int)($_GET['id_kelas'] ?? 0);
-$sel_ta = (int)($_GET['id_tahun_ajaran'] ?? 0);
-$sel_nis = $_GET['nis'] ?? '';
+$sel_kelas = ($_GET['id_kelas']??'')!==''?input_id($_GET,'id_kelas'):0;
+$sel_ta = ($_GET['id_tahun_ajaran']??'')!==''?input_id($_GET,'id_tahun_ajaran'):0;
+$sel_nis = input_text($_GET,'nis',15,false);
 if (!$sel_ta) { foreach ($tahun_list as $t) { if ($t['status']==='Aktif') { $sel_ta=(int)$t['id_tahun_ajaran']; break; } } }
 
 $students = [];
@@ -19,15 +19,15 @@ if ($sel_kelas) {
 $rapor_data = null;
 if ($sel_nis && $sel_ta) {
     $q = $pdo->prepare('SELECT s.*, k.nama_kelas, jr.nama_jurusan FROM siswa s JOIN kelas k ON k.id_kelas=s.id_kelas LEFT JOIN jurusan jr ON jr.id_jurusan=k.id_jurusan WHERE s.nis=?');
-    $q->execute([$sel_nis]); $siswa = $q->fetch();
+    $q->execute([$sel_nis]); $siswa = $q->fetch();if(!$siswa)not_found();if($sel_kelas && (int)$siswa['id_kelas']!==$sel_kelas)deny_access();
     $q = $pdo->prepare('SELECT * FROM tahun_ajaran WHERE id_tahun_ajaran=?');
     $q->execute([$sel_ta]); $ta_info = $q->fetch();
     $q = $pdo->prepare('SELECT n.*, mp.nama_mapel, mp.kelompok, mp.kkm FROM nilai n JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel WHERE n.nis=? AND n.id_tahun_ajaran=? ORDER BY mp.kelompok, mp.nama_mapel');
     $q->execute([$sel_nis, $sel_ta]); $grades = $q->fetchAll();
     $q = $pdo->prepare('SELECT ne.*, ek.nama_ekskul FROM nilai_ekskul ne JOIN ekstrakurikuler ek ON ek.id_ekskul=ne.id_ekskul WHERE ne.nis=? AND ne.id_tahun_ajaran=?');
     $q->execute([$sel_nis, $sel_ta]); $ekskul = $q->fetchAll();
-    $q = $pdo->prepare('SELECT status, COUNT(*) as total FROM absensi WHERE nis=? GROUP BY status');
-    $q->execute([$sel_nis]); $abs_raw = $q->fetchAll();
+    $q = $pdo->prepare('SELECT a.status,COUNT(*) AS total FROM absensi a JOIN jadwal j ON j.id_jadwal=a.id_jadwal WHERE a.nis=? AND j.id_tahun_ajaran=? GROUP BY a.status');
+    $q->execute([$sel_nis,$sel_ta]); $abs_raw = $q->fetchAll();
     $att = ['Hadir'=>0,'Sakit'=>0,'Izin'=>0,'Alpa'=>0];
     foreach ($abs_raw as $a) $att[$a['status']] = (int)$a['total'];
     // Ranking

@@ -5,19 +5,19 @@ $pdo = db();
 $gid = (int)user_reference();
 
 // Ambil jadwal guru
-$q = $pdo->prepare('SELECT j.id_jadwal, j.id_kelas, k.nama_kelas, k.tingkat, jr.nama_jurusan, mp.nama_mapel 
-                    FROM jadwal j 
-                    JOIN kelas k ON k.id_kelas = j.id_kelas 
-                    LEFT JOIN jurusan jr ON jr.id_jurusan = k.id_jurusan 
-                    JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel 
-                    WHERE j.id_guru = ? 
-                    ORDER BY k.nama_kelas');
+$q = $pdo->prepare('SELECT j.id_jadwal, j.id_kelas, k.nama_kelas, k.tingkat, jr.nama_jurusan, mp.nama_mapel
+                    FROM jadwal j
+                    JOIN kelas k ON k.id_kelas = j.id_kelas
+                    LEFT JOIN jurusan jr ON jr.id_jurusan = k.id_jurusan
+                    JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel
+                    WHERE j.id_guru = ? AND j.status="aktif" AND k.status="aktif" AND mp.status="aktif"
+                    AND EXISTS(SELECT 1 FROM tahun_ajaran scope_period WHERE scope_period.id_tahun_ajaran=j.id_tahun_ajaran AND scope_period.status="Aktif") ORDER BY k.nama_kelas');
 $q->execute([$gid]);
 $schedules = $q->fetchAll();
 
-$selected_jadwal = (int)($_GET['id_jadwal'] ?? ($schedules[0]['id_jadwal'] ?? 0));
-$start_date = $_GET['start_date'] ?? date('Y-m-d', strtotime('-60 days'));
-$end_date = $_GET['end_date'] ?? date('Y-m-d');
+$selected_jadwal=($_GET['id_jadwal']??'')!==''?input_id($_GET,'id_jadwal'):(int)($schedules[0]['id_jadwal']??0);if($selected_jadwal)own_schedule($selected_jadwal);
+$start_date=input_date($_GET+['start_date'=>date('Y-m-d',strtotime('-60 days'))],'start_date');
+$end_date=input_date($_GET+['end_date'=>date('Y-m-d')],'end_date');if($start_date>$end_date)throw new InputError('Rentang tanggal tidak valid.');
 
 // Ambil tahun ajaran aktif
 $ta_aktif = $pdo->query("SELECT * FROM tahun_ajaran WHERE status='Aktif' LIMIT 1")->fetch() ?: ['tahun_ajaran'=>'2025/2026', 'semester'=>'Ganjil'];
@@ -31,11 +31,11 @@ $grid = [];
 $stats = [];
 
 if ($selected_jadwal) {
-    $q = $pdo->prepare('SELECT j.*, k.nama_kelas, k.tingkat, jr.nama_jurusan, mp.nama_mapel 
-                        FROM jadwal j 
-                        JOIN kelas k ON k.id_kelas = j.id_kelas 
-                        LEFT JOIN jurusan jr ON jr.id_jurusan = k.id_jurusan 
-                        JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel 
+    $q = $pdo->prepare('SELECT j.*, k.nama_kelas, k.tingkat, jr.nama_jurusan, mp.nama_mapel
+                        FROM jadwal j
+                        JOIN kelas k ON k.id_kelas = j.id_kelas
+                        LEFT JOIN jurusan jr ON jr.id_jurusan = k.id_jurusan
+                        JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel
                         WHERE j.id_jadwal = ? AND j.id_guru = ?');
     $q->execute([$selected_jadwal, $gid]);
     $jadwal_info = $q->fetch();
@@ -47,9 +47,9 @@ if ($selected_jadwal) {
         $students = $q->fetchAll();
 
         // Ambil riwayat absen pada rentang tanggal
-        $q = $pdo->prepare('SELECT a.tanggal, a.nis, a.status, a.keterangan 
-                            FROM absensi a 
-                            WHERE a.id_jadwal = ? AND a.tanggal BETWEEN ? AND ? 
+        $q = $pdo->prepare('SELECT a.tanggal, a.nis, a.status, a.keterangan
+                            FROM absensi a
+                            WHERE a.id_jadwal = ? AND a.tanggal BETWEEN ? AND ?
                             ORDER BY a.tanggal ASC');
         $q->execute([$selected_jadwal, $start_date, $end_date]);
         $raw_absen = $q->fetchAll();
@@ -250,7 +250,7 @@ require '../includes/flash.php';
                 </tr>
             </thead>
             <tbody>
-                <?php $no = 1; $total_pertemuan = count($dates) ?: 1; foreach ($students as $st): 
+                <?php $no = 1; $total_pertemuan = count($dates) ?: 1; foreach ($students as $st):
                     $s = $stats[$st['nis']];
                     $pct = round(($s['Hadir'] / $total_pertemuan) * 100);
                 ?>
@@ -260,7 +260,7 @@ require '../includes/flash.php';
                     <td><strong><?= e($st['nama_siswa']) ?></strong></td>
                     <td class="text-center"><?= e($st['jenis_kelamin'] ?? '-') ?></td>
                     <?php if (!empty($dates)): ?>
-                        <?php foreach ($dates as $d): 
+                        <?php foreach ($dates as $d):
                             $status = $grid[$st['nis']][$d] ?? '-';
                             $symbol = '•'; $class = 'text-success fw-bold';
                             if ($status === 'Sakit') { $symbol = 'S'; $class = 'badge bg-warning text-dark'; }

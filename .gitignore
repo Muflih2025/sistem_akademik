@@ -12,3 +12,30 @@ Thumbs.db
 *.log
 tmp/
 
+# Runtime, credentials, private backups and database dumps stay outside Git.
+.env
+.env.*
+!.env.example
+*.cnf
+*.sql
+*.sql.*
+*.sqlite
+*.sqlite3
+*.bundle
+*.tar
+*.tar.gz
+*.zip
+__pycache__/
+*.pyc
+/backups/
+/staging/
+/runtime/
+/logs/
+/config/local*
+/db.php
+/adminer.php
+
+# Dependency installs and developer-local tooling.
+node_modules/
+.pnpm-store/
+*.xlsx

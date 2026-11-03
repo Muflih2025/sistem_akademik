@@ -1,0 +1,47 @@
+/* Shared module bar and contextual feature sidebar. All URLs keep backend guards. */
+body.sia-app{margin:0;background:#f3f4f6;color:#111;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.sia-app *{box-sizing:border-box}
+.sia-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:#111;color:#fff;padding:1rem 1.25rem;min-height:76px}
+.sia-brand{color:#fff!important;text-decoration:none;font-size:1.25rem;font-weight:800;line-height:1.3;min-width:0}
+.sia-brand span{display:block;font-size:.75rem;font-weight:500}
+.sia-header .sia-identity{display:flex;align-items:center;gap:1rem;font-size:.8rem}
+.sia-header .sia-identity>span{display:none}
+.sia-header form{margin:0}
+.sia-header .sia-logout{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #fff;background:#fff;color:#111;border-radius:10px;padding:.5rem .85rem;font:inherit;font-weight:600;cursor:pointer}
+.sia-modules{display:flex;gap:.5rem;padding:.75rem 1.25rem;overflow-x:auto;max-width:100%;background:#fff;border-bottom:1px solid #e5e7eb;scrollbar-width:thin}
+.sia-modules a{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:44px;border:1px solid transparent;border-radius:10px;padding:.6rem .9rem;color:#111;text-decoration:none;font-size:.9rem;font-weight:600;white-space:nowrap}
+.sia-modules a:hover{background:#f3f4f6}
+.sia-modules a[aria-current]{background:#111;color:#fff}
+.sia-shell{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;min-width:0}
+.sia-sidebar{margin:0;min-width:0;background:#fff;border-bottom:1px solid #e5e7eb}
+.sia-sidebar>summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:52px;padding:.75rem 1.25rem;margin:0;cursor:pointer;font-size:.9rem;font-weight:650;list-style:none}
+.sia-sidebar>summary::-webkit-details-marker{display:none}
+.sia-sidebar>summary:after{content:'+';font-size:1.3rem}
+.sia-sidebar[open]>summary:after{content:'−'}
+.sia-sidebar>summary span{font-size:.8rem;font-weight:400;flex:1;text-align:right;color:#60646c}
+.sia-sidebar-inner{padding:1.25rem .75rem}
+.sia-module-title{margin:0 .65rem .25rem;font-size:1rem;font-weight:750}
+.sia-sidebar-hint{margin:0 .65rem 1rem;color:#60646c;font-size:.8rem}
+.sia-sidebar nav{display:grid;gap:.4rem}
+.sia-sidebar nav a{display:flex;align-items:center;justify-content:space-between;gap:.75rem;min-height:46px;padding:.7rem .8rem;border-radius:10px;text-decoration:none;color:#111;line-height:1.4;font-size:.9rem;overflow-wrap:anywhere}
+.sia-sidebar nav a:hover{background:#f3f4f6}
+.sia-sidebar nav a[aria-current]{background:#111;color:#fff;font-weight:650}
+.sia-shell>.sia-content{min-width:0;width:100%;max-width:1440px;margin:0 auto;padding:1.25rem .75rem 6.5rem}
+.sia-shell>.sia-content>.container-fluid{padding:0}
+.sia-bottom{position:fixed;z-index:20;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-around;gap:.25rem;padding:.4rem .25rem max(.4rem,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e5e7eb}
+.sia-bottom a{display:flex;align-items:center;justify-content:center;min-height:48px;min-width:56px;text-decoration:none;color:#111;font-size:.75rem;font-weight:600}
+.sia-skip{position:fixed;top:.5rem;left:.5rem;transform:translateY(-200%);z-index:100;background:#fff;color:#111;padding:.75rem 1rem;border:2px solid #111;border-radius:8px}
+.sia-skip:focus{transform:none}
+.sia-app .sia-modules a:focus-visible,.sia-app .sia-sidebar a:focus-visible,.sia-sidebar>summary:focus-visible,.sia-bottom a:focus-visible,.sia-logout:focus-visible{outline:2px solid #111;outline-offset:3px}
+.sia-header .sia-logout:focus-visible{outline-color:#fff}
+@media(min-width:600px){.sia-header .sia-identity>span{display:inline}.sia-shell>.sia-content{padding:1.5rem 1.25rem 6.5rem}}
+@media(min-width:1000px){
+ .sia-shell{grid-template-columns:240px minmax(0,1fr);min-height:calc(100vh - 145px)}
+ .sia-sidebar{position:sticky;top:0;min-height:calc(100vh - 145px);max-height:100vh;overflow:auto;border-right:1px solid #e5e7eb;border-bottom:0}
+ .sia-sidebar>summary{display:none}
+ .sia-sidebar:not([open])>.sia-sidebar-inner{display:block}
+ .sia-sidebar-inner{padding:1.5rem .75rem}
+ .sia-shell>.sia-content{padding:1.75rem 1.5rem 3rem}
+ .sia-bottom{display:none}
+}
+@media print{.sia-header,.sia-modules,.sia-sidebar,.sia-bottom,.sia-skip{display:none!important}.sia-shell{display:block;min-height:0}.sia-shell>.sia-content{max-width:none;margin:0;padding:0!important}}

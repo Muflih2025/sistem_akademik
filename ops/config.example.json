@@ -1,0 +1,10 @@
+{
+  "APP_ENV": "staging",
+  "DB_SOCKET": "/absolute/private/path/mariadb.sock",
+  "DB_NAME": "",
+  "DB_USER": "",
+  "DB_PASS": "",
+  "SESSION_NAME": "SIA_STAGING",
+  "SESSION_PATH": "/absolute/private/path/sessions",
+  "COOKIE_SECURE": "0"
+}

@@ -1,153 +1,17 @@
 <?php
-require_once '../config/auth.php';
-require_role('guru');
-$pdo = db();
-$gid = (int)user_reference();
-$error = '';
-$success = '';
-
-// Ambil jadwal mengajar guru
-$q = $pdo->prepare('SELECT j.id_jadwal, j.id_kelas, k.nama_kelas, mp.id_mapel, mp.nama_mapel, j.hari, j.jam_mulai, j.jam_selesai, j.ruang, jr.nama_jurusan 
-                    FROM jadwal j 
-                    JOIN kelas k ON k.id_kelas = j.id_kelas 
-                    LEFT JOIN jurusan jr ON jr.id_jurusan = k.id_jurusan 
-                    JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel 
-                    WHERE j.id_guru = ? 
-                    ORDER BY FIELD(j.hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat"), j.jam_mulai');
-$q->execute([$gid]);
-$schedules = $q->fetchAll();
-
-$selected = (int)($_POST['id_jadwal'] ?? $_GET['id_jadwal'] ?? ($schedules[0]['id_jadwal'] ?? 0));
-$date = $_POST['tanggal'] ?? $_GET['tanggal'] ?? date('Y-m-d');
-
-// Hitung nomor pertemuan otomatis
-$pertemuan_ke = 1;
-if ($selected) {
-    $q = $pdo->prepare('SELECT COUNT(*) FROM jurnal_kelas WHERE id_jadwal = ?');
-    $q->execute([$selected]);
-    $existing_count = (int)$q->fetchColumn();
-    $pertemuan_ke = $existing_count + 1;
+require_once '../config/academic_service.php';require_role('guru');$pdo=db();$gid=(int)user_reference();$error='';
+$q=$pdo->prepare("SELECT j.*,k.nama_kelas,mp.nama_mapel,jr.nama_jurusan FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel LEFT JOIN jurusan jr ON jr.id_jurusan=k.id_jurusan WHERE j.id_guru=? AND j.status='aktif' AND k.status='aktif' AND mp.status='aktif' AND EXISTS(SELECT 1 FROM tahun_ajaran scope_period WHERE scope_period.id_tahun_ajaran=j.id_tahun_ajaran AND scope_period.status='Aktif') ORDER BY j.hari,j.jam_mulai");$q->execute([$gid]);$schedules=$q->fetchAll();
+$input=$_SERVER['REQUEST_METHOD']==='POST'?$_POST:$_GET;$selected=($input['id_jadwal']??'')!==''?input_id($input,'id_jadwal'):(int)($schedules[0]['id_jadwal']??0);$date=input_date($input+['tanggal'=>date('Y-m-d')],'tanggal');
+if($selected)own_schedule($selected);
+if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();try{input_choice($_POST,'action',['save_jurnal']);save_journal($_POST);flash('success','Jurnal dan seluruh absensi disimpan dalam satu transaksi.');redirect('jurnal.php?'.http_build_query(['id_jadwal'=>$selected,'tanggal'=>$date]));}catch(Throwable $e){$error=operation_error($e);}}
+$students=[];$today_jurnal=null;$selected_info=null;$pertemuan_ke=1;
+if($selected){foreach($schedules as $schedule)if((int)$schedule['id_jadwal']===$selected)$selected_info=$schedule;
+$q=$pdo->prepare("SELECT s.nis,s.nama_siswa,s.jenis_kelamin,a.status,a.keterangan FROM siswa s LEFT JOIN absensi a ON a.nis=s.nis AND a.id_jadwal=? AND a.tanggal=? WHERE s.id_kelas=? AND s.status='aktif' ORDER BY s.nama_siswa");$q->execute([$selected,$date,$selected_info['id_kelas']]);$students=$q->fetchAll();
+$q=$pdo->prepare('SELECT * FROM jurnal_kelas WHERE id_jadwal=? AND tanggal=? AND id_guru=?');$q->execute([$selected,$date,$gid]);$today_jurnal=$q->fetch()?:null;
+$q=$pdo->prepare('SELECT COUNT(*) FROM jurnal_kelas WHERE id_jadwal=? AND id_guru=?');$q->execute([$selected,$gid]);$pertemuan_ke=$today_jurnal?(int)$today_jurnal['pertemuan_ke']:(int)$q->fetchColumn()+1;
 }
-
-// Simpan Agenda Harian Guru & Presensi Siswa
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_jurnal') {
-    verify_csrf();
-    try {
-        $id_jadwal = (int)$_POST['id_jadwal'];
-        $tanggal = $_POST['tanggal'] ?? date('Y-m-d');
-        $pertemuan_inp = (int)($_POST['pertemuan_ke'] ?? 1);
-        $jam_ke = trim($_POST['jam_ke'] ?? '');
-        $guru_pengganti = trim($_POST['guru_pengganti'] ?? '') ?: null;
-        $materi = trim($_POST['materi'] ?? '');
-        $refleksi = trim($_POST['refleksi'] ?? '');
-        $catatan = trim($_POST['catatan'] ?? '');
-
-        if (!$id_jadwal || empty($materi)) {
-            throw new RuntimeException('Jadwal dan Uraian Materi Pembelajaran (TP/ATP) wajib diisi.');
-        }
-
-        // Verifikasi jadwal milik guru
-        $q = $pdo->prepare('SELECT j.id_kelas, j.id_mapel, k.nama_kelas, mp.nama_mapel FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran mp ON mp.id_mapel=j.id_mapel WHERE j.id_jadwal = ? AND j.id_guru = ?');
-        $q->execute([$id_jadwal, $gid]);
-        $jinfo = $q->fetch();
-        if (!$jinfo) {
-            throw new RuntimeException('Jadwal tidak valid atau bukan penugasan mengajar Anda.');
-        }
-        $id_kelas = (int)$jinfo['id_kelas'];
-        $id_mapel = (int)$jinfo['id_mapel'];
-
-        $pdo->beginTransaction();
-
-        // 1. Simpan ke jurnal_kelas
-        $q = $pdo->prepare('INSERT INTO jurnal_kelas (id_jadwal, id_guru, id_kelas, id_mapel, tanggal, pertemuan_ke, jam_ke, guru_pengganti, materi, kegiatan, refleksi, catatan)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE 
-                            pertemuan_ke = VALUES(pertemuan_ke),
-                            jam_ke = VALUES(jam_ke),
-                            guru_pengganti = VALUES(guru_pengganti),
-                            materi = VALUES(materi),
-                            kegiatan = VALUES(kegiatan),
-                            refleksi = VALUES(refleksi),
-                            catatan = VALUES(catatan)');
-        $q->execute([$id_jadwal, $gid, $id_kelas, $id_mapel, $tanggal, $pertemuan_inp, $jam_ke, $guru_pengganti, $materi, $refleksi, $refleksi, $catatan]);
-
-        // 2. Simpan Presensi Siswa
-        $q = $pdo->prepare('SELECT nis FROM siswa WHERE id_kelas = ? ORDER BY nama_siswa');
-        $q->execute([$id_kelas]);
-        $all_students = $q->fetchAll(PDO::FETCH_COLUMN);
-
-        $status_custom = $_POST['status_custom'] ?? [];
-        $ket_custom = $_POST['ket_custom'] ?? [];
-
-        $stmtAbsen = $pdo->prepare('INSERT INTO absensi (tanggal, nis, id_jadwal, status, keterangan, created_by)
-                                    VALUES (?, ?, ?, ?, ?, ?)
-                                    ON DUPLICATE KEY UPDATE status = VALUES(status), keterangan = VALUES(keterangan), created_by = VALUES(created_by)');
-
-        foreach ($all_students as $nis) {
-            $status = 'Hadir';
-            $keterangan = null;
-            if (isset($status_custom[$nis]) && in_array($status_custom[$nis], ['Sakit', 'Izin', 'Alpa'])) {
-                $status = $status_custom[$nis];
-                $keterangan = trim($ket_custom[$nis] ?? '') ?: null;
-            }
-            $stmtAbsen->execute([$tanggal, $nis, $id_jadwal, $status, $keterangan, $gid]);
-        }
-
-        $pdo->commit();
-        flash('success', "Agenda Harian Pertemuan Ke-{$pertemuan_inp} dan Presensi Siswa berhasil disimpan.");
-        redirect('jurnal.php?id_jadwal=' . $id_jadwal . '&tanggal=' . $tanggal);
-    } catch (Throwable $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
-        $error = $e->getMessage();
-    }
-}
-
-// Ambil data siswa & status absen tanggal terpilih
-$students = [];
-$today_jurnal = null;
-$selected_info = null;
-
-if ($selected) {
-    foreach ($schedules as $sc) {
-        if ((int)$sc['id_jadwal'] === $selected) {
-            $selected_info = $sc;
-            break;
-        }
-    }
-
-    $q = $pdo->prepare('SELECT s.nis, s.nama_siswa, s.jenis_kelamin, a.status, a.keterangan 
-                        FROM jadwal j 
-                        JOIN siswa s ON s.id_kelas = j.id_kelas 
-                        LEFT JOIN absensi a ON a.nis = s.nis AND a.id_jadwal = j.id_jadwal AND a.tanggal = ? 
-                        WHERE j.id_jadwal = ? AND j.id_guru = ? 
-                        ORDER BY s.nama_siswa');
-    $q->execute([$date, $selected, $gid]);
-    $students = $q->fetchAll();
-
-    // Cek record jurnal tanggal ini jika sudah ada
-    $q = $pdo->prepare('SELECT * FROM jurnal_kelas WHERE id_jadwal = ? AND tanggal = ? ORDER BY id_jurnal DESC LIMIT 1');
-    $q->execute([$selected, $date]);
-    $today_jurnal = $q->fetch();
-    if ($today_jurnal && !empty($today_jurnal['pertemuan_ke'])) {
-        $pertemuan_ke = (int)$today_jurnal['pertemuan_ke'];
-    }
-}
-
-// Riwayat Agenda Harian Guru
-$q = $pdo->prepare('SELECT jk.*, k.nama_kelas, mp.nama_mapel 
-                    FROM jurnal_kelas jk 
-                    JOIN jadwal j ON j.id_jadwal = jk.id_jadwal 
-                    JOIN kelas k ON k.id_kelas = jk.id_kelas 
-                    JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel 
-                    WHERE jk.id_guru = ? 
-                    ORDER BY jk.tanggal DESC, jk.pertemuan_ke DESC LIMIT 20');
-$q->execute([$gid]);
-$recent_journals = $q->fetchAll();
-
-$page_title = 'Buku Agenda Harian Guru & Jurnal KBM';
-require '../includes/header.php';
-require '../includes/sidebar.php';
-require '../includes/flash.php';
+$q=$pdo->prepare("SELECT jk.*,k.nama_kelas,mp.nama_mapel FROM jurnal_kelas jk JOIN jadwal j ON j.id_jadwal=jk.id_jadwal JOIN kelas k ON k.id_kelas=jk.id_kelas JOIN mata_pelajaran mp ON mp.id_mapel=jk.id_mapel WHERE jk.id_guru=? AND j.id_guru=? AND j.status='aktif' ORDER BY jk.tanggal DESC LIMIT 20");$q->execute([$gid,$gid]);$recent_journals=$q->fetchAll();
+$page_title='Buku Agenda Harian Guru & Jurnal KBM';require '../includes/header.php';require '../includes/sidebar.php';require '../includes/flash.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -228,6 +92,7 @@ require '../includes/flash.php';
                     <textarea class="form-control" name="materi" rows="3" required placeholder="Contoh: Berpikir Komputasional, Dekomposisi Masalah, Tipe Data..."><?= e($today_jurnal['materi'] ?? '') ?></textarea>
                 </div>
 
+                <div class="mb-3"><label class="form-label fw-bold">Kegiatan pembelajaran</label><textarea class="form-control" name="kegiatan" rows="2"><?= e($today_jurnal['kegiatan'] ?? '') ?></textarea></div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Refleksi KBM / Catatan Pembelajaran</label>
                     <textarea class="form-control" name="refleksi" rows="2" placeholder="Contoh: Tugas membuat poster, Diskusi kelompok, Praktik coding lab..."><?= e($today_jurnal['refleksi'] ?? $today_jurnal['kegiatan'] ?? '') ?></textarea>
@@ -263,7 +128,7 @@ require '../includes/flash.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $no = 1; foreach ($students as $s): 
+                            <?php $no = 1; foreach ($students as $s):
                                 $cur_status = $s['status'] ?? 'Hadir';
                             ?>
                             <tr class="<?= in_array($cur_status, ['Sakit', 'Izin', 'Alpa']) ? 'table-warning' : '' ?>" id="row-<?= e($s['nis']) ?>">
@@ -334,7 +199,7 @@ function checkRow(sel, rowId) {
                 <?php if (empty($recent_journals)): ?>
                     <tr><td colspan="6" class="text-center text-muted py-4">Belum ada agenda harian yang diisi.</td></tr>
                 <?php else: ?>
-                    <?php $no = 1; foreach ($recent_journals as $rj): 
+                    <?php $no = 1; foreach ($recent_journals as $rj):
                         // Ambil rekap absen pertemuan ini
                         $q = $pdo->prepare("SELECT s.nama_siswa, a.status, a.keterangan FROM absensi a JOIN siswa s ON s.nis=a.nis WHERE a.id_jadwal=? AND a.tanggal=? AND a.status IN ('Sakit','Izin','Alpa')");
                         $q->execute([$rj['id_jadwal'], $rj['tanggal']]);
@@ -362,7 +227,7 @@ function checkRow(sel, rowId) {
                                 <span class="badge bg-success">Hadir Semua (Nihil)</span>
                             <?php else: ?>
                                 <ul class="mb-0 ps-3 small">
-                                    <?php foreach ($abs_unhadir as $au): 
+                                    <?php foreach ($abs_unhadir as $au):
                                         $cls = ['Sakit'=>'warning','Izin'=>'info','Alpa'=>'danger'][$au['status']] ?? 'secondary';
                                     ?>
                                         <li>

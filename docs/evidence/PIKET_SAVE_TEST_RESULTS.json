@@ -1,0 +1,38 @@
+{
+  "tested_at": "2026-11-03T01:02:59.726Z",
+  "passed": 7,
+  "failed": 0,
+  "skipped": 0,
+  "fixture_id": 21,
+  "fixture_final_state": "revoked; audit retained",
+  "tests": [
+    {
+      "test": "save_real_duty_opens_saved_id_and_reads_back_from_database",
+      "status": "PASS"
+    },
+    {
+      "test": "second_save_updates_same_id_instead_of_creating_duplicate",
+      "status": "PASS"
+    },
+    {
+      "test": "validation_failure_preserves_open_form_inputs_without_database_write",
+      "status": "PASS"
+    },
+    {
+      "test": "CSRF_and_non_admin_cannot_assign_duty_permissions",
+      "status": "PASS"
+    },
+    {
+      "test": "saved_duty_has_admin_audit_and_responsive_editor",
+      "status": "PASS"
+    },
+    {
+      "test": "explicit_add_new_button_opens_empty_form_without_creating_record",
+      "status": "PASS"
+    },
+    {
+      "test": "revoke_only_regression_fixture_and_keep_existing_permissions_and_school_data",
+      "status": "PASS"
+    }
+  ]
+}

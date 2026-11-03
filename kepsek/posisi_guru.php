@@ -1,9 +1,8 @@
 <?php
 require_once '../config/auth.php';
-$role = current_user()['role'];
-if (!in_array($role, ['admin', 'kepala_sekolah', 'guru'])) {
-    deny_access();
-}
+require_role('kepala_sekolah');
+$role=current_user()['role'];
+
 $pdo = db();
 
 $hari_ini_indonesia = [
@@ -22,29 +21,29 @@ $jam_sekarang = date('H:i:s');
 // 1. Ambil data semua guru dan status live posisi mereka
 $sql = "SELECT g.id_guru, g.nip, g.nama_guru, g.no_hp,
                -- Cek jadwal saat ini (jam_mulai <= NOW <= jam_selesai)
-               (SELECT j.id_jadwal FROM jadwal j 
-                WHERE j.id_guru = g.id_guru AND j.hari = ? 
+               (SELECT j.id_jadwal FROM jadwal j
+                WHERE j.id_guru = g.id_guru AND j.hari = ?
                   AND ? BETWEEN j.jam_mulai AND j.jam_selesai LIMIT 1) as live_jadwal_id,
                -- Cek jadwal hari ini (jadwal terdekat / aktif hari ini)
                (SELECT CONCAT(k.nama_kelas, ' · ', mp.nama_mapel, ' (', SUBSTRING(j.jam_mulai,1,5), '-', SUBSTRING(j.jam_selesai,1,5), ')')
-                FROM jadwal j 
+                FROM jadwal j
                 JOIN kelas k ON k.id_kelas = j.id_kelas
                 JOIN mata_pelajaran mp ON mp.id_mapel = j.id_mapel
-                WHERE j.id_guru = g.id_guru AND j.hari = ? 
+                WHERE j.id_guru = g.id_guru AND j.hari = ?
                   AND ? BETWEEN j.jam_mulai AND j.jam_selesai LIMIT 1) as jadwal_saat_ini,
                -- Cek jurnal terakhir yang diupload guru hari ini
                (SELECT CONCAT('Kelas: ', k.nama_kelas, ' | Materi: ', SUBSTRING(jk.materi, 1, 40), ' | Jam: ', SUBSTRING(jk.created_at, 12, 5))
-                FROM jurnal_kelas jk 
+                FROM jurnal_kelas jk
                 JOIN kelas k ON k.id_kelas = jk.id_kelas
-                WHERE jk.id_guru = g.id_guru AND jk.tanggal = ? 
+                WHERE jk.id_guru = g.id_guru AND jk.tanggal = ?
                 ORDER BY jk.id_jurnal DESC LIMIT 1) as jurnal_hari_ini,
                -- Cek kelas dari jurnal terakhir hari ini
-               (SELECT k.nama_kelas 
-                FROM jurnal_kelas jk 
+               (SELECT k.nama_kelas
+                FROM jurnal_kelas jk
                 JOIN kelas k ON k.id_kelas = jk.id_kelas
-                WHERE jk.id_guru = g.id_guru AND jk.tanggal = ? 
+                WHERE jk.id_guru = g.id_guru AND jk.tanggal = ?
                 ORDER BY jk.id_jurnal DESC LIMIT 1) as kelas_jurnal_terakhir
-        FROM guru g 
+        FROM guru g
         ORDER BY g.nama_guru ASC";
 
 $stmt = $pdo->prepare($sql);
@@ -118,7 +117,7 @@ require '../includes/flash.php';
                 </tr>
             </thead>
             <tbody>
-                <?php $no = 1; foreach ($posisi_guru as $g): 
+                <?php $no = 1; foreach ($posisi_guru as $g):
                     $is_scheduled_now = !empty($g['jadwal_saat_ini']);
                     $has_journal_today = !empty($g['jurnal_hari_ini']);
                 ?>

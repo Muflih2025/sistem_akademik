@@ -1,4 +1,9 @@
-<?php $role = current_user()['role']; $cf = basename($_SERVER['SCRIPT_NAME']); ?>
+<?php
+if(app_setting('ACADEMIC_WORKFLOWS')==='1'){
+    echo '<div class="sia-shell">';sia_navigation_sidebar($sia_navigation);
+    echo '<main class="sia-content" id="sia-main"><div class="container-fluid">';return;
+}
+$role = current_user()['role']; $cf = basename($_SERVER['SCRIPT_NAME']); ?>
 <aside class="col-lg-2 sidebar">
     <div class="list-group list-group-flush">
 
@@ -15,8 +20,7 @@
             <a class="list-group-item <?=$cf==='ekskul.php'?'active':''?>" href="../admin/ekskul.php"><i class="bi bi-trophy si"></i> Ekstrakurikuler</a>
             <div class="nav-section">Laporan</div>
             <a class="list-group-item <?=$cf==='posisi_guru.php'?'active':''?>" href="../admin/posisi_guru.php"><i class="bi bi-geo-alt si"></i> Posisi Guru</a>
-            <a class="list-group-item <?=$cf==='export_nilai.php'?'active':''?>" href="../admin/export_nilai.php"><i class="bi bi-file-earmark-text si"></i> Export Nilai</a>
-            <a class="list-group-item <?=$cf==='export_import.php'?'active':''?>" href="../admin/export_import.php"><i class="bi bi-box-arrow-in-down si"></i> Export / Import</a>
+            <a class="list-group-item <?=$cf==='bulk_upload.php'?'active':''?>" href="../admin/bulk_upload.php"><i class="bi bi-box-arrow-in-down si"></i> Bulk Upload Excel</a>
             <div class="nav-section">Pengaturan</div>
             <a class="list-group-item <?=$cf==='users.php'?'active':''?>" href="../admin/users.php"><i class="bi bi-shield-lock si"></i> Manajemen Akun</a>
 
@@ -28,9 +32,8 @@
             <a class="list-group-item <?=$cf==='rekap_absen.php'?'active':''?>" href="../guru/rekap_absen.php"><i class="bi bi-bar-chart si"></i> Rekap Presensi</a>
             <div class="nav-section">Penilaian</div>
             <a class="list-group-item <?=$cf==='nilai.php'?'active':''?>" href="../guru/nilai.php"><i class="bi bi-pencil-square si"></i> Input Nilai</a>
-            <a class="list-group-item <?=$cf==='rapor.php'?'active':''?>" href="../guru/rapor.php"><i class="bi bi-file-earmark-medical si"></i> Rapor Kelas</a>
+            <?php if(app_setting('HOMEROOM_MODE')!=='informational'):?><a class="list-group-item <?=$cf==='rapor.php'?'active':''?>" href="../guru/rapor.php"><i class="bi bi-file-earmark-medical si"></i> Rapor Kelas</a><?php endif;?>
             <a class="list-group-item <?=$cf==='ekskul.php'?'active':''?>" href="../guru/ekskul.php"><i class="bi bi-trophy si"></i> Nilai Ekskul</a>
-            <a class="list-group-item <?=$cf==='export_nilai.php'?'active':''?>" href="../guru/export_nilai.php"><i class="bi bi-download si"></i> Export Nilai</a>
 
         <?php elseif($role === 'kepala_sekolah'): ?>
             <div class="nav-section">Monitoring</div>
@@ -52,3 +55,5 @@
 </aside>
 <main class="col-lg-10 py-4">
 <div class="container-fluid">
+
+<?php if(!empty($crud_ui) && function_exists('crud_navigation'))crud_navigation(); ?>

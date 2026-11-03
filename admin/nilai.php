@@ -1,70 +1,25 @@
 <?php
-require_once '../config/auth.php';
+require_once '../config/academic_service.php';
 require_role('admin');
 $pdo = db();
 $error = '';
 $success = '';
 
-// Handle Global Bobot Setting
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_global_bobot') {
-    verify_csrf();
-    $b_mapel = (int)($_POST['id_mapel'] ?? 0) ?: null;
-    $b_tugas = (float)($_POST['bobot_tugas'] ?? 0);
-    $b_uts = (float)($_POST['bobot_uts'] ?? 0);
-    $b_uas = (float)($_POST['bobot_uas'] ?? 0);
-    $b_praktik = (float)($_POST['bobot_praktik'] ?? 0);
-    $nama_ekstra = trim($_POST['nama_ekstra'] ?? 'Praktik/Proyek');
-
-    $total = $b_tugas + $b_uts + $b_uas + $b_praktik;
-    if (abs($total - 100.0) > 0.01) {
-        $error = "Total persentase bobot harus pas 100%. Saat ini: {$total}%.";
-    } else {
-        $stmt = $pdo->prepare('INSERT INTO bobot_penilaian (id_guru, id_mapel, id_kelas, bobot_tugas, bobot_uts, bobot_uas, bobot_praktik, nama_ekstra, bobot_ekstra)
-                               VALUES (NULL, ?, NULL, ?, ?, ?, ?, ?, 0)
-                               ON DUPLICATE KEY UPDATE 
-                               bobot_tugas = VALUES(bobot_tugas),
-                               bobot_uts = VALUES(bobot_uts),
-                               bobot_uas = VALUES(bobot_uas),
-                               bobot_praktik = VALUES(bobot_praktik),
-                               nama_ekstra = VALUES(nama_ekstra)');
-        $stmt->execute([$b_mapel, $b_tugas, $b_uts, $b_uas, $b_praktik, $nama_ekstra]);
-        flash('success', 'Pengaturan bobot standar kurikulum berhasil disimpan (Total 100%).');
-        redirect('nilai.php');
-    }
-}
-
-// Handle Update Nilai Siswa
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_nilai']) && (!isset($_POST['action']) || $_POST['action'] === 'update_nilai')) {
-    verify_csrf();
-    $id_nilai = (int)$_POST['id_nilai'];
-    $tugas = (float)($_POST['nilai_tugas'] ?? 0);
-    $uts = (float)($_POST['nilai_uts'] ?? 0);
-    $uas = (float)($_POST['nilai_uas'] ?? 0);
-    $praktik = (float)($_POST['nilai_praktik'] ?? 0);
-
-    // Ambil info mapel & guru dari record nilai
-    $q = $pdo->prepare('SELECT id_guru, id_mapel FROM nilai WHERE id_nilai=?');
-    $q->execute([$id_nilai]);
-    $ninfo = $q->fetch();
-
-    if ($ninfo) {
-        $bobot = get_bobot_penilaian((int)$ninfo['id_guru'], (int)$ninfo['id_mapel']);
-        $akhir = hitung_nilai_akhir_berbobot($tugas, $uts, $uas, $praktik, 0.0, $bobot);
-
-        $q = $pdo->prepare('UPDATE nilai SET nilai_tugas=?, nilai_uts=?, nilai_uas=?, nilai_praktik=?, nilai_akhir=? WHERE id_nilai=?');
-        $q->execute([$tugas, $uts, $uas, $praktik, $akhir, $id_nilai]);
-        flash('success', 'Data nilai berhasil diperbarui dengan perhitungan bobot.');
-    }
-    redirect('nilai.php');
+if($_SERVER['REQUEST_METHOD']==='POST'){
+    verify_csrf();try{
+        $action=input_choice($_POST,'action',['save_global_bobot','update_nilai']);
+        if($action==='save_global_bobot')save_weights($_POST,true);else save_admin_grade($_POST);
+        flash('success','Data penilaian berhasil disimpan.');redirect('nilai.php');
+    }catch(Throwable $errorInput){$error=operation_error($errorInput);}
 }
 
 // Ambil daftar nilai siswa
-$rows = $pdo->query('SELECT n.*, s.nama_siswa, k.nama_kelas, mp.id_mapel, mp.nama_mapel, mp.kkm, g.nama_guru, ta.tahun_ajaran, ta.semester 
-                     FROM nilai n 
-                     JOIN siswa s ON s.nis=n.nis 
+$rows = $pdo->query('SELECT n.*, s.nama_siswa, k.nama_kelas, mp.id_mapel, mp.nama_mapel, mp.kkm, g.nama_guru, ta.tahun_ajaran, ta.semester
+                     FROM nilai n
+                     JOIN siswa s ON s.nis=n.nis
                      JOIN kelas k ON k.id_kelas=s.id_kelas
-                     JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel 
-                     JOIN guru g ON g.id_guru=n.id_guru 
+                     JOIN mata_pelajaran mp ON mp.id_mapel=n.id_mapel
+                     JOIN guru g ON g.id_guru=n.id_guru
                      JOIN tahun_ajaran ta ON ta.id_tahun_ajaran=n.id_tahun_ajaran
                      ORDER BY n.id_nilai DESC')->fetchAll();
 
@@ -113,7 +68,7 @@ require '../includes/flash.php';
                 <?php if (empty($rows)): ?>
                     <tr><td colspan="14" class="text-center text-muted py-4">Belum ada data nilai tersimpan.</td></tr>
                 <?php else: ?>
-                    <?php $no = 1; foreach ($rows as $r): 
+                    <?php $no = 1; foreach ($rows as $r):
                         $pred = hitung_predikat_kkm((float)$r['nilai_akhir'], (float)$r['kkm']);
                     ?>
                     <tr>
@@ -201,7 +156,7 @@ require '../includes/flash.php';
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">
-                        Atur formula pembobotan standar default untuk semua mata pelajaran atau per mapel. 
+                        Atur formula pembobotan standar default untuk semua mata pelajaran atau per mapel.
                         <strong>Total bobot harus tepat 100%</strong> (Default: Tugas 30%, UTS 30%, UAS 40%).
                     </p>
 

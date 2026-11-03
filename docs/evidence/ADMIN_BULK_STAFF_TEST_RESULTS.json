@@ -1,0 +1,1455 @@
+{
+  "code_commit": "5f1da1158a49833a575284746a96dcc78e581726",
+  "branch": "development/academic-workflows-20261031",
+  "url": "http://127.0.0.1:18125",
+  "historical_full_regression_before_final_pagination_navigation": {
+    "passed": 869,
+    "failed": 0,
+    "skipped": 0,
+    "suites": [
+      {
+        "suite": "http",
+        "passed": 189,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "academic-http-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "edges",
+        "passed": 50,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "academic-edge-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "completion",
+        "passed": 47,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "completion-http-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "functional-browser",
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "functional-browser-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "browser",
+        "passed": 154,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "academic-browser-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "login",
+        "passed": 27,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "login-layout-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "kelas10",
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "kelas10-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "kelas10-browser",
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "kelas10-browser-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "progression-http",
+        "passed": 49,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "progression-http-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "progression-browser",
+        "passed": 28,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "progression-browser-tests.json",
+        "policy": "legacy_review_compatibility"
+      },
+      {
+        "suite": "bulk-master-http",
+        "passed": 69,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "bulk-master-http-tests.json",
+        "policy": "configured_current_policy"
+      },
+      {
+        "suite": "bulk-master-browser",
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "bulk-master-browser-tests.json",
+        "policy": "configured_current_policy"
+      },
+      {
+        "suite": "staff-http",
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "staff-http-tests.json",
+        "policy": "configured_current_policy"
+      },
+      {
+        "suite": "staff-browser",
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "staff-browser-tests.json",
+        "policy": "configured_current_policy"
+      },
+      {
+        "suite": "integrity",
+        "passed": 141,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "report": "academic-integrity-tests.json",
+        "policy": "configured_current_policy"
+      }
+    ],
+    "all_suites_executed": true,
+    "database": "sia_academic_dev_20261031",
+    "url": "http://127.0.0.1:18125",
+    "active_8085_modified": false,
+    "configured_policy_restored": true,
+    "policy_note": "Legacy review-gate tests explicitly run in compatibility mode; bulk/staff/integrity suites prove the configured current policy. No policy is changed on 8085."
+  },
+  "focused_after_final_changes": {
+    "pagination": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "default_Admin_table_10_rows_and_exact_range",
+          "status": "PASS"
+        },
+        {
+          "test": "row_selector_25_50_100_controls_real_SQL_result",
+          "status": "PASS"
+        },
+        {
+          "test": "numeric_last_previous_and_first_pages_match_DB",
+          "status": "PASS"
+        },
+        {
+          "test": "search_filter_and_page_size_remain_in_navigation",
+          "status": "PASS"
+        },
+        {
+          "test": "empty_search_has_zero_range_and_disabled_controls",
+          "status": "PASS"
+        },
+        {
+          "test": "all_Admin_masters_accounts_year_schedule_respect_25_limit",
+          "status": "PASS"
+        },
+        {
+          "test": "invalid_page_sizes_rejected_server_side",
+          "status": "PASS"
+        },
+        {
+          "test": "Kepsek_monitor_and_supervisory_pagers_keep_role_scope",
+          "status": "PASS"
+        },
+        {
+          "test": "responsive_320_to_desktop_no_horizontal_page_overflow",
+          "status": "PASS"
+        },
+        {
+          "test": "read_only_pagination_preserves_entire_development_DB",
+          "status": "PASS"
+        }
+      ],
+      "scope": "Read-only pagination; no fixture/data creation or full-suite rerun"
+    },
+    "academic_module_upload": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "calendar_module_Excel_preview_commit_DB_reload_and_duplicate",
+          "status": "PASS"
+        },
+        {
+          "test": "attendance_module_Excel_preserves_meeting_fields_and_actor",
+          "status": "PASS"
+        },
+        {
+          "test": "grade_module_Excel_persists_real_values_without_changing_published_snapshot",
+          "status": "PASS"
+        },
+        {
+          "test": "Admin_foundation_upload_links_keep_selected_module_and_context",
+          "status": "PASS"
+        },
+        {
+          "test": "embedded_upload_RBAC_IDOR_CSRF_and_module_allowlist",
+          "status": "PASS"
+        },
+        {
+          "test": "module_upload_mobile_320_and_desktop_no_page_overflow",
+          "status": "PASS"
+        }
+      ],
+      "scope": "Current policy; existing synthetic staff fixture and one draft calendar event; no active DB writes"
+    }
+  },
+  "latest_backup_restore": {
+    "status": "PASS",
+    "checked_at": "2026-10-31T22:29:24.624389+07:00",
+    "database": "sia_academic_dev_20261031",
+    "restore_database": "sia_academic_test_restore_6dc78253",
+    "backup_sha256": "0afa662f80f7e4f181eaab4911460375f2bae4294f040d8882428235d0baa1da",
+    "exact_snapshot_match": true,
+    "source_unchanged": true,
+    "tables": 44,
+    "rows": 12397,
+    "drop_or_reset_executed": false
+  },
+  "protected_resource_check": {
+    "checked_at": "2026-10-31T22:30:30.201941+07:00",
+    "checks": {
+      "target_unchanged": true,
+      "source_unchanged": true,
+      "active-release_unchanged": true,
+      "target_git_changes_preserved": true,
+      "service_PID_start_user_unchanged": true,
+      "service_config_unchanged": true,
+      "active_database_unchanged": true,
+      "legacy_18_unchanged": true
+    },
+    "configured_policy": {
+      "HOMEROOM_MODE": "informational",
+      "ROOM_CATALOG_ENFORCED": "1",
+      "ADMIN_BULK_ONLY": "1",
+      "ALLOW_TEST_PASSWORD": "1"
+    },
+    "read_only": true,
+    "active_snapshot_sha256": "716d5f00f69f9cda6ecf24d522ac99b398462dc63f2b0ca658ec24743e164e41",
+    "hash_encoding": "JSON sort_keys=True, separators=(comma,colon), UTF-8",
+    "active_base_tables": 23,
+    "active_views": 1,
+    "active_rows": 203,
+    "development_foreign_keys": 99,
+    "orphan_rows": 0,
+    "runtime_nonroot": true,
+    "runtime_no_DDL_or_grant": true,
+    "runtime_owner_distinct": true,
+    "room_runtime_privileges": [
+      "INSERT",
+      "SELECT",
+      "UPDATE"
+    ]
+  },
+  "syntax_validation": {
+    "php_files": 114,
+    "javascript_files": 4,
+    "python_files": 4,
+    "failures": 0
+  },
+  "school_room_catalog": {
+    "status": "PASS",
+    "rooms": 29,
+    "classrooms": 20,
+    "laboratories": 9,
+    "created": 29,
+    "existing_rows_overwritten": 0,
+    "A10_basis": "User list says 10; supplied map explicitly labels A10",
+    "names": [
+      "A1",
+      "A2",
+      "A5",
+      "A9",
+      "A10",
+      "A11",
+      "B4",
+      "B8",
+      "B10",
+      "B15",
+      "B16",
+      "C1",
+      "C2",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "Lab PPLG 1",
+      "Lab PPLG 2",
+      "Lab PPLG 3",
+      "KKPI 1",
+      "KKPI 2",
+      "Lab AKL",
+      "Lab Simulasi AKL",
+      "Lab Simulasi PM",
+      "Lab Bisnis"
+    ]
+  },
+  "manual_synthetic_fixture": {
+    "teacher_username": "uji_mapel_d75604",
+    "kelas_id": 584,
+    "jadwal_id": 118,
+    "date": "2026-10-30",
+    "report_id": 136,
+    "room": "UJI-d75604"
+  },
+  "current_policy_suite_details": {
+    "bulk-master-http-tests.json": {
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "template_XLSX_actual_workbook_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_teacher_template_and_upload_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_student_template_and_upload_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_head_template_and_upload_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_duty_template_and_upload_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "template_XLSX_actual_workbook_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_teacher_template_and_upload_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_student_template_and_upload_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_head_template_and_upload_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_duty_template_and_upload_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "template_XLSX_actual_workbook_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_teacher_template_and_upload_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_student_template_and_upload_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_head_template_and_upload_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_duty_template_and_upload_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "template_XLSX_actual_workbook_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_teacher_template_and_upload_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_student_template_and_upload_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_head_template_and_upload_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_duty_template_and_upload_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "template_XLSX_actual_workbook_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_teacher_template_and_upload_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_student_template_and_upload_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_head_template_and_upload_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "deny_duty_template_and_upload_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "preview_no_DB_write_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_confirmation_required_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_25_real_rows_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "all_25_rows_read_back_exactly_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "token_replay_rejected_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "existing_identity_rejected_without_overwrite_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "preview_no_DB_write_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_confirmation_required_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_25_real_rows_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "all_25_rows_read_back_exactly_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "token_replay_rejected_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "existing_identity_rejected_without_overwrite_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "preview_no_DB_write_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_confirmation_required_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_25_real_rows_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "all_25_rows_read_back_exactly_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "token_replay_rejected_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "existing_identity_rejected_without_overwrite_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "preview_no_DB_write_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_confirmation_required_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_25_real_rows_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "all_25_rows_read_back_exactly_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "token_replay_rejected_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "existing_identity_rejected_without_overwrite_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "preview_no_DB_write_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_confirmation_required_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "commit_25_real_rows_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "all_25_rows_read_back_exactly_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "token_replay_rejected_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "existing_identity_rejected_without_overwrite_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "no_accounts_created_or_passwords_reset",
+          "status": "PASS"
+        },
+        {
+          "test": "case_insensitive_batch_duplicates_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "invalid_major_relation_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "invalid_grade_threshold_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "invalid_birth_date_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "native_Excel_date_1904_accepted_and_DB_read_back",
+          "status": "PASS"
+        },
+        {
+          "test": "native_Excel_date_ISO_accepted_and_DB_read_back",
+          "status": "PASS"
+        },
+        {
+          "test": "native_Excel_datetime_nonmidnight_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "formula_cells_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "first_workbook_sheet_resolved_from_relationships",
+          "status": "PASS"
+        },
+        {
+          "test": "late_database_duplicate_rolls_back_entire_batch",
+          "status": "PASS"
+        },
+        {
+          "test": "2000_row_XLSX_preview_accepted",
+          "status": "PASS"
+        },
+        {
+          "test": "preview_pages_only_20_of_2000_rows",
+          "status": "PASS"
+        },
+        {
+          "test": "2001_row_XLSX_rejected",
+          "status": "PASS"
+        }
+      ]
+    },
+    "bulk-master-browser-tests.json": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "browser_template_upload_confirm_persist_reload_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_template_upload_confirm_persist_reload_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_template_upload_confirm_persist_reload_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_template_upload_confirm_persist_reload_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_template_upload_confirm_persist_reload_mata_pelajaran",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_template_upload_confirm_persist_reload_ak_ruang",
+          "status": "PASS"
+        },
+        {
+          "test": "bulk_reference_search_uses_real_DB_and_is_paginated",
+          "status": "PASS"
+        },
+        {
+          "test": "bulk_admin_responsive_320",
+          "status": "PASS"
+        },
+        {
+          "test": "bulk_admin_responsive_375",
+          "status": "PASS"
+        },
+        {
+          "test": "bulk_admin_responsive_430",
+          "status": "PASS"
+        },
+        {
+          "test": "bulk_admin_responsive_768",
+          "status": "PASS"
+        },
+        {
+          "test": "bulk_admin_responsive_1440",
+          "status": "PASS"
+        }
+      ]
+    },
+    "staff-http-tests.json": {
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "simple_fixture_logins_still_check_real_DB",
+          "status": "PASS"
+        },
+        {
+          "test": "old_generic_import_GET_redirects_to_Admin_bulk",
+          "status": "PASS"
+        },
+        {
+          "test": "no_change_password_or_generic_import_menu",
+          "status": "PASS"
+        },
+        {
+          "test": "29_user_room_references_stored_in_real_DB",
+          "status": "PASS"
+        },
+        {
+          "test": "Admin_schedule_list_pagination_20",
+          "status": "PASS"
+        },
+        {
+          "test": "unknown_room_POST_rejected_by_server",
+          "status": "PASS"
+        },
+        {
+          "test": "Admin_assigns_teacher_subject_class_and_DB_room",
+          "status": "PASS"
+        },
+        {
+          "test": "head_dashboard_teacher_class_room_and_unfilled_journal",
+          "status": "PASS"
+        },
+        {
+          "test": "teacher_cannot_self_assign_Admin_via_metadata",
+          "status": "PASS"
+        },
+        {
+          "test": "head_cannot_manage_users_or_bulk_master",
+          "status": "PASS"
+        },
+        {
+          "test": "other_class_meeting_IDOR_rejected",
+          "status": "PASS"
+        },
+        {
+          "test": "mapel_teacher_saves_one_meeting_attendance_journal_agenda",
+          "status": "PASS"
+        },
+        {
+          "test": "meeting_actor_DB_user_id_not_client_metadata",
+          "status": "PASS"
+        },
+        {
+          "test": "reload_persists_3_student_roster_and_material",
+          "status": "PASS"
+        },
+        {
+          "test": "head_dashboard_journal_status_and_actual_wali_metadata",
+          "status": "PASS"
+        },
+        {
+          "test": "head_read_only_cannot_submit_teaching",
+          "status": "PASS"
+        },
+        {
+          "test": "real_PDF_matches_physical_book_jurnal",
+          "status": "PASS"
+        },
+        {
+          "test": "real_PDF_matches_physical_book_agenda",
+          "status": "PASS"
+        },
+        {
+          "test": "current_report_workflow_Admin_verification_version_3",
+          "status": "PASS"
+        },
+        {
+          "test": "informational_wali_has_no_report_review_privilege",
+          "status": "PASS"
+        },
+        {
+          "test": "Admin_explicitly_verifies_and_publishes_without_wali_gate",
+          "status": "PASS"
+        },
+        {
+          "test": "optional_student_still_cannot_read_another_report",
+          "status": "PASS"
+        },
+        {
+          "test": "inline_download_contents_XLSX_CSV_PDF_print_rapor",
+          "status": "PASS"
+        },
+        {
+          "test": "inline_download_contents_XLSX_CSV_PDF_print_nilai",
+          "status": "PASS"
+        },
+        {
+          "test": "Admin_role_change_revokes_existing_teacher_session",
+          "status": "PASS"
+        }
+      ]
+    },
+    "staff-browser-tests.json": {
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "Admin_upload_is_in_Admin_area_and_old_URL_redirects",
+          "status": "PASS"
+        },
+        {
+          "test": "Guru_mapel_search_verify_save_attendance_and_two_books",
+          "status": "PASS"
+        },
+        {
+          "test": "browser_metadata_cannot_grant_Admin_role",
+          "status": "PASS"
+        },
+        {
+          "test": "Kepsek_dashboard_matches_teacher_class_room_and_journal",
+          "status": "PASS"
+        },
+        {
+          "test": "Kepsek_report_download_is_available_in_report",
+          "status": "PASS"
+        },
+        {
+          "test": "Admin_schedule_room_comes_from_DB_and_list_is_paginated",
+          "status": "PASS"
+        },
+        {
+          "test": "admin_current_staff_responsive_320",
+          "status": "PASS"
+        },
+        {
+          "test": "admin_current_staff_responsive_375",
+          "status": "PASS"
+        },
+        {
+          "test": "admin_current_staff_responsive_430",
+          "status": "PASS"
+        },
+        {
+          "test": "admin_current_staff_responsive_768",
+          "status": "PASS"
+        },
+        {
+          "test": "admin_current_staff_responsive_1440",
+          "status": "PASS"
+        },
+        {
+          "test": "guru_current_staff_responsive_320",
+          "status": "PASS"
+        },
+        {
+          "test": "guru_current_staff_responsive_375",
+          "status": "PASS"
+        },
+        {
+          "test": "guru_current_staff_responsive_430",
+          "status": "PASS"
+        },
+        {
+          "test": "guru_current_staff_responsive_768",
+          "status": "PASS"
+        },
+        {
+          "test": "guru_current_staff_responsive_1440",
+          "status": "PASS"
+        },
+        {
+          "test": "kepsek_current_staff_responsive_320",
+          "status": "PASS"
+        },
+        {
+          "test": "kepsek_current_staff_responsive_375",
+          "status": "PASS"
+        },
+        {
+          "test": "kepsek_current_staff_responsive_430",
+          "status": "PASS"
+        },
+        {
+          "test": "kepsek_current_staff_responsive_768",
+          "status": "PASS"
+        },
+        {
+          "test": "kepsek_current_staff_responsive_1440",
+          "status": "PASS"
+        }
+      ]
+    },
+    "academic-integrity-tests.json": {
+      "passed": 141,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "foreign_key_no_orphans_absensi_fk_absensi_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_absensi_fk_absensi_jadwal",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_absensi_fk_absensi_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_harian_ak_absensi_harian_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_harian_ak_absensi_harian_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_harian_ak_absensi_harian_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_harian_ak_absensi_harian_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_harian_ak_absensi_harian_ibfk_5",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_harian_ak_absensi_harian_ibfk_6",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_sesi_ak_absensi_sesi_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_sesi_ak_absensi_sesi_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_sesi_ak_absensi_sesi_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_sesi_ak_absensi_sesi_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_absensi_sesi_ak_absensi_sesi_ibfk_5",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_anggota_kelas_ak_anggota_kelas_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_anggota_kelas_ak_anggota_kelas_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_anggota_kelas_ak_anggota_kelas_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_anggota_kelas_ak_anggota_kelas_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_aturan_nilai_ak_aturan_nilai_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_aturan_nilai_ak_aturan_nilai_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_aturan_nilai_ak_aturan_nilai_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_aturan_nilai_ak_aturan_nilai_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_aturan_nilai_ak_aturan_nilai_ibfk_5",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_jam_belajar_ak_jam_belajar_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kalender_ak_kalender_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kalender_ak_kalender_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_batch_ak_kenaikan_batch_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_batch_ak_kenaikan_batch_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_batch_ak_kenaikan_batch_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_detail_ak_kenaikan_detail_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_detail_ak_kenaikan_detail_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_detail_ak_kenaikan_detail_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_detail_ak_kenaikan_detail_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_kenaikan_detail_ak_kenaikan_detail_ibfk_5",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_5",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_6",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_7",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_8",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_nilai_ak_nilai_ibfk_9",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_penugasan_ak_penugasan_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_penugasan_ak_penugasan_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_periode_ak_periode_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_periode_ak_periode_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_5",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_6",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_7",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_pertemuan_ak_pertemuan_ibfk_8",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_snapshot_ak_rapor_snapshot_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_snapshot_ak_rapor_snapshot_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_snapshot_ak_rapor_snapshot_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_snapshot_ak_rapor_snapshot_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_status_ak_rapor_status_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_status_ak_rapor_status_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_rapor_status_ak_rapor_status_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_review_rapor_ak_review_rapor_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_review_rapor_ak_review_rapor_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_review_rapor_ak_review_rapor_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_riwayat_ak_riwayat_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_ruang_ak_ruang_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_ruang_ak_ruang_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_tugas_piket_ak_tugas_piket_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_tugas_piket_ak_tugas_piket_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_tugas_piket_ak_tugas_piket_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_tugas_piket_ak_tugas_piket_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_wali_kelas_ak_wali_kelas_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_wali_kelas_ak_wali_kelas_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_wali_kelas_ak_wali_kelas_ibfk_3",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ak_wali_kelas_ak_wali_kelas_ibfk_4",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_audit_aktivitas_fk_r1_audit_actor",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_catatan_evaluasi_fk_evaluasi_tahun",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_catatan_evaluasi_fk_evaluasi_user",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_ekstrakurikuler_fk_r1_ekskul_pembina",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jadwal_fk_jadwal_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jadwal_fk_jadwal_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jadwal_fk_jadwal_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jadwal_fk_r1_jadwal_tahun",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jurnal_kelas_fk_jurnal_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jurnal_kelas_fk_jurnal_jadwal",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jurnal_kelas_fk_jurnal_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_jurnal_kelas_fk_jurnal_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_kelas_fk_kelas_jurusan",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_fk_nilai_guru",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_fk_nilai_mapel",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_fk_nilai_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_fk_nilai_tahun",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_ekskul_fk_nekskul_ekskul",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_ekskul_fk_nekskul_siswa",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_nilai_ekskul_fk_nekskul_tahun",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_normalisasi_2nf_nilai_normalisasi_2nf_nilai_ibfk_1",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_normalisasi_2nf_nilai_normalisasi_2nf_nilai_ibfk_2",
+          "status": "PASS"
+        },
+        {
+          "test": "foreign_key_no_orphans_siswa_fk_siswa_kelas",
+          "status": "PASS"
+        },
+        {
+          "test": "runtime_no_DDL_no_grant_privileges",
+          "status": "PASS"
+        },
+        {
+          "test": "runtime_and_deployment_distinct_principals",
+          "status": "PASS"
+        },
+        {
+          "test": "runtime_not_root_and_staging_socket_only",
+          "status": "PASS"
+        },
+        {
+          "test": "append_only_runtime_grants_ak_aturan_nilai",
+          "status": "PASS"
+        },
+        {
+          "test": "append_only_runtime_grants_ak_rapor_snapshot",
+          "status": "PASS"
+        },
+        {
+          "test": "append_only_runtime_grants_ak_riwayat",
+          "status": "PASS"
+        },
+        {
+          "test": "append_only_runtime_grants_ak_jam_belajar",
+          "status": "PASS"
+        },
+        {
+          "test": "append_only_runtime_grants_ak_kenaikan_batch",
+          "status": "PASS"
+        },
+        {
+          "test": "append_only_runtime_grants_ak_kenaikan_detail",
+          "status": "PASS"
+        },
+        {
+          "test": "backup_readable_and_source_unchanged",
+          "status": "PASS"
+        },
+        {
+          "test": "restore_exact_all_table_schema_data_objects",
+          "status": "PASS"
+        },
+        {
+          "test": "local_development_restart",
+          "status": "PASS"
+        },
+        {
+          "test": "login_session_survives_local_restart",
+          "status": "PASS"
+        },
+        {
+          "test": "restart_preserves_all_database_hashes",
+          "status": "PASS"
+        },
+        {
+          "test": "namespace_probe_nonroot",
+          "status": "PASS"
+        },
+        {
+          "test": "namespace_probe_home_secrets_hidden",
+          "status": "PASS"
+        },
+        {
+          "test": "namespace_probe_owner_config_hidden",
+          "status": "PASS"
+        },
+        {
+          "test": "namespace_probe_host_runtime_config_hidden",
+          "status": "PASS"
+        },
+        {
+          "test": "namespace_probe_code_read_only",
+          "status": "PASS"
+        },
+        {
+          "test": "namespace_probe_socket_only_staging",
+          "status": "PASS"
+        },
+        {
+          "test": "dev_process_R15_hardening_properties",
+          "status": "PASS"
+        },
+        {
+          "test": "development_bound_to_loopback_only",
+          "status": "PASS"
+        },
+        {
+          "test": "wrong_runtime_credential_startup_fails_closed",
+          "status": "PASS"
+        },
+        {
+          "test": "known_configuration_recovers_development_only",
+          "status": "PASS"
+        },
+        {
+          "test": "failed_startup_did_not_mutate_database",
+          "status": "PASS"
+        },
+        {
+          "test": "migration_guard_production_environment",
+          "status": "PASS"
+        },
+        {
+          "test": "migration_guard_active_database_name",
+          "status": "PASS"
+        },
+        {
+          "test": "php_lint_all_114_files",
+          "status": "PASS"
+        },
+        {
+          "test": "javascript_syntax_assets/js/academic.js",
+          "status": "PASS"
+        },
+        {
+          "test": "javascript_syntax_ops/academic_pdf.cjs",
+          "status": "PASS"
+        },
+        {
+          "test": "javascript_syntax_tests/academic_browser.cjs",
+          "status": "PASS"
+        },
+        {
+          "test": "no_passwords_in_development_PHP_log",
+          "status": "PASS"
+        },
+        {
+          "test": "no_PHP_fatal_errors_in_development_log",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_target_every_file_hash",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_source_every_file_hash",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_active-release_every_file_hash",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_target_existing_git_changes",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_8085_service_PID_start_time_user_state",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_8085_service_configuration",
+          "status": "PASS"
+        },
+        {
+          "test": "unchanged_active_database_every_schema_row_view_trigger_routine_hash",
+          "status": "PASS"
+        },
+        {
+          "test": "18_legacy_assignments_preserved_active_read_only_count",
+          "status": "PASS"
+        },
+        {
+          "test": "no_new_academic_tables_added_to_active_DB",
+          "status": "PASS"
+        }
+      ]
+    }
+  },
+  "full_regression_rerun_after_final_changes": false,
+  "screenshots": [
+    "pagination-320.png",
+    "pagination-375.png",
+    "pagination-430.png",
+    "pagination-768.png",
+    "pagination-1440.png",
+    "module-upload-320.png",
+    "module-upload-1440.png"
+  ]
+}

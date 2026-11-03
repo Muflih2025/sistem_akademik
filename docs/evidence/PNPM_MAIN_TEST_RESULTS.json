@@ -1,0 +1,93 @@
+{
+  "scope": "Merged main candidate; real pnpm PHP launcher and browser on 127.0.0.1:18126",
+  "base_main": "a5c7b87",
+  "development": "18b58f9",
+  "passed": 16,
+  "failed": 0,
+  "skipped": 0,
+  "php_lint_files": 119,
+  "original_worktree_unchanged": true,
+  "database_unchanged": true,
+  "runners": {
+    "launcher": {
+      "tested_at": "2026-11-03T01:21:39.088Z",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "pnpm_setup_creates_private_template_and_never_overwrites_existing_config",
+          "status": "PASS"
+        },
+        {
+          "test": "pnpm_rejects_production_root_repository_config_and_active_service_port",
+          "status": "PASS"
+        },
+        {
+          "test": "pnpm_dev_check_connects_read_only_without_leaking_credentials",
+          "status": "PASS"
+        },
+        {
+          "test": "pnpm_dev_starts_real_PHP_with_safe_public_router",
+          "status": "PASS"
+        },
+        {
+          "test": "pnpm_server_real_login_and_role_protected_navigation",
+          "status": "PASS"
+        },
+        {
+          "test": "busy_port_is_reported_without_stopping_existing_server",
+          "status": "PASS"
+        },
+        {
+          "test": "Ctrl_C_stops_launcher_and_its_PHP_child_only",
+          "status": "PASS"
+        },
+        {
+          "test": "all_database_schema_and_data_remain_identical",
+          "status": "PASS"
+        }
+      ]
+    },
+    "navigation": {
+      "tested_at": "2026-11-03T01:22:16.369Z",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "tests": [
+        {
+          "test": "admin_top_modules_change_contextual_left_sidebar_on_real_pages",
+          "status": "PASS"
+        },
+        {
+          "test": "role_specific_modules_and_piket_assignment_do_not_grant_admin_access",
+          "status": "PASS"
+        },
+        {
+          "test": "mobile_menu_keyboard_toggle_keeps_unsaved_attendance_inputs",
+          "status": "PASS"
+        },
+        {
+          "test": "320_to_desktop_academic_and_master_pages_have_no_page_overflow",
+          "status": "PASS"
+        },
+        {
+          "test": "without_javascript_native_feature_menu_still_navigates",
+          "status": "PASS"
+        },
+        {
+          "test": "print_hides_navigation_and_original_backend_guards_still_apply",
+          "status": "PASS"
+        },
+        {
+          "test": "four_operational_roles_logout_and_protected_routes_require_login",
+          "status": "PASS"
+        },
+        {
+          "test": "navigation_tests_preserve_whole_database_schema_and_data",
+          "status": "PASS"
+        }
+      ]
+    }
+  }
+}

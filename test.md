@@ -2,6 +2,8 @@
 
 Website: **http://127.0.0.1:18125/auth/login.php**. Data simulasi: **26–30 Oktober 2026**, periode **2026/2027 Ganjil**. Website tetap di browser, bukan APK.
 
+Menu **Absensi** dan **Nilai** tanpa parameter tanggal memilih tanggal mengajar terakhir dalam rentang penugasan terverifikasi, disertai keterangan tanggal otomatis. Ini tetap bekerja setelah minggu simulasi berakhir. Periksa tanggal sebelum mengoreksi; tanggal eksplisit di luar rentang dan akses memakai guru lain tetap ditolak.
+
 Panduan ini menggantikan contoh akun/ID acak sebelum pembersihan fixture. Akun `uji_mapel_d75604`, kelas Uji Staf, jurnal #17 dan rapor #136 sudah tidak dipakai. Jangan menggunakan tautan lama tersebut sebagai contoh aktif.
 
 ## Akun yang dipakai
@@ -30,6 +32,15 @@ Gunakan profil browser terpisah atau logout saat berganti peran. Beberapa tab In
 - **42 nilai**, **3 konfigurasi nilai**, **110 record absensi harian**, dan **2 rapor contoh terbit**.
 - Satu agenda kalender disahkan dan satu agenda impor Excel masih draft.
 - Data Uji/Bulk/F acak dari pengujian lama dihapus setelah backup/restore terverifikasi; audit log tetap disimpan. Database aktif dan layanan 8085 tidak dipakai untuk simulasi ini.
+
+## Navigasi modul dan fitur
+
+Pilih **modul utama di atas**, kemudian **fitur di sidebar kiri**. Pada layar HP, klik **Menu fitur** untuk membuka/menutup daftar fitur modul. Navigasi bawah tetap menyediakan akses cepat. Tautan langsung di panduan ini tetap berlaku.
+
+- Admin: **Master Data** → Siswa/Guru/Kelas/Jurusan/Mapel/Ruang/Bulk Upload Excel; **Akademik** → Periode & Penugasan/Jadwal/Tahun Ajaran/Jam/Kalender/Naik Kelas/Alumni/Ekskul; **Pengaturan** → Manajemen Akun.
+- Guru: **Mengajar** → Absensi & Isi Jurnal/Riwayat & Cetak/Jadwal/Kalender/Jam; **Penilaian** → Input & Rekap Nilai/Nilai Ekstrakurikuler.
+- Guru dengan tugas Piket aktif: modul **Guru Piket** → Pantau & Rekap Absensi. Izin backend tetap menentukan cakupan tanggal/kelas dan hak koreksi.
+- Kepsek: **Monitoring** → Guru Mengajar/Jurnal Kelas & Agenda Guru/Absensi Harian; **Nilai & Rapor** → Rekap Nilai/Rapor Siswa/Catatan Evaluasi.
 
 ## 1. Guru: buka hari mengajar dan isi jurnal kelas
 
@@ -148,6 +159,8 @@ Login Admin/Kepsek, buka [Kalender Oktober 2026](http://127.0.0.1:18125/kalender
 7. Fitur Naik Kelas tetap tersedia, tetapi jangan menerapkannya pada 389 siswa Excel hanya untuk tes. Gunakan cohort dan periode Uji terpisah, Genap → Ganjil tahun berikutnya, periksa preview sebelum konfirmasi. Tidak ada batch kenaikan acak lama yang dibiarkan aktif pada demo ini.
 
 Untuk menambah/mengedit master saat mencoba, gunakan kode/nama berlabel Manual yang unik; nonaktifkan kembali bila selesai. Jangan mengulang suite otomatis besar untuk sekadar membuka demo karena suite itu memang menciptakan banyak fixture.
+
+**Menyimpan tugas Guru Piket:** di **Akademik → Periode & Penugasan**, isi bagian **Penugasan Guru Piket & izin koreksi**. Sesudah simpan, halaman membuka kembali tugas dengan ID-nya dan isian tetap terlihat. Menyimpan lagi memperbarui tugas yang sama. Untuk tugas yang sebelumnya dibuat, cari daftar **Tugas Guru Piket** dan klik **Edit / cabut izin**; jangan menambah ulang hanya karena formulir awal kosong. Gunakan **Tambah tugas Guru Piket** untuk penugasan baru. Jika validasi gagal, isian tetap terbuka dengan keterangan belum disimpan. Pencabutan mempertahankan arsip dan audit; menyimpan kembali tugas yang dicabut akan mengaktifkannya lagi.
 
 ## 6. URL pendek dan batas akses
 

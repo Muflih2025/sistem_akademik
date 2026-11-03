@@ -1,0 +1,14 @@
+# Operator template only; NOT installed or activated by R0.
+# Replace the release path and PHP-FPM socket to match the approved environment.
+server {
+    listen 127.0.0.1:18086;
+    server_name localhost;
+    root /path/to/approved-release/public;
+    location ~ (^|/)\. { return 404; }
+    location ~* \.(sql|log|env|cnf|ini|bak|bundle|gz)$ { return 404; }
+    location / {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+    }
+}

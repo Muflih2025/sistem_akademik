@@ -1,0 +1,443 @@
+{
+  "code_commit": "42fd8129f1805f2b00f9bf933073737e1044c8e2",
+  "branch": "development/academic-workflows-20261031",
+  "documented_at": "2026-11-01T03:58:24.546747+07:00",
+  "url": "http://127.0.0.1:18125",
+  "user_approved_scope": "Only proven automated fixtures, after backup; preserve Excel roster, school references, audit and active environment",
+  "cleanup": {
+    "status": "PASS",
+    "deleted": {
+      "ak_absensi_harian": 39,
+      "ak_absensi_sesi": 59,
+      "ak_nilai": 19,
+      "ak_kenaikan_detail": 336,
+      "ak_anggota_kelas": 631,
+      "ak_aturan_nilai": 89,
+      "ak_kalender": 87,
+      "ak_kenaikan_batch": 14,
+      "ak_penugasan": 67,
+      "ak_periode": 54,
+      "ak_pertemuan": 17,
+      "ak_rapor_status": 136,
+      "ak_review_rapor": 89,
+      "ak_rapor_snapshot": 136,
+      "ak_ruang": 6,
+      "ak_tugas_piket": 18,
+      "ak_wali_kelas": 30,
+      "jadwal": 63,
+      "guru": 172,
+      "siswa": 571,
+      "kelas": 235,
+      "jurusan": 184,
+      "mata_pelajaran": 138,
+      "tahun_ajaran": 88
+    },
+    "total_deleted": 3278,
+    "archived_users": 49,
+    "audit_rows_deleted": 0,
+    "backup_sha256": "05ce0e31bdcaeb08b8cd79a3501b37cae88617a23475fa3faaf393a7be7436ef",
+    "foreign_key_checks_disabled": false
+  },
+  "pre_cleanup_backup_restore": {
+    "status": "PASS",
+    "backup_sha256": "05ce0e31bdcaeb08b8cd79a3501b37cae88617a23475fa3faaf393a7be7436ef",
+    "restore_database": "sia_academic_test_restore_41717e26",
+    "exact_snapshot_match": true,
+    "checkpoint_provenance_match": true,
+    "before_tables": 44,
+    "before_rows": 12397,
+    "checked_at": "2026-10-31T23:20:01.957098+07:00"
+  },
+  "curated_backup_restore": {
+    "status": "PASS",
+    "backup_sha256": "7242f1deb1769e4b7fc11eb06954e4b27704d00a1070a36520a89b81599f85e2",
+    "restore_database": "sia_academic_test_restore_eba9fa67",
+    "exact_snapshot_match": true,
+    "source_unchanged": true,
+    "tables": 44,
+    "rows": 9766,
+    "checked_at": "2026-10-31T23:34:42.727842+07:00"
+  },
+  "curated_backup_still_matches_current_DB": true,
+  "browser_fill": {
+    "phase": "fill",
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "tests": [
+      {
+        "test": "teacher_browser_save_reload_2026-10-26",
+        "status": "PASS"
+      },
+      {
+        "test": "teacher_browser_save_reload_2026-10-27",
+        "status": "PASS"
+      },
+      {
+        "test": "teacher_browser_save_reload_2026-10-28",
+        "status": "PASS"
+      },
+      {
+        "test": "teacher_browser_save_reload_2026-10-29",
+        "status": "PASS"
+      },
+      {
+        "test": "teacher_browser_save_reload_2026-10-30",
+        "status": "PASS"
+      },
+      {
+        "test": "pagination_search_hidden_page_edits_restore_full_20_student_roster",
+        "status": "PASS"
+      },
+      {
+        "test": "real_Excel_attendance_and_calendar_module_import_commit_readback",
+        "status": "PASS"
+      }
+    ]
+  },
+  "browser_review": {
+    "phase": "review",
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "tests": [
+      {
+        "test": "head_five_days_periods_1_2_class_room_filled_unfilled_and_journal_links",
+        "status": "PASS"
+      },
+      {
+        "test": "head_period_3_4_and_filters_preserve_short_route",
+        "status": "PASS"
+      },
+      {
+        "test": "daily_five_days_exact_totals_and_unconfirmed_never_H_or_A",
+        "status": "PASS"
+      },
+      {
+        "test": "published_reports_own_student_only_and_head_readback",
+        "status": "PASS"
+      },
+      {
+        "test": "real_XLSX_CSV_PDF_print_contents_for_week_daily_grade_and_report",
+        "status": "PASS"
+      },
+      {
+        "test": "journal_and_agenda_PDF_use_same_saved_meeting",
+        "status": "PASS"
+      },
+      {
+        "test": "old_URL_still_works_alias_view_tampering_IDOR_CSRF_RBAC",
+        "status": "PASS"
+      },
+      {
+        "test": "SQL_Git_logs_config_and_unknown_aliases_blocked",
+        "status": "PASS"
+      },
+      {
+        "test": "clean_master_counts_and_archived_accounts_hidden_from_active_default",
+        "status": "PASS"
+      },
+      {
+        "test": "responsive_attendance_and_head_monitor_320_375_430_768_1440",
+        "status": "PASS"
+      },
+      {
+        "test": "no_JS_keeps_complete_roster_as_progressive_fallback",
+        "status": "PASS"
+      },
+      {
+        "test": "login_logout_each_operational_role_and_DB_unchanged_by_review",
+        "status": "PASS"
+      }
+    ]
+  },
+  "functional_total": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0
+  },
+  "final_integrity": {
+    "status": "PASS",
+    "checked_at": "2026-11-01T03:54:23.179640+07:00",
+    "checks": {
+      "protected_siswa_unchanged": true,
+      "pre_cleanup_backup_matches_protected_siswa": true,
+      "protected_ak_anggota_kelas_unchanged": true,
+      "pre_cleanup_backup_matches_protected_ak_anggota_kelas": true,
+      "protected_kelas_unchanged": true,
+      "pre_cleanup_backup_matches_protected_kelas": true,
+      "protected_jurusan_unchanged": true,
+      "pre_cleanup_backup_matches_protected_jurusan": true,
+      "protected_ak_ruang_unchanged": true,
+      "pre_cleanup_backup_matches_protected_ak_ruang": true,
+      "protected_ak_jam_belajar_unchanged": true,
+      "pre_cleanup_backup_matches_protected_ak_jam_belajar": true,
+      "core_accounts_passwords_roles_unchanged": true,
+      "all_pre_cleanup_audit_aktivitas_rows_byte_equal": true,
+      "all_pre_cleanup_ak_riwayat_rows_byte_equal": true,
+      "foreign_keys_enabled_no_orphans": true,
+      "runtime_no_DDL_no_grant": true,
+      "runtime_not_root_distinct_deployment": true,
+      "source_unchanged": true,
+      "active-release_unchanged": true,
+      "target_only_requested_manual_document_changed": true,
+      "active_8085_PID_start_user_unchanged": true,
+      "active_service_configuration_unchanged": true,
+      "active_DB_every_schema_row_object_unchanged": true,
+      "active_18_assignments_preserved": true,
+      "audit_logs_not_deleted": true,
+      "cleanup_cannot_be_replayed": true,
+      "PHP_syntax": true,
+      "JS_syntax": true,
+      "git_whitespace": true
+    },
+    "foreign_keys_checked": 99,
+    "orphan_rows": 0,
+    "php_files": 116,
+    "javascript_files": 12,
+    "counts": {
+      "siswa": 411,
+      "kelas": 36,
+      "guru": 4,
+      "jurusan": 4,
+      "mata_pelajaran": 2,
+      "tahun_ajaran": 2,
+      "ak_ruang": 29,
+      "ak_pertemuan": 9,
+      "ak_nilai": 42,
+      "ak_absensi_harian": 110,
+      "ak_rapor_snapshot": 2
+    },
+    "active_snapshot_sha256": "716d5f00f69f9cda6ecf24d522ac99b398462dc63f2b0ca658ec24743e164e41",
+    "target_changes": [
+      "test.md"
+    ],
+    "active_8085_modified": false
+  },
+  "earlier_development_restart_proof": {
+    "development_restart_session_survives": true,
+    "restart_preserves_complete_development_snapshot": true
+  },
+  "simulation": {
+    "phase": "finalized",
+    "days": [
+      "2026-10-26",
+      "2026-10-27",
+      "2026-10-28",
+      "2026-10-29",
+      "2026-10-30"
+    ],
+    "schedules": [
+      {
+        "id": 3,
+        "teacher": 1,
+        "class": 1,
+        "subject": 1,
+        "day": "Senin",
+        "date": "2026-10-26",
+        "start": "07:40",
+        "until": "09:00",
+        "room": "Lab PPLG 1",
+        "fill": true,
+        "meeting_id": 18
+      },
+      {
+        "id": 119,
+        "teacher": 2,
+        "class": 2,
+        "subject": 2,
+        "day": "Senin",
+        "date": "2026-10-26",
+        "start": "07:40",
+        "until": "09:00",
+        "room": "A1",
+        "fill": true,
+        "meeting_id": 19
+      },
+      {
+        "id": 120,
+        "teacher": 1,
+        "class": 1,
+        "subject": 1,
+        "day": "Selasa",
+        "date": "2026-10-27",
+        "start": "07:00",
+        "until": "08:20",
+        "room": "Lab PPLG 1",
+        "fill": true,
+        "meeting_id": 20
+      },
+      {
+        "id": 121,
+        "teacher": 2,
+        "class": 2,
+        "subject": 2,
+        "day": "Selasa",
+        "date": "2026-10-27",
+        "start": "07:00",
+        "until": "08:20",
+        "room": "A1",
+        "fill": true,
+        "meeting_id": 21
+      },
+      {
+        "id": 122,
+        "teacher": 1,
+        "class": 1,
+        "subject": 1,
+        "day": "Rabu",
+        "date": "2026-10-28",
+        "start": "07:00",
+        "until": "08:20",
+        "room": "Lab PPLG 1",
+        "fill": true,
+        "meeting_id": 22
+      },
+      {
+        "id": 123,
+        "teacher": 2,
+        "class": 2,
+        "subject": 2,
+        "day": "Rabu",
+        "date": "2026-10-28",
+        "start": "07:00",
+        "until": "08:20",
+        "room": "A1",
+        "fill": false
+      },
+      {
+        "id": 124,
+        "teacher": 1,
+        "class": 1,
+        "subject": 1,
+        "day": "Kamis",
+        "date": "2026-10-29",
+        "start": "07:00",
+        "until": "08:20",
+        "room": "Lab PPLG 1",
+        "fill": true,
+        "meeting_id": 23
+      },
+      {
+        "id": 125,
+        "teacher": 2,
+        "class": 2,
+        "subject": 2,
+        "day": "Kamis",
+        "date": "2026-10-29",
+        "start": "07:00",
+        "until": "08:20",
+        "room": "A1",
+        "fill": true,
+        "meeting_id": 24
+      },
+      {
+        "id": 1,
+        "teacher": 1,
+        "class": 1,
+        "subject": 1,
+        "day": "Jumat",
+        "date": "2026-10-30",
+        "start": "07:45",
+        "until": "08:45",
+        "room": "Lab PPLG 1",
+        "fill": true,
+        "meeting_id": 25
+      },
+      {
+        "id": 2,
+        "teacher": 2,
+        "class": 2,
+        "subject": 2,
+        "day": "Jumat",
+        "date": "2026-10-30",
+        "start": "07:45",
+        "until": "08:45",
+        "room": "A1",
+        "fill": false
+      },
+      {
+        "id": 4,
+        "teacher": 2,
+        "class": 1,
+        "subject": 2,
+        "day": "Jumat",
+        "date": "2026-10-30",
+        "start": "08:45",
+        "until": "09:45",
+        "room": "Lab PPLG 1",
+        "fill": true,
+        "meeting_id": 26
+      }
+    ],
+    "curated_students": 22,
+    "excel_students_preserved": 389,
+    "filled": 9,
+    "unfilled": 2,
+    "class_1_expected": {
+      "2026-10-26": {
+        "H": 18,
+        "S": 1,
+        "I": 1,
+        "A": 0,
+        "B": 0
+      },
+      "2026-10-27": {
+        "H": 19,
+        "S": 0,
+        "I": 0,
+        "A": 1,
+        "B": 0
+      },
+      "2026-10-28": {
+        "H": 18,
+        "S": 1,
+        "I": 0,
+        "A": 0,
+        "B": 1
+      },
+      "2026-10-29": {
+        "H": 20,
+        "S": 0,
+        "I": 0,
+        "A": 0,
+        "B": 0
+      },
+      "2026-10-30": {
+        "H": 18,
+        "S": 1,
+        "I": 1,
+        "A": 0,
+        "B": 0
+      }
+    },
+    "reports": [
+      {
+        "id": 137,
+        "nis": "0000001",
+        "status": "diterbitkan"
+      },
+      {
+        "id": 138,
+        "nis": "0000002",
+        "status": "diterbitkan"
+      }
+    ],
+    "daily_records": 110,
+    "school_data_unchanged": true
+  },
+  "screenshots": [
+    "week-attendance-320.png",
+    "week-attendance-375.png",
+    "week-attendance-430.png",
+    "week-attendance-768.png",
+    "week-attendance-1440.png",
+    "week-head-320.png",
+    "week-head-375.png",
+    "week-head-430.png",
+    "week-head-768.png",
+    "week-head-1440.png"
+  ],
+  "full_869_suite_repeated": false,
+  "cleanup_or_simulation_replayed_after_checkpoint": false
+}
