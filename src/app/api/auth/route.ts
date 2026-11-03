@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       if (g) nama = g.nama_guru;
       // Cek apakah guru piket aktif
       const p = db.prepare('SELECT 1 FROM ak_tugas_piket WHERE id_guru = ? AND aktif = 1').get(user.id_referensi);
-      if (p || user.username === 'uji_piket') isPiket = true;
+      if (p) isPiket = true;
     } else if (user.role === 'siswa') {
       const s = db.prepare('SELECT nama_siswa FROM siswa WHERE nis = ?').get(user.id_referensi) as any;
       if (s) nama = s.nama_siswa;
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     if (user.role === 'admin') redirect = '/admin';
     else if (user.role === 'kepala_sekolah') redirect = '/kepsek';
     else if (user.role === 'siswa') redirect = '/siswa';
-    else if (isPiket && user.username === 'uji_piket') redirect = '/piket';
+    else if (isPiket) redirect = '/piket';
 
     const response = NextResponse.json({
       success: true,

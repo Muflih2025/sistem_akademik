@@ -42,11 +42,6 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
-        source: '/piket',
-        destination: '/piket',
-        permanent: false,
-      },
-      {
         source: '/piket.php',
         destination: '/piket',
         permanent: false,

@@ -49,5 +49,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   const row = db.prepare("SELECT * FROM users WHERE id_user = ? AND status = 'aktif'").get(user.id_user) as any;
   if (!row) return null;
 
-  return user;
+  // Authorization uses current database metadata, never a stale role in a cookie.
+  const duty = row.role === 'guru' && !!db.prepare("SELECT 1 FROM ak_tugas_piket WHERE id_guru=? AND aktif='1'").get(row.id_referensi);
+  return { ...user, role: row.role, id_referensi: row.id_referensi, is_piket: duty };
 }

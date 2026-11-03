@@ -40,7 +40,8 @@ export default function PortalLayout({
     }
   }, []);
 
-  const role = currentUser?.role || (pathname.startsWith('/admin') ? 'admin' : pathname.startsWith('/kepsek') ? 'kepsek' : pathname.startsWith('/piket') ? 'piket' : pathname.startsWith('/siswa') ? 'siswa' : 'guru');
+  const storedRole = currentUser?.role === 'kepala_sekolah' ? 'kepsek' : currentUser?.role;
+  const role = storedRole || (pathname.startsWith('/admin') ? 'admin' : pathname.startsWith('/kepsek') ? 'kepsek' : pathname.startsWith('/piket') ? 'piket' : pathname.startsWith('/siswa') ? 'siswa' : 'guru');
 
   // Skema Modul & Sub-fitur identik dengan sia_navigation() di branch main
   const modulesByRole: Record<string, NavigationModule[]> = {
@@ -174,7 +175,7 @@ export default function PortalLayout({
     ],
   };
 
-  const currentModules = modulesByRole[role] || modulesByRole.guru;
+  const currentModules = (modulesByRole[role] || modulesByRole.guru).filter(m => m.key !== 'piket' || role !== 'guru' || currentUser?.is_piket);
 
   // Temukan modul yang sedang aktif berdasarkan path
   const activeModule = currentModules.find((m) =>

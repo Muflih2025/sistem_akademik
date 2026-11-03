@@ -1,23 +1,8 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
-
+import { actor, dateValue, dutySummary, errorResponse } from '@/lib/academic';
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tanggal = searchParams.get('tanggal');
-
-    let query = 'SELECT * FROM piket_log WHERE 1=1';
-    const params: any[] = [];
-
-    if (tanggal) {
-      query += ' AND tanggal = ?';
-      params.push(tanggal);
-    }
-
-    query += ' ORDER BY tanggal DESC, id DESC';
-    const rows = db.prepare(query).all(...params);
-    return NextResponse.json({ success: true, data: rows });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
+    const user = await actor(), q = new URL(request.url).searchParams;
+    return NextResponse.json({ success: true, ...dutySummary(user, dateValue(q.get('tanggal')), q.get('id_kelas')) });
+  } catch (error) { return errorResponse(error); }
 }

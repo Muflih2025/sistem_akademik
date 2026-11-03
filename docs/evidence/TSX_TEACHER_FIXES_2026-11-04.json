@@ -1,0 +1,314 @@
+{
+  "date": "2026-11-04",
+  "branch": "rebase-tsx",
+  "scope": "Guru journals, schedule history, grade/report book synchronization, scoped duty dashboard; isolated synthetic data only",
+  "runtime": "Next.js 16.4.3, Turbopack development server",
+  "passed": 53,
+  "failed": 0,
+  "errors": 0,
+  "skip": 0,
+  "tests": [
+    {
+      "id": "AUTH_teacher_other_duty_head_login",
+      "status": "PASS",
+      "observed": {
+        "accounts": 4
+      }
+    },
+    {
+      "id": "ABSENSI_new_session_uses_roster_not_daily_status",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RBAC_foreign_teacher_session_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "JURNAL_wrong_weekday_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "JURNAL_invalid_date_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "CSRF_cross_origin_write_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_schedule_journal_save_reload_2026-10-26",
+      "status": "PASS",
+      "observed": {
+        "date": "2026-10-26",
+        "stored": "Materi sintetis 2026-10-26",
+        "displayed": "Materi sintetis 2026-10-26"
+      }
+    },
+    {
+      "id": "BROWSER_schedule_journal_save_reload_2026-10-27",
+      "status": "PASS",
+      "observed": {
+        "date": "2026-10-27",
+        "stored": "Materi sintetis 2026-10-27",
+        "displayed": "Materi sintetis 2026-10-27"
+      }
+    },
+    {
+      "id": "BROWSER_schedule_journal_save_reload_2026-10-28",
+      "status": "PASS",
+      "observed": {
+        "date": "2026-10-28",
+        "stored": "Materi sintetis 2026-10-28",
+        "displayed": "Materi sintetis 2026-10-28"
+      }
+    },
+    {
+      "id": "BROWSER_schedule_journal_save_reload_2026-10-29",
+      "status": "PASS",
+      "observed": {
+        "date": "2026-10-29",
+        "stored": "Materi sintetis 2026-10-29",
+        "displayed": "Materi sintetis 2026-10-29"
+      }
+    },
+    {
+      "id": "BROWSER_schedule_journal_save_reload_2026-10-30",
+      "status": "PASS",
+      "observed": {
+        "date": "2026-10-30",
+        "stored": "Materi sintetis 2026-10-30",
+        "displayed": "Materi sintetis 2026-10-30"
+      }
+    },
+    {
+      "id": "BROWSER_wrong_day_error_uses_cross_icon",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_failed_save_shows_cross_and_preserves_database",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "ABSENSI_atomic_save_and_reload",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "ABSENSI_other_subject_same_class_stays_pending",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "ABSENSI_other_class_roster_isolated",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "ABSENSI_foreign_roster_rejected_without_write",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "CONCURRENCY_stale_meeting_revision_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "TRANSACTION_failure_rolls_back_meeting_and_attendance_audit",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_grades_create_database_and_reload",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_report_book_syncs_subject_components_and_final",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "GRADES_historical_period_unchanged",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "GRADES_other_subject_stays_empty",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RBAC_foreign_grade_write_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "GRADES_non_numeric_rejected",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "PERIOD_locked_write_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "AUDIT_actor_and_creator_match_authenticated_teacher",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_no_horizontal_overflow_320",
+      "status": "PASS",
+      "observed": {
+        "width": 320,
+        "scrollWidth": 320
+      }
+    },
+    {
+      "id": "BROWSER_no_horizontal_overflow_375",
+      "status": "PASS",
+      "observed": {
+        "width": 375,
+        "scrollWidth": 375
+      }
+    },
+    {
+      "id": "BROWSER_no_horizontal_overflow_430",
+      "status": "PASS",
+      "observed": {
+        "width": 430,
+        "scrollWidth": 430
+      }
+    },
+    {
+      "id": "BROWSER_no_horizontal_overflow_768",
+      "status": "PASS",
+      "observed": {
+        "width": 768,
+        "scrollWidth": 768
+      }
+    },
+    {
+      "id": "BROWSER_no_horizontal_overflow_1440",
+      "status": "PASS",
+      "observed": {
+        "width": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "id": "BROWSER_pagination_preserves_and_persists_all_student_statuses",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "PIKET_unassigned_teacher_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "PIKET_guest_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "PIKET_expired_duty_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "PIKET_no_redirect_loop",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_duty_dashboard_loads_school_daily_and_session_journals",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "BROWSER_duty_matrix_uses_daily_data_and_pending_not_session_status",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "PIKET_duty_revoked_old_session_denied",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "KEPSEK_read_only_school_monitor_available",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "INTEGRITY_daily_snapshots_publication_and_assignments_preserved",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "INTEGRITY_sqlite_check",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "INTEGRITY_repository_database_files_unchanged",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_sqlite_backup_restores_all_table_content",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_restored_database_integrity",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_original_database_files_unchanged",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_restart_preserves_all_table_content",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_login_after_restart",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_attendance_after_restart",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_grade_after_restart",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_duty_permission_still_enforced",
+      "status": "PASS",
+      "observed": {}
+    },
+    {
+      "id": "RECOVERY_original_database_files_unchanged",
+      "status": "PASS",
+      "observed": {}
+    }
+  ]
+}
