@@ -1,0 +1,238 @@
+{
+  "branch": "rebase-tsx",
+  "commit": "b4843b1",
+  "method": "Actual Next HTTP/browser on schema-only synthetic fixture; original database read-only",
+  "url": "http://127.0.0.1:18128",
+  "passed": 9,
+  "failed": 17,
+  "errors": 0,
+  "tests": [
+    {
+      "id": "AUTH_five_fixture_accounts_login",
+      "status": "PASS",
+      "observed": {
+        "accounts": 5
+      }
+    },
+    {
+      "id": "ADMIN_users_matches_database_schema",
+      "status": "FAIL",
+      "observed": {
+        "http": 500
+      }
+    },
+    {
+      "id": "ADMIN_master_read_API",
+      "status": "PASS",
+      "observed": {
+        "http": 200,
+        "rows": 2
+      }
+    },
+    {
+      "id": "AUTH_guest_admin_page_denied",
+      "status": "FAIL",
+      "observed": {
+        "http": 200
+      }
+    },
+    {
+      "id": "RBAC_student_cannot_read_school_master",
+      "status": "FAIL",
+      "observed": {
+        "http": 200,
+        "rows": 3
+      }
+    },
+    {
+      "id": "ABSENSI_class_filter_isolates_roster",
+      "status": "FAIL",
+      "observed": {
+        "class_one_rows": 3,
+        "class_two_rows": 3,
+        "identical": true
+      }
+    },
+    {
+      "id": "ABSENSI_schedule_filter_isolates_sessions",
+      "status": "FAIL",
+      "observed": {
+        "identical": true,
+        "source_has_schedule_id": false
+      }
+    },
+    {
+      "id": "ABSENSI_new_date_loads_roster_with_pending",
+      "status": "FAIL",
+      "observed": {
+        "http": 200,
+        "rows": 0
+      }
+    },
+    {
+      "id": "ABSENSI_save_compatible_with_schema",
+      "status": "FAIL",
+      "observed": {
+        "http": 500,
+        "error": "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint"
+      }
+    },
+    {
+      "id": "JURNAL_save_compatible_with_schema",
+      "status": "FAIL",
+      "observed": {
+        "http": 500,
+        "error": "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint"
+      }
+    },
+    {
+      "id": "RAPOR_student_draft_denied",
+      "status": "FAIL",
+      "observed": {
+        "http": 200,
+        "fixture_status": "draft"
+      }
+    },
+    {
+      "id": "ADMIN_master_write_implemented",
+      "status": "FAIL",
+      "observed": {
+        "http": 405
+      }
+    },
+    {
+      "id": "NILAI_create_really_persists",
+      "status": "FAIL",
+      "observed": {
+        "http": 200,
+        "rows": 0,
+        "claimed_success": true
+      }
+    },
+    {
+      "id": "JADWAL_teacher_own_scope",
+      "status": "FAIL",
+      "observed": {
+        "http": 200,
+        "rows": 3,
+        "teachers": [
+          "1",
+          "2"
+        ]
+      }
+    },
+    {
+      "id": "KEPSEK_open_panel_goes_to_other_page",
+      "status": "FAIL",
+      "observed": {
+        "href": "/kepsek"
+      }
+    },
+    {
+      "id": "KEPSEK_navigation_matches_server_role",
+      "status": "FAIL",
+      "observed": {
+        "labels": "Beranda | Mengajar | Penilaian | Guru Piket",
+        "role": "kepala_sekolah"
+      }
+    },
+    {
+      "id": "KEPSEK_feature_cards_have_real_routes",
+      "status": "PASS",
+      "observed": {
+        "cards": 5
+      }
+    },
+    {
+      "id": "AUTH_logout_revokes_session",
+      "status": "FAIL",
+      "observed": {
+        "http_after_logout": 200
+      }
+    },
+    {
+      "id": "ADMIN_bulk_upload_has_real_file_input",
+      "status": "FAIL",
+      "observed": {
+        "file_inputs": 0
+      }
+    },
+    {
+      "id": "JADWAL_GUI_uses_API_field_names",
+      "status": "FAIL",
+      "observed": {
+        "fixture_subject_visible": false
+      }
+    },
+    {
+      "id": "UI_header_logout_and_overflow_320",
+      "status": "PASS",
+      "observed": {
+        "width": 320,
+        "scrollWidth": 320,
+        "headerTop": 0,
+        "logoutTop": 34
+      }
+    },
+    {
+      "id": "UI_header_logout_and_overflow_375",
+      "status": "PASS",
+      "observed": {
+        "width": 375,
+        "scrollWidth": 375,
+        "headerTop": 0,
+        "logoutTop": 19
+      }
+    },
+    {
+      "id": "UI_header_logout_and_overflow_430",
+      "status": "PASS",
+      "observed": {
+        "width": 430,
+        "scrollWidth": 430,
+        "headerTop": 0,
+        "logoutTop": 19
+      }
+    },
+    {
+      "id": "UI_header_logout_and_overflow_768",
+      "status": "PASS",
+      "observed": {
+        "width": 768,
+        "scrollWidth": 768,
+        "headerTop": 0,
+        "logoutTop": 19
+      }
+    },
+    {
+      "id": "UI_header_logout_and_overflow_1440",
+      "status": "PASS",
+      "observed": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "headerTop": 0,
+        "logoutTop": 19
+      }
+    },
+    {
+      "id": "INTEGRITY_original_database_files_unchanged",
+      "status": "PASS",
+      "observed": {
+        "unchanged": true
+      }
+    }
+  ],
+  "typecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit --incremental false",
+    "status": "PASS",
+    "exit_code": 0
+  },
+  "database_schema_metadata": {
+    "tables": 45,
+    "tables_with_primary_key": 2,
+    "foreign_key_columns": 0,
+    "indexes": 0,
+    "all_text_tables": 43
+  },
+  "skipped": 0
+}
