@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
             case 'periode': ak_period_settings($_POST); break;
             case 'anggota': ak_save_member($_POST); break;
             case 'penugasan': ak_save_assignment_window($_POST); break;
-            case 'piket': ak_save_duty($_POST); break;
+            case 'piket': $savedDutyId=ak_save_duty($_POST); break;
             case 'wali': ak_save_wali($_POST); break;
             case 'rapor_review': ak_review_report($_POST); break;
             case 'pertemuan': ak_save_meeting($_POST); break;
@@ -58,6 +58,10 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
             case 'impor_preview': ak_preview_import($_POST,$_FILES['berkas']??[]); $didPreview=true; break;
             case 'impor_commit': $imported=ak_commit_import($_POST); flash('success','Impor berhasil: '.$imported.' baris disimpan.'); break;
             default: throw new InputError('Operasi belum tersedia.');
+        }
+        if(!$didPreview && $action==='piket'){
+            flash('success','Tugas Guru Piket #'.$savedDutyId.(($_POST['operation']??'')==='cabut'?' berhasil dicabut.':' berhasil disimpan.'));
+            redirect(ak_link('fondasi',['id_tahun_ajaran'=>(string)input_id($_POST,'id_tahun_ajaran'),'piket'=>(string)$savedDutyId]).'#tugas-guru-piket');
         }
         if(!$didPreview)flash('success',$action==='kenaikan_preview'?'Pratinjau siap diperiksa. Belum ada perubahan siswa yang disimpan.':'Data berhasil disimpan dan riwayat perubahan dicatat.');
         $params=['view'=>$view];

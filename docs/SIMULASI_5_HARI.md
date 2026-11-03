@@ -160,6 +160,8 @@ Login Admin/Kepsek, buka [Kalender Oktober 2026](http://127.0.0.1:18125/kalender
 
 Untuk menambah/mengedit master saat mencoba, gunakan kode/nama berlabel Manual yang unik; nonaktifkan kembali bila selesai. Jangan mengulang suite otomatis besar untuk sekadar membuka demo karena suite itu memang menciptakan banyak fixture.
 
+**Menyimpan tugas Guru Piket:** di **Akademik → Periode & Penugasan**, isi bagian **Penugasan Guru Piket & izin koreksi**. Sesudah simpan, halaman membuka kembali tugas dengan ID-nya dan isian tetap terlihat. Menyimpan lagi memperbarui tugas yang sama. Untuk tugas yang sebelumnya dibuat, cari daftar **Tugas Guru Piket** dan klik **Edit / cabut izin**; jangan menambah ulang hanya karena formulir awal kosong. Gunakan **Tambah tugas Guru Piket** untuk penugasan baru. Jika validasi gagal, isian tetap terbuka dengan keterangan belum disimpan. Pencabutan mempertahankan arsip dan audit; menyimpan kembali tugas yang dicabut akan mengaktifkannya lagi.
+
 ## 6. URL pendek dan batas akses
 
 | Halaman | URL |
