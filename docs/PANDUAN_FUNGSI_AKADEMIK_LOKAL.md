@@ -27,10 +27,10 @@ Password testing juga diberikan langsung dalam jawaban percakapan sesuai permint
 
 ```bash
 cd /home/muflih/sia-academic-dev
-python3 ops/academic_server.py status
-python3 ops/academic_server.py start
+python3 ops/academic/academic_server.py status
+python3 ops/academic/academic_server.py start
 # Bila diperlukan, hanya restart development:
-python3 ops/academic_server.py restart
+python3 ops/academic/academic_server.py restart
 ```
 
 Server menggunakan unit lokal yang sudah ada, DynamicUser non-root, kode read-only untuk proses web, credential terpisah dan MariaDB socket-only. Wrapper memerlukan izin operator lokal `sudo -n`; tidak menerima port/unit produksi. Tidak perlu mengulangi setup database atau membuat Docker. Akun root bukan akun runtime.
@@ -82,7 +82,7 @@ Server menggunakan unit lokal yang sudah ada, DynamicUser non-root, kode read-on
 
 ```bash
 # Sudah tersedia di lingkungan ini; hanya bila dependency tes PDF belum ada:
-python3 ops/academic_test_dependencies.py
+python3 ops/academic/academic_test_dependencies.py
 # Seluruh suite berurutan, termasuk operasi browser yang menyimpan data:
 python3 tests/run_academic.py --with-kelas10 --with-progression --with-bulk-master --with-staff \
   --baseline-directory /home/muflih/.local/state/sia-academic-dev/20261031/reports/kelas10-baseline
@@ -105,7 +105,7 @@ Sumber pengganti yang dipakai adalah `/home/muflih/sistem_akademik/data kelas 10
 - Keanggotaan kelas X memakai **periode fixture sintetis 2026/2027 Ganjil** yang sudah ada, bukan periode yang diperoleh dari Excel. Excel tidak mempunyai tanggal lahir; nilai `2010-01-01` adalah placeholder **DATA UJI**, diberi keterangan pada alamat, bukan informasi siswa dari sumber. Jangan gunakan sebagai data sekolah resmi.
 - Jumat jam ke-6 **10:50–11:40**, jam ke-7 **13:00–13:30** dipertahankan sesuai gambar; status referensi **perlu konfirmasi**. Jenis jeda 11:40–13:00 belum ditetapkan pengguna.
 
-Impor dilakukan sekali melalui CRUD dan preview/commit yang terautentikasi; script `ops/academic_kelas10.py` menolak menimpa NIS existing. Mengulang dengan sumber yang sudah selesai hanya memverifikasi data, tanpa membuat duplikasi. Peta baris dan backup berada di direktori state privat, tidak masuk Git atau document root. Baseline khusus tugas ini mencatat file Excel baru dan perubahan `.gitignore` yang telah dibuat pengguna; baseline audit lama tetap disimpan.
+Impor dilakukan sekali melalui CRUD dan preview/commit yang terautentikasi; script `ops/academic/academic_kelas10.py` menolak menimpa NIS existing. Mengulang dengan sumber yang sudah selesai hanya memverifikasi data, tanpa membuat duplikasi. Peta baris dan backup berada di direktori state privat, tidak masuk Git atau document root. Baseline khusus tugas ini mencatat file Excel baru dan perubahan `.gitignore` yang telah dibuat pengguna; baseline audit lama tetap disimpan.
 
 ## Batas yang masih perlu keputusan
 

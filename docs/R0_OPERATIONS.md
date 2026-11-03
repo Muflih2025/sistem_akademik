@@ -44,12 +44,12 @@ Buat JSON koneksi database asal secara privat, dengan key `DB_HOST`, `DB_PORT`, 
 Dari worktree R0:
 
 ```bash
-python3 ops/r0_environment.py backup \
+python3 ops/release/r0_environment.py backup \
   --state /private/new-r0-state \
   --config /private/source-connection.json
 
-python3 ops/r0_environment.py stage --state /private/new-r0-state
-python3 ops/r0_environment.py start-web --state /private/new-r0-state --port 18085
+python3 ops/release/r0_environment.py stage --state /private/new-r0-state
+python3 ops/release/r0_environment.py start-web --state /private/new-r0-state --port 18085
 python3 tests/r0_http.py --state /private/new-r0-state
 ```
 
@@ -63,10 +63,10 @@ Jika sebuah langkah gagal setelah instance dibuat, jangan menjalankan reset otom
 
 ## Deployment skema terkontrol
 
-Login dan guard tidak memanggil fungsi provisioning. Dua belas statement kompatibilitas DDL lama dipindahkan ke `database/migrations/001_legacy_runtime.php`, tanpa seed akun. Runner `ops/migrate.php` hanya bisa dijalankan CLI, lingkungan `staging/testing`, flag `--apply`, database eksplisit yang cocok, serta konfigurasi owner dengan izin deployment aktif.
+Login dan guard tidak memanggil fungsi provisioning. Dua belas statement kompatibilitas DDL lama dipindahkan ke `database/migrations/001_legacy_runtime.php`, tanpa seed akun. Runner `ops/database/migrate.php` hanya bisa dijalankan CLI, lingkungan `staging/testing`, flag `--apply`, database eksplisit yang cocok, serta konfigurasi owner dengan izin deployment aktif.
 
 ```bash
-SIA_CONFIG_FILE=/private/staging-owner.json php ops/migrate.php \
+SIA_CONFIG_FILE=/private/staging-owner.json php ops/database/migrate.php \
   --apply --expected-database=staging_database_name
 ```
 
@@ -83,7 +83,7 @@ Cakupan: GET/HEAD internal termasuk variasi encoding/path traversal; halaman pub
 Menghentikan proses staging milik state ini tanpa menghapus datanya:
 
 ```bash
-python3 ops/r0_environment.py stop --state /private/new-r0-state
+python3 ops/release/r0_environment.py stop --state /private/new-r0-state
 ```
 
 PID diperiksa terhadap command line sebelum sinyal dikirim. Jangan memakai kill berdasarkan nomor port atau menghentikan MariaDB aktif.

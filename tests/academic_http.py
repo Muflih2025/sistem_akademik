@@ -44,7 +44,7 @@ def main():
     runtime=json.loads((STATE/'private/runtime.json').read_text())
     assert runtime['DB_NAME']=='sia_academic_dev_20261031' and runtime['APP_ENV']=='testing' and runtime.get('DB_SOCKET') and runtime['DB_USER']!='root'
     tag=secrets.token_hex(3);security=STATE/'security'/tag;security.mkdir(mode=0o700);runtime['SECURITY_STATE_PATH']=str(security);save_json(STATE/'private/runtime.json',runtime)
-    refreshed=subprocess.run(['python3',str(ROOT/'ops/academic_server.py'),'refresh'],capture_output=True);assert refreshed.returncode==0,'Protected local runtime refresh failed'
+    refreshed=subprocess.run(['python3',str(ROOT/'ops/academic/academic_server.py'),'refresh'],capture_output=True);assert refreshed.returncode==0,'Protected local runtime refresh failed'
     creds=json.loads((STATE/'private/test-accounts.json').read_text());results=[]
     def test(name,fn):
         try:fn();results.append({'test':name,'status':'PASS'})
@@ -98,7 +98,7 @@ def main():
     def wrong_login():
         b=Browser();page=b.request('/auth/login.php');r=b.request('/auth/login.php','POST',{'csrf_token':csrf(page[2].decode()),'username':'unknown_'+tag,'password':'wrong-fixture'});status(r,200);check(b'Username atau password salah/nonaktif.' in r[2])
     test('generic_authentication_failure',wrong_login)
-    for path in ['/db_sia_smkn2_magelang.sql','/.git/config','/.env','/logs/php-errors.log','/config/config.php','/ops/academic_fixture.php','/tests/academic_db.php','/../config/config.php','/%2e%2e/config/config.php','/vendor/autoload.php']:
+    for path in ['/db_sia_smkn2_magelang.sql','/.git/config','/.env','/logs/php-errors.log','/config/config.php','/ops/academic/academic_fixture.php','/tests/academic_db.php','/../config/config.php','/%2e%2e/config/config.php','/vendor/autoload.php']:
         test('internal_file_block_'+path,lambda path=path:status(admin.request(path),404))
     for index,(b,view) in enumerate([(teacher,'fondasi'),(student,'pertemuan'),(head,'pertemuan'),(student,'piket'),(student,'jurnal'),(student,'impor')]):test('role_'+view+'_'+str(index),lambda b=b,view=view:status(get(b,view),403))
     test('teacher_roster_database_20',lambda:check(get(teacher,'pertemuan',id_jadwal=1,tanggal='2026-10-30')[2].count(b'data-student=')==20))

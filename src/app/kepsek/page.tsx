@@ -12,11 +12,11 @@ import {
 
 export default function KepsekDashboard() {
   const navItems = [
-    { label: 'Jadwal & Ruang', href: '/kepsek/jadwal.php', icon: Clock },
-    { label: 'Evaluasi & Nilai', href: '/kepsek/evaluasi.php', icon: TrendingUp },
-    { label: 'Rekap Rapor', href: '/kepsek/rapor.php', icon: Award },
-    { label: 'Posisi Guru', href: '/kepsek/posisi_guru.php', icon: BarChart3 },
-    { label: 'Kalender Pendidikan', href: '/kepsek/kalender.php', icon: Calendar },
+    { label: 'Jadwal & Ruang', href: '/kepsek/jadwal', icon: Clock },
+    { label: 'Evaluasi & Nilai', href: '/kepsek/evaluasi', icon: TrendingUp },
+    { label: 'Rekap Rapor', href: '/kepsek/rapor', icon: Award },
+    { label: 'Posisi Guru', href: '/kepsek/posisi-guru', icon: BarChart3 },
+    { label: 'Kalender Pendidikan', href: '/kepsek/kalender', icon: Calendar },
   ];
 
   return (
@@ -30,10 +30,10 @@ export default function KepsekDashboard() {
             </p>
           </div>
           <a
-            href="/kepsek/index.php"
+            href="/kepsek"
             className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-xs transition"
           >
-            Buka Panel Kepsek PHP
+            Buka Panel Kepsek
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>

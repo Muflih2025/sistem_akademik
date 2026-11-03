@@ -203,4 +203,4 @@ Semua baris di bawah merupakan **checklist manual yang belum Anda jalankan**. Ha
 
 Gunakan PASS/FAIL/BLOCKED/N/A dan catat URL, akun/peran, tanggal/kelas, langkah, hasil aktual, hasil setelah reload serta screenshot. Jangan menyertakan password database, cookie atau session token.
 
-Jika Sabtu 31 Oktober tidak menampilkan jadwal, pilih salah satu tanggal **26–30 Oktober**. Jika layanan berhenti, cek dari `/home/muflih/sia-academic-dev` dengan `python3 ops/academic_server.py status`; start hanya layanan development bila diperlukan. Layanan 8085 tidak menjadi target pengujian.
+Jika Sabtu 31 Oktober tidak menampilkan jadwal, pilih salah satu tanggal **26–30 Oktober**. Jika layanan berhenti, cek dari `/home/muflih/sia-academic-dev` dengan `python3 ops/academic/academic_server.py status`; start hanya layanan development bila diperlukan. Layanan 8085 tidak menjadi target pengujian.

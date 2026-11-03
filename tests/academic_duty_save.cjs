@@ -8,7 +8,7 @@ if(JSON.parse(fs.readFileSync(state+'/reports/piket-save-backup.json')).status!=
 const {chromium}=require(cfg.PDF_PLAYWRIGHT_PATH),results=[],contexts=[];
 const check=(v,m='Condition failed')=>{if(!v)throw Error(m);};
 const db=(sql,args=[])=>JSON.parse(cp.execFileSync('php',[root+'/tests/academic_db.php',state+'/private/inspector.json'],{input:JSON.stringify({sql,args}),maxBuffer:64*1024*1024}));
-const snapshot=()=>JSON.parse(cp.execFileSync('php',[root+'/ops/db_snapshot.php',state+'/private/inspector.json']));
+const snapshot=()=>JSON.parse(cp.execFileSync('php',[root+'/ops/database/db_snapshot.php',state+'/private/inspector.json']));
 const createSchema=table=>Object.values(db('SHOW CREATE TABLE `'+table+'`')[0])[1].replace(/ AUTO_INCREMENT=\d+/g,'');
 async function test(name,fn){try{await fn();results.push({test:name,status:'PASS'});console.log('PASS '+name);}catch(e){results.push({test:name,status:'FAIL',error:e.name});console.error('FAIL '+name+': '+e.message);}}
 (async()=>{

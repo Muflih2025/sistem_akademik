@@ -6,7 +6,7 @@ const cfg=JSON.parse(fs.readFileSync(state+'/private/runtime.json'));
 if(cfg.APP_ENV!=='testing'||cfg.DB_NAME!=='sia_academic_dev_20261031'||!cfg.DB_SOCKET||cfg.ALLOW_SCHEMA_CHANGES!=='0')throw Error('Refuse wrong environment');
 const {chromium}=require(cfg.PDF_PLAYWRIGHT_PATH),results=[];
 const check=(v,m='Condition failed')=>{if(!v)throw Error(m);};
-const snapshot=()=>cp.execFileSync('php',[root+'/ops/db_snapshot.php',state+'/private/inspector.json']).toString();
+const snapshot=()=>cp.execFileSync('php',[root+'/ops/database/db_snapshot.php',state+'/private/inspector.json']).toString();
 async function test(name,fn){try{await fn();results.push({test:name,status:'PASS'});console.log('PASS '+name);}catch(e){results.push({test:name,status:'FAIL',error:e.name});console.error('FAIL '+name+': '+e.message);}}
 (async()=>{
  const before=snapshot(),browser=await chromium.launch(),contexts=[];

@@ -31,7 +31,7 @@ def main():
     save_json(state/'private/owner-config.json',owner)
     env={k:v for k,v in os.environ.items() if not k.startswith('SIA_')};env['SIA_CONFIG_FILE']=str(state/'private/owner-config.json')
     for _ in range(2):
-        m=subprocess.run(['php',str(ROOT/'ops/migrate_r1.php'),'--apply','--expected-database='+database],env=env,capture_output=True);assert m.returncode==0,'Staging migration failed'
+        m=subprocess.run(['php',str(ROOT/'ops/database/migrate_r1.php'),'--apply','--expected-database='+database],env=env,capture_output=True);assert m.returncode==0,'Staging migration failed'
     for table in ['jurusan','kelas','guru','siswa','mata_pelajaran','jadwal','users','tahun_ajaran','nilai','absensi','jurnal_kelas','bobot_penilaian','ekstrakurikuler','nilai_ekskul','kalender_akademik','catatan_evaluasi']:
         mysql(client,'GRANT INSERT,UPDATE ON `'+database+'`.`'+table+'` TO \'r1_runtime\'@\'localhost\';')
     mysql(client,'GRANT INSERT ON `'+database+'`.audit_aktivitas TO \'r1_runtime\'@\'localhost\';GRANT DELETE ON `'+database+'`.catatan_evaluasi TO \'r1_runtime\'@\'localhost\';')

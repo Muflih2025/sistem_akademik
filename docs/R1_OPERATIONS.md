@@ -56,7 +56,7 @@ Runner staging/testing memakai owner yang diizinkan. Final review menambahkan mo
 
 ```bash
 SIA_CONFIG_FILE=/home/muflih/.local/state/sia-r1/20261030-r1/private/owner-config.json \
-php ops/migrate_r1.php --apply --expected-database=r1_testing_20261030
+php ops/database/migrate_r1.php --apply --expected-database=r1_testing_20261030
 ```
 
 DDL MariaDB melakukan implicit commit. Tidak ada rollback DDL otomatis. Runner memakai ledger dan operasi aditif yang dapat dijalankan ulang. Jika gagal, hentikan aktivasi, tinjau snapshot privat dan penyebabnya. Tidak ada perintah down/destruktif.

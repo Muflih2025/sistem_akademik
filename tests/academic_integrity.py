@@ -61,7 +61,7 @@ def main():
  def login():
   b=Browser();r=b.request('/auth/login.php');r=b.request('/auth/login.php','POST',{'csrf_token':csrf(r[2].decode()),'username':creds['teacher'],'password':creds['password']});check(r[0]==302);return b
  b=login();before_restart=snapshot(STATE/'private/inspector.json')
- test('local_development_restart',lambda:command(['python3',str(ROOT/'ops/academic_server.py'),'restart']))
+ test('local_development_restart',lambda:command(['python3',str(ROOT/'ops/academic/academic_server.py'),'restart']))
  test('login_session_survives_local_restart',lambda:check(b.request('/academic/index.php?view=pertemuan&id_jadwal=1&tanggal=2026-10-30')[0]==200))
  test('restart_preserves_all_database_hashes',lambda:check(snapshot(STATE/'private/inspector.json')==before_restart))
  probe=json.loads(command(['sudo','-n','cat','/var/lib/sia-academic-dev-20261031/startup-probe.json']))
@@ -72,22 +72,22 @@ def main():
  # Wrong credentials must fail startup, with no fallback to a different DB.
  try:
   bad={**runtime,'DB_PASS':secrets.token_hex(32)};save_json(cfg_path,bad)
-  failed=subprocess.run(['python3',str(ROOT/'ops/academic_server.py'),'refresh'],capture_output=True)
+  failed=subprocess.run(['python3',str(ROOT/'ops/academic/academic_server.py'),'refresh'],capture_output=True)
   test('wrong_runtime_credential_startup_fails_closed',lambda:check(failed.returncode!=0))
  finally:
-  save_json(cfg_path,runtime);command(['python3',str(ROOT/'ops/academic_server.py'),'refresh'])
+  save_json(cfg_path,runtime);command(['python3',str(ROOT/'ops/academic/academic_server.py'),'refresh'])
  test('known_configuration_recovers_development_only',lambda:check(login().request('/academic/index.php')[0]==200))
  test('failed_startup_did_not_mutate_database',lambda:check(snapshot(STATE/'private/inspector.json')==before_restart))
  # CLI migrations cannot be pointed at the active DB/environment, even with a staging owner.
  for kind,change in [('production_environment',{'APP_ENV':'production'}),('active_database_name',{'DB_NAME':'db_sia_smkn2_magelang'})]:
   owner=json.loads((STATE/'private/owner.json').read_text());path=STATE/'private'/('refused-'+kind+'.json');save_json(path,{**owner,**change})
-  r=subprocess.run(['php',str(ROOT/'ops/migrate_academic.php'),'--apply','--expected-database='+change.get('DB_NAME',runtime['DB_NAME'])],env={**os.environ,'SIA_CONFIG_FILE':str(path)},capture_output=True)
+  r=subprocess.run(['php',str(ROOT/'ops/database/migrate_academic.php'),'--apply','--expected-database='+change.get('DB_NAME',runtime['DB_NAME'])],env={**os.environ,'SIA_CONFIG_FILE':str(path)},capture_output=True)
   test('migration_guard_'+kind,lambda r=r:check(r.returncode==2))
  # Syntax checks are reported separately from functional assertions.
  php_files=list(ROOT.rglob('*.php'));lint=[subprocess.run(['php','-l',str(file)],capture_output=True).returncode for file in php_files]
  test('php_lint_all_'+str(len(php_files))+'_files',lambda:check(all(code==0 for code in lint)))
- for file in ['assets/js/academic.js','ops/academic_pdf.cjs','tests/academic_browser.cjs']:test('javascript_syntax_'+file,lambda file=file:command(['node','--check',str(ROOT/file)]))
- log=command(['sudo','-n','python3',str(ROOT/'ops/academic_runtime.py'),'read-log'])
+ for file in ['assets/js/academic.js','ops/academic/academic_pdf.cjs','tests/academic_browser.cjs']:test('javascript_syntax_'+file,lambda file=file:command(['node','--check',str(ROOT/file)]))
+ log=command(['sudo','-n','python3',str(ROOT/'ops/academic/academic_runtime.py'),'read-log'])
  secret_values=[creds['password'],runtime['DB_PASS'],json.loads((STATE/'private/owner.json').read_text())['DB_PASS']]
  def no_secrets():
   for secret in secret_values:
@@ -107,7 +107,7 @@ def main():
  test('unchanged_active_database_every_schema_row_view_trigger_routine_hash',lambda:check(active==json.loads((baseline/'active-database-before.json').read_text())))
  def legacy_count():
   source=Path('/home/muflih/.local/state/sia-r0/activation-20261030/private/active-config.json')
-  rows=json.loads(command(['php',str(ROOT/'ops/read_only_query.php'),str(source)],input=json.dumps({'sql':'SELECT COUNT(*) AS total FROM jadwal'}).encode()))
+  rows=json.loads(command(['php',str(ROOT/'ops/database/read_only_query.php'),str(source)],input=json.dumps({'sql':'SELECT COUNT(*) AS total FROM jadwal'}).encode()))
   check(rows[0]['total']==18)
  test('18_legacy_assignments_preserved_active_read_only_count',legacy_count)
  test('no_new_academic_tables_added_to_active_DB',lambda:check('ak_penugasan' not in active['tables'] and 'ak_pertemuan' not in active['tables']))

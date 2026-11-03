@@ -10,7 +10,7 @@ def main():
     os.umask(0o077);state=Path(sys.argv[1]).resolve();assert str(state)=='/home/muflih/.local/state/sia-r15/20261031'
     unit='sia-r15-stage-20261031.service';base='http://127.0.0.1:18115';results=[];creds=json.loads((state/'private/fixture-login.json').read_text());known=[];passwords=[]
     def root(*args):return subprocess.run(['sudo','-n',*args],capture_output=True)
-    def ctl(action):return root('python3',str(ROOT/'ops/r15_service_control.py'),action,'--state',str(state))
+    def ctl(action):return root('python3',str(ROOT/'ops/release/r15_service_control.py'),action,'--state',str(state))
     def probe():
         r=ctl('read-probe');assert r.returncode==0;return json.loads(r.stdout)
     def check(value):assert value
@@ -44,8 +44,8 @@ def main():
     before=snapshot(state/'private/inspector.json')
     def controlled_migration():
         env=os.environ.copy();env['SIA_CONFIG_FILE']=str(config_path)
-        runtime=subprocess.run(['php',str(ROOT/'ops/migrate_r1.php'),'--apply','--expected-database=r1_testing_20261030'],env=env,capture_output=True);check(runtime.returncode==2)
-        owner=root('env','SIA_CONFIG_FILE=/etc/sia-r15-staging/20261031/migration-owner.json','php',str(ROOT/'ops/migrate_r1.php'),'--apply','--expected-database=r1_testing_20261030');check(owner.returncode==0);check(snapshot(state/'private/inspector.json')==before)
+        runtime=subprocess.run(['php',str(ROOT/'ops/database/migrate_r1.php'),'--apply','--expected-database=r1_testing_20261030'],env=env,capture_output=True);check(runtime.returncode==2)
+        owner=root('env','SIA_CONFIG_FILE=/etc/sia-r15-staging/20261031/migration-owner.json','php',str(ROOT/'ops/database/migrate_r1.php'),'--apply','--expected-database=r1_testing_20261030');check(owner.returncode==0);check(snapshot(state/'private/inspector.json')==before)
     test('migration_owner_path_only_runtime_rejected_no_schema_drift',controlled_migration)
     def core_refuses_profile(user):
         file=state/'private'/('invalid-core-'+('root' if user else 'empty')+'.json');save_json(file,{'APP_ENV':'testing','DB_NAME':'r1_testing_20261030','DB_USER':user,'DB_PASS':'SYNTHETIC_UNUSED','DB_SOCKET':'/path/that/does/not/exist.sock'})
@@ -86,7 +86,7 @@ def main():
         finally:check(root('mv',held,source).returncode==0);check(ctl('restart').returncode==0)
     test('missing_secret_stops_service_no_implicit_fallback',absent_credential)
     test('authorized_credential_restored_after_failure_and_restart',lambda:check(probe()['status']=='PASS' and probe()['runtime_slot_b'] and login('admin').request('/admin/index.php')[0]==200))
-    for path in ['/runtime.json','/migration-owner.json','/credentials/app-config','/.env','/.git/config','/db_sia_smkn2_magelang.sql','/logs/php-errors.log','/ops/r15_service_probe.php']:
+    for path in ['/runtime.json','/migration-owner.json','/credentials/app-config','/.env','/.git/config','/db_sia_smkn2_magelang.sql','/logs/php-errors.log','/ops/release/r15_service_probe.php']:
         test('http_secret_protection_'+path,lambda path=path:check(all(Browser(base).request(path,method)[0]==404 for method in ['GET','HEAD'])))
     def no_leak():
         journal=root('journalctl','-u',unit,'--no-pager','-o','json');check(journal.returncode==0);logs=ctl('read-log').stdout;known.append(creds['password'].encode());check(all(secret not in journal.stdout and secret not in logs for secret in known));check(b'PHP Fatal error' not in logs)

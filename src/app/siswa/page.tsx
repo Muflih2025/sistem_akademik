@@ -11,10 +11,10 @@ import {
 
 export default function SiswaDashboard() {
   const navItems = [
-    { label: 'Jadwal Kelas', href: '/siswa/jadwal.php', icon: Clock },
-    { label: 'Kehadiran Saya', href: '/siswa/absen.php', icon: UserCheck },
-    { label: 'Buku Rapor Digital', href: '/siswa/rapor.php', icon: BookOpen },
-    { label: 'Agenda & Kalender', href: '/siswa/kalender.php', icon: Calendar },
+    { label: 'Jadwal Kelas', href: '/siswa/jadwal', icon: Clock },
+    { label: 'Kehadiran Saya', href: '/siswa/absen', icon: UserCheck },
+    { label: 'Buku Rapor Digital', href: '/siswa/rapor', icon: BookOpen },
+    { label: 'Agenda & Kalender', href: '/siswa/kalender', icon: Calendar },
   ];
 
   return (
@@ -28,10 +28,10 @@ export default function SiswaDashboard() {
             </p>
           </div>
           <a
-            href="/siswa/index.php"
+            href="/siswa"
             className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-xs transition"
           >
-            Buka Portal Siswa PHP
+            Buka Portal Siswa
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>

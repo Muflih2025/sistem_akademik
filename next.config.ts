@@ -1,29 +1,53 @@
 import type { NextConfig } from 'next';
 
-const PHP_BACKEND = process.env.PHP_BACKEND_URL || 'http://127.0.0.1:18125';
-
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  async rewrites() {
+  async redirects() {
     return [
-      // Proxy all .php file requests directly to PHP backend
       {
-        source: '/:path*.php',
-        destination: `${PHP_BACKEND}/:path*.php`,
-      },
-      // Proxy assets and errors if requested
-      {
-        source: '/assets/:path*',
-        destination: `${PHP_BACKEND}/assets/:path*`,
+        source: '/auth/login.php',
+        destination: '/auth/login',
+        permanent: false,
       },
       {
-        source: '/errors/:path*',
-        destination: `${PHP_BACKEND}/errors/:path*`,
+        source: '/admin/:path*.php',
+        destination: '/admin',
+        permanent: false,
       },
-      // Proxy academic backend module routes
       {
-        source: '/academic/:path*',
-        destination: `${PHP_BACKEND}/academic/:path*`,
+        source: '/guru/:path*.php',
+        destination: '/guru',
+        permanent: false,
+      },
+      {
+        source: '/kepsek/:path*.php',
+        destination: '/kepsek',
+        permanent: false,
+      },
+      {
+        source: '/siswa/:path*.php',
+        destination: '/siswa',
+        permanent: false,
+      },
+      {
+        source: '/piket.php',
+        destination: '/piket',
+        permanent: false,
+      },
+      {
+        source: '/absensi',
+        destination: '/guru/absen',
+        permanent: false,
+      },
+      {
+        source: '/jadwal',
+        destination: '/guru/jadwal',
+        permanent: false,
+      },
+      {
+        source: '/nilai',
+        destination: '/guru/nilai',
+        permanent: false,
       },
     ];
   },

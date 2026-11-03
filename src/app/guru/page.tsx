@@ -16,9 +16,9 @@ export default function GuruDashboard() {
     { label: 'Jadwal Mengajar', href: '/guru/jadwal', icon: Clock },
     { label: 'Presensi Siswa', href: '/guru/absen', icon: UserCheck },
     { label: 'Penilaian Akademik', href: '/guru/nilai', icon: Award },
-    { label: 'Jurnal Harian KBM', href: '/guru/jurnal.php', icon: FileText },
-    { label: 'Buku Rapor Siswa', href: '/guru/rapor.php', icon: BookOpen },
-    { label: 'Kalender Pendidikan', href: '/guru/kalender.php', icon: Calendar },
+    { label: 'Jurnal Harian KBM', href: '/guru/jurnal', icon: FileText },
+    { label: 'Buku Rapor Siswa', href: '/guru/rapor', icon: BookOpen },
+    { label: 'Kalender Pendidikan', href: '/guru/kalender', icon: Calendar },
   ];
 
   return (

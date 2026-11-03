@@ -2,17 +2,61 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { School, KeyRound, User, AlertCircle, ArrowRight } from 'lucide-react';
+import { School, KeyRound, User, AlertCircle, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
+
+const PRESET_ACCOUNTS: Record<string, { username: string; roleName: string }> = {
+  admin: { username: 'uji_admin', roleName: 'Administrator (uji_admin)' },
+  guru: { username: 'uji_guru', roleName: 'Guru Utama (uji_guru - XII PPLG 2)' },
+  guru_lain: { username: 'uji_guru_lain', roleName: 'Guru Kedua (uji_guru_lain - XII PPLG 1)' },
+  piket: { username: 'uji_piket', roleName: 'Guru Piket (uji_piket)' },
+  kepsek: { username: 'uji_kepsek', roleName: 'Kepala Sekolah (uji_kepsek)' },
+  siswa: { username: 'uji_siswa', roleName: 'Siswa (uji_siswa - XII PPLG 2)' },
+  siswa_lain: { username: 'uji_siswa_lain', roleName: 'Siswa Pembanding (uji_siswa_lain - XII PPLG 1)' },
+};
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('guru');
+  const [selectedRole, setSelectedRole] = useState('guru');
+  const [username, setUsername] = useState('uji_guru');
+  const [password, setPassword] = useState('password');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRoleSelect = (roleKey: string) => {
+    setSelectedRole(roleKey);
+    const preset = PRESET_ACCOUNTS[roleKey];
+    if (preset) {
+      setUsername(preset.username);
+      setPassword('password');
+      setError('');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Redirect to corresponding role portal
-    window.location.href = `/${role}`;
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sia_user', JSON.stringify(data.user));
+        }
+        window.location.href = data.redirect;
+      } else {
+        setError(data.error || 'Username atau password salah.');
+      }
+    } catch {
+      setError('Gagal menghubungi server autentikasi.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,17 +77,18 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Peran Pengguna
+              Pilihan Akun Uji Coba
             </label>
             <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
+              value={selectedRole}
+              onChange={(e) => handleRoleSelect(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white text-slate-800"
             >
-              <option value="admin">Administrator / Staf</option>
-              <option value="guru">Guru Mata Pelajaran / Wali Kelas</option>
-              <option value="kepsek">Kepala Sekolah</option>
-              <option value="siswa">Siswa</option>
+              {Object.entries(PRESET_ACCOUNTS).map(([key, val]) => (
+                <option key={key} value={key}>
+                  {val.roleName}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -85,19 +130,37 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-800">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+            <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
             <span>
-              Development mode: Anda dapat langsung memilih peran lalu klik Masuk.
+              Simulasi siap: Pilih akun dari dropdown di atas (password default:{' '}
+              <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-semibold">password</code>).
             </span>
           </div>
 
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition active:scale-[0.99]"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition active:scale-[0.99] disabled:opacity-50"
           >
-            Masuk ke Portal
-            <ArrowRight className="w-4 h-4" />
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Memproses...
+              </>
+            ) : (
+              <>
+                Masuk ke Portal
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
 
           <div className="text-center pt-2">

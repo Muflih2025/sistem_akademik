@@ -522,11 +522,11 @@
           "status": "PASS"
         },
         {
-          "test": "r0_block_GET_/ops/migrate_r1.php",
+          "test": "r0_block_GET_/ops/database/migrate_r1.php",
           "status": "PASS"
         },
         {
-          "test": "r0_block_HEAD_/ops/migrate_r1.php",
+          "test": "r0_block_HEAD_/ops/database/migrate_r1.php",
           "status": "PASS"
         },
         {

@@ -17,13 +17,13 @@ def main():
  checks={};before=snapshot(STATE/'private/inspector.json')
  if args.restart_development:
   creds=json.loads((STATE/'private/test-accounts.json').read_text());b=Browser();r=b.request('/auth/login.php');assert b.request('/auth/login.php','POST',{'csrf_token':csrf(r[2].decode()),'username':creds['head'],'password':creds['password']})[0]==302
-  subprocess.run(['python3',str(ROOT/'ops/academic_server.py'),'restart'],capture_output=True,check=True)
+  subprocess.run(['python3',str(ROOT/'ops/academic/academic_server.py'),'restart'],capture_output=True,check=True)
   checks['development_restart_session_survives']=b.request('/guru-mengajar?tanggal=2026-10-30&jam_ke=1')[0]==200
   checks['restart_preserves_complete_development_snapshot']=snapshot(STATE/'private/inspector.json')==before
  protected=json.loads((STATE/'private/simulation-school-protected.json').read_text());excel=[r['nis']for r in protected['siswa']]
  proof=json.loads((STATE/'reports/cleanup-backup-restore.json').read_text());backup_config=STATE/'private'/('cleanup-restored-'+proof['restore_database'].rsplit('_',1)[1]+'.json')
  def archived(sql,params=[]):
-  r=subprocess.run(['php',str(ROOT/'ops/read_only_query.php'),str(backup_config)],input=json.dumps({'sql':sql,'args':params}),text=True,capture_output=True,check=True);return json.loads(r.stdout)
+  r=subprocess.run(['php',str(ROOT/'ops/database/read_only_query.php'),str(backup_config)],input=json.dumps({'sql':sql,'args':params}),text=True,capture_output=True,check=True);return json.loads(r.stdout)
  key_names={'kelas':'id_kelas','jurusan':'id_jurusan','ak_ruang':'id_ruang','ak_jam_belajar':'id'}
  for t,rows in protected.items():
   current=db('SELECT * FROM '+t+(' WHERE nis IN('+','.join('?'for _ in excel)+') ORDER BY nis'if t in ['siswa','ak_anggota_kelas']else' ORDER BY 1'),excel if t in ['siswa','ak_anggota_kelas']else[]);checks['protected_'+t+'_unchanged']=current==rows
@@ -49,7 +49,7 @@ def main():
  service=subprocess.check_output(['systemctl','show','sistem-akademik.service','--property=User','--property=ActiveState','--property=MainPID','--property=ExecMainStartTimestamp']);checks['active_8085_PID_start_user_unchanged']=service==(baseline/'service-before.txt').read_bytes();checks['active_service_configuration_unchanged']=hashlib.sha256(pathlib.Path('/etc/systemd/system/sistem-akademik.service.d/90-r0.conf').read_bytes()).hexdigest()==(baseline/'service-before.sha256').read_text()
  active=snapshot(pathlib.Path('/home/muflih/.local/state/sia-r0/activation-20261030/private/active-config.json'));checks['active_DB_every_schema_row_object_unchanged']=active==json.loads((baseline/'active-database-before.json').read_text());checks['active_18_assignments_preserved']=active['tables']['jadwal']['rows']==18
  original=json.loads((STATE/'private/before-cleanup-snapshot.json').read_text());checks['audit_logs_not_deleted']=before['tables']['audit_aktivitas']['rows']>=original['tables']['audit_aktivitas']['rows']and before['tables']['ak_riwayat']['rows']>=original['tables']['ak_riwayat']['rows']
- refused=subprocess.run(['php',str(ROOT/'ops/academic_fixture_cleanup.php'),'--apply-approved-fixtures-only'],capture_output=True);checks['cleanup_cannot_be_replayed']=refused.returncode!=0 and snapshot(STATE/'private/inspector.json')==before
+ refused=subprocess.run(['php',str(ROOT/'ops/academic/academic_fixture_cleanup.php'),'--apply-approved-fixtures-only'],capture_output=True);checks['cleanup_cannot_be_replayed']=refused.returncode!=0 and snapshot(STATE/'private/inspector.json')==before
  phpfiles=list(ROOT.rglob('*.php'));checks['PHP_syntax']=all(subprocess.run(['php','-l',str(f)],capture_output=True).returncode==0 for f in phpfiles)
  jsfiles=[ROOT/'assets/js/academic.js',*ROOT.glob('tests/*.cjs')];checks['JS_syntax']=all(subprocess.run(['node','--check',str(f)],capture_output=True).returncode==0 for f in jsfiles)
  checks['git_whitespace']=subprocess.run(['git','diff','--check'],cwd=ROOT,capture_output=True).returncode==0

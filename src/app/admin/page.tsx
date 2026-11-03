@@ -15,14 +15,14 @@ import {
 
 export default function AdminDashboard() {
   const navItems = [
-    { label: 'Master Data', href: '/admin/master.php', icon: Settings },
-    { label: 'Pengguna & Akun', href: '/admin/users.php', icon: Users },
-    { label: 'Penugasan Guru', href: '/admin/penugasan.php', icon: ShieldCheck },
-    { label: 'Tahun Ajaran', href: '/admin/tahun_ajaran.php', icon: Calendar },
-    { label: 'Jadwal Pelajaran', href: '/admin/jadwal.php', icon: Clock },
-    { label: 'Nilai & Verifikasi', href: '/admin/nilai.php', icon: Award },
-    { label: 'Bulk Upload Data', href: '/admin/bulk_upload.php', icon: Upload },
-    { label: 'Ekspor Impor', href: '/admin/export_import.php', icon: BookOpen },
+    { label: 'Master Data', href: '/admin/master', icon: Settings },
+    { label: 'Pengguna & Akun', href: '/admin/users', icon: Users },
+    { label: 'Penugasan Guru', href: '/admin/penugasan', icon: ShieldCheck },
+    { label: 'Tahun Ajaran', href: '/admin/tahun-ajaran', icon: Calendar },
+    { label: 'Jadwal Pelajaran', href: '/admin/jadwal', icon: Clock },
+    { label: 'Nilai & Verifikasi', href: '/admin/nilai', icon: Award },
+    { label: 'Bulk Upload Data', href: '/admin/bulk-upload', icon: Upload },
+    { label: 'Ekspor Impor', href: '/admin/export-import', icon: BookOpen },
   ];
 
   const stats = [
@@ -43,10 +43,10 @@ export default function AdminDashboard() {
             </p>
           </div>
           <a
-            href="/admin/index.php"
+            href="/admin"
             className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-xs transition"
           >
-            Buka Panel Admin PHP
+            Buka Panel Admin
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>

@@ -5,9 +5,9 @@
   "description": "Website akademik PHP native dengan perintah development pnpm",
   "scripts": {
     "dev": "next dev",
-    "dev:php": "node ops/dev.cjs",
-    "dev:setup": "node ops/dev.cjs --setup",
-    "dev:check": "node ops/dev.cjs --check",
+    "dev:php": "node ops/dev/dev.cjs",
+    "dev:setup": "node ops/dev/dev.cjs --setup",
+    "dev:check": "node ops/dev/dev.cjs --check",
     "build": "next build",
     "start": "next start"
   },

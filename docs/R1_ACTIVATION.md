@@ -15,7 +15,7 @@ Dokumen ini adalah runbook yang harus ditinjau operator. Tidak menjalankan deplo
 
 - `RELEASE.json`: commit, baseline R0 dan hash setiap file tracked. Tidak berisi credential atau backup. Manifest tidak meng-hash dirinya sendiri; SHA archive eksternal menjadi pin artefak utuh.
 - Archive candidate dan salinan read-only terpisah di state review privat. Tidak ada `git pull`, checkout atau reset pada working tree pengguna.
-- Rencana privat grant/config di `activation-plan/`, dibuat oleh `ops/r1_prepare_grants.py`. Generator **tidak terhubung ke database**. SQL berisi password acak: jangan cat, commit, tempel ke laporan atau kirim melalui chat.
+- Rencana privat grant/config di `activation-plan/`, dibuat oleh `ops/release/r1_prepare_grants.py`. Generator **tidak terhubung ke database**. SQL berisi password acak: jangan cat, commit, tempel ke laporan atau kirim melalui chat.
 - Konfigurasi owner dan runtime terpisah, masing-masing mode 0600. Approval owner sengaja kosong. Runtime tidak menyimpan approval/DDL flag.
 - Patch service review-only ada di state; menunjuk salinan candidate yang akan dipasang operator di `/opt/sia/releases`, public/router dan konfigurasi runtime di `/etc/sia-r1`, mempertahankan user non-root, loopback, NoNewPrivileges, UMask 0077 serta direktori log/upload privat `/var/lib/sia-r1`. Home/backup/owner credentials dibatasi oleh namespace service. Belum dipasang.
 
@@ -25,11 +25,11 @@ Gunakan jalur candidate dan plan **yang tercantum pada laporan readiness**, buka
 
 1. Batasi ingress jika binding akan berubah dari loopback. Saat review, 8085 tetap 127.0.0.1. Jangan membuka ingress baru sebagai bagian R1.
 2. Simpan konfigurasi systemd, konfigurasi aplikasi privat, release R0, snapshot DB lengkap dan status Git pengguna. Bekukan penulisan aplikasi selama pemeriksaan migrasi awal. Jangan membunuh semua proses PHP/MariaDB; gunakan service yang memang disetujui.
-3. Ambil backup baru dengan `ops/r0_environment.py backup` pada **state baru** dan konfigurasi privat; dump snapshot tanpa lock mencakup tabel/view/trigger/routine. Restore ke instance baru socket-only, normalisasikan hanya nama database/definer salinan, dan verifikasi proyeksi seluruh kolom asli. Rehearsal final review sudah membuktikan pola ini; backup saat aktivasi tetap harus segar.
+3. Ambil backup baru dengan `ops/release/r0_environment.py backup` pada **state baru** dan konfigurasi privat; dump snapshot tanpa lock mencakup tabel/view/trigger/routine. Restore ke instance baru socket-only, normalisasikan hanya nama database/definer salinan, dan verifikasi proyeksi seluruh kolom asli. Rehearsal final review sudah membuktikan pola ini; backup saat aktivasi tetap harus segar.
 4. Buat baseline proyeksi yang tidak mengabaikan data lama ketika kolom aditif ditambahkan:
 
    ```bash
-   python3 ops/r1_data_fingerprint.py capture --config /private/active-config.json \
+   python3 ops/release/r1_data_fingerprint.py capture --config /private/active-config.json \
      --baseline /private/new-activation/original-columns.json
    ```
 
@@ -39,10 +39,10 @@ Gunakan jalur candidate dan plan **yang tercantum pada laporan readiness**, buka
 
    ```bash
    SIA_CONFIG_FILE=/private/plan/deployment-owner.json \
-     php /private/candidate/ops/migrate_r1.php --check \
+     php /private/candidate/ops/database/migrate_r1.php --check \
        --expected-database=DATABASE_YANG_DISETUJUI --production-release=COMMIT_PENUH
    SIA_CONFIG_FILE=/private/plan/deployment-owner.json \
-     php /private/candidate/ops/migrate_r1.php --apply \
+     php /private/candidate/ops/database/migrate_r1.php --apply \
        --expected-database=DATABASE_YANG_DISETUJUI --production-release=COMMIT_PENUH
    ```
 
@@ -51,10 +51,10 @@ Gunakan jalur candidate dan plan **yang tercantum pada laporan readiness**, buka
 8. Verifikasi proyeksi kolom/data asli, seluruh FK, view/trigger/routine dan daftar perubahan skema yang direncanakan. Full schema hash memang berubah setelah migrasi; jumlah dan hash data kolom asli wajib sama sebelum lalu lintas tulis dibuka. Ledger baru dan audit kosong adalah perubahan yang direncanakan.
 
    ```bash
-   python3 ops/r1_data_fingerprint.py verify --config /private/active-config.json \
+   python3 ops/release/r1_data_fingerprint.py verify --config /private/active-config.json \
      --baseline /private/new-activation/original-columns.json
    SIA_CONFIG_FILE=/private/plan/runtime.json \
-     php /private/candidate/ops/check_r1_runtime.php \
+     php /private/candidate/ops/release/check_r1_runtime.php \
        --expected-database=DATABASE_YANG_DISETUJUI --expected-environment=production
    ```
 
