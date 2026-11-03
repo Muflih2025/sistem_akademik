@@ -4,15 +4,17 @@ $schedules=ak_teacher_schedules();
 if (!$schedules) { echo '<div class="panel">Belum ada penugasan dengan periode dan rentang tanggal terverifikasi. Hubungi admin.</div>'; return; }
 $scheduleId=isset($_GET['id_jadwal'])?input_id($_GET,'id_jadwal'):(int)$schedules[0]['id_jadwal'];
 $schedule=ak_schedule($scheduleId);
-$dayNumbers=['Senin'=>1,'Selasa'=>2,'Rabu'=>3,'Kamis'=>4,'Jumat'=>5];
-$default=new DateTimeImmutable('today'); while((int)$default->format('N')!==$dayNumbers[$schedule['hari']]) $default=$default->modify('-1 day');
-$date=isset($_GET['tanggal'])?input_date($_GET,'tanggal'):$default->format('Y-m-d');
+$automaticDate=!isset($_GET['tanggal']);
+$date=$automaticDate?ak_default_schedule_date($schedule,ak_period((int)$schedule['id_tahun_ajaran'])):input_date($_GET,'tanggal');
+$options=[];foreach($schedules as $row)$options[$row['id_jadwal']]=$row['nama_kelas'].' · '.$row['nama_mapel'].' · '.$row['hari'].' '.substr($row['jam_mulai'],0,5);
+?><form method="get" class="panel form-grid"><?php ak_hidden('view','pertemuan');ak_select('id_jadwal','Jadwal mengajar',$options,$scheduleId);ak_field('tanggal','Tanggal',$date??'','date');?><button class="secondary">Tampilkan kelas</button></form>
+<?php if($date===null):?><div class="notice" role="status">Belum ada tanggal mengajar yang telah berlangsung dalam rentang penugasan ini. Pilih jadwal lain atau hubungi Admin untuk memeriksa penugasan.</div><?php return;endif;
 ak_schedule($scheduleId,false,$date);
+if($automaticDate):?><div class="notice" role="status">Tanggal otomatis: <?=e($date)?>, tanggal mengajar terakhir dalam rentang penugasan terverifikasi <?=e($schedule['berlaku_mulai'])?> sampai <?=e($schedule['berlaku_selesai'])?>. Periksa tanggal sebelum mengisi atau mengoreksi.</div><?php endif;
 $meeting=ak_one('SELECT * FROM ak_pertemuan WHERE id_jadwal=? AND tanggal=?',[$scheduleId,$date]);
 $roster=ak_roster((int)$schedule['id_kelas'],(int)$schedule['id_tahun_ajaran'],$date);
 $stored=[]; if($meeting) foreach(ak_meeting_rows((int)$meeting['id']) as $row) $stored[$row['nis']]=$row;
-$options=[];foreach($schedules as $row)$options[$row['id_jadwal']]=$row['nama_kelas'].' · '.$row['nama_mapel'].' · '.$row['hari'].' '.substr($row['jam_mulai'],0,5);
-?><p><a class="button secondary" href="<?=e(ak_link('pertemuan',['upload'=>1,'module'=>'absensi','id_jadwal'=>$scheduleId,'tanggal'=>$date]))?>">Bulk Upload Excel Absensi</a></p><form method="get" class="panel form-grid"><?php ak_hidden('view','pertemuan');ak_select('id_jadwal','Jadwal mengajar',$options,$scheduleId);ak_field('tanggal','Tanggal',$date,'date');?><button class="secondary">Tampilkan kelas</button></form>
+?><p><a class="button secondary" href="<?=e(ak_link('pertemuan',['upload'=>1,'module'=>'absensi','id_jadwal'=>$scheduleId,'tanggal'=>$date]))?>">Bulk Upload Excel Absensi</a></p>
 <section class="panel class-heading"><div><p class="eyebrow">ABSENSI KELAS</p><h2><?=e($schedule['nama_kelas'])?></h2><p><?=e($schedule['nama_mapel'])?> · <?=e($schedule['hari'])?>, <?=e($date)?></p><p class="muted"><?=count($roster)?> siswa · <?=e($schedule['nama_guru'])?></p></div><span class="pill"><?=$meeting?'Tersimpan · versi '.e($meeting['revision']):'Belum diisi'?></span></section>
 <?php if(!$roster):?><div class="notice">Anggota kelas pada tanggal ini belum ditetapkan. Pengisian dinonaktifkan.</div><?php return;endif;?>
 <form method="post" id="meeting-form" data-attendance-form>

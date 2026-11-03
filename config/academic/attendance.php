@@ -20,6 +20,20 @@ function ak_teacher_schedules(): array {
     require_role('guru');
     return ak_rows("SELECT j.*,k.nama_kelas,m.nama_mapel,w.mulai,w.selesai FROM jadwal j JOIN kelas k ON k.id_kelas=j.id_kelas JOIN mata_pelajaran m ON m.id_mapel=j.id_mapel JOIN tahun_ajaran t ON t.id_tahun_ajaran=j.id_tahun_ajaran JOIN ak_periode p ON p.id_tahun_ajaran=t.id_tahun_ajaran JOIN ak_penugasan w ON w.id_jadwal=j.id_jadwal WHERE j.id_guru=? AND j.status='aktif' AND k.status='aktif' AND m.status='aktif' AND p.terverifikasi=1 AND w.terverifikasi=1 ORDER BY k.nama_kelas,FIELD(j.hari,'Senin','Selasa','Rabu','Kamis','Jumat'),j.jam_mulai",[user_reference()]);
 }
+// Pick a readable date from the assignment, never extend its authorization window.
+function ak_default_schedule_date(array $schedule, array $period, ?string $today=null): ?string {
+    $days=['Senin'=>1,'Selasa'=>2,'Rabu'=>3,'Kamis'=>4,'Jumat'=>5];
+    if (!isset($days[$schedule['hari']])) throw new InputError('Hari jadwal tidak valid.');
+    $today=$today??date('Y-m-d');
+    $start=max($schedule['berlaku_mulai'],$period['mulai']);
+    $end=min($today,$schedule['berlaku_selesai'],$period['selesai']);
+    if ($start>$end) return null;
+    $date=new DateTimeImmutable($end);
+    $offset=((int)$date->format('N')-$days[$schedule['hari']]+7)%7;
+    if ($offset) $date=$date->modify('-'.$offset.' days');
+    $result=$date->format('Y-m-d');
+    return $result>=$start?$result:null;
+}
 function ak_meeting_rows(int $meeting): array {
     return ak_rows('SELECT * FROM ak_absensi_sesi WHERE id_pertemuan=? ORDER BY nomor_absen,nis',[$meeting]);
 }

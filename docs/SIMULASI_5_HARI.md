@@ -2,6 +2,8 @@
 
 Website: **http://127.0.0.1:18125/auth/login.php**. Data simulasi: **26–30 Oktober 2026**, periode **2026/2027 Ganjil**. Website tetap di browser, bukan APK.
 
+Menu **Absensi** dan **Nilai** tanpa parameter tanggal memilih tanggal mengajar terakhir dalam rentang penugasan terverifikasi, disertai keterangan tanggal otomatis. Ini tetap bekerja setelah minggu simulasi berakhir. Periksa tanggal sebelum mengoreksi; tanggal eksplisit di luar rentang dan akses memakai guru lain tetap ditolak.
+
 Panduan ini menggantikan contoh akun/ID acak sebelum pembersihan fixture. Akun `uji_mapel_d75604`, kelas Uji Staf, jurnal #17 dan rapor #136 sudah tidak dipakai. Jangan menggunakan tautan lama tersebut sebagai contoh aktif.
 
 ## Akun yang dipakai

@@ -11,9 +11,12 @@ if(current_user()['role']!=='guru'){
 }
 $schedules=ak_teacher_schedules();if(!$schedules){echo '<div class="panel">Belum ada penugasan terverifikasi.</div>';return;}
 $scheduleId=isset($_GET['id_jadwal'])?input_id($_GET,'id_jadwal'):(int)$schedules[0]['id_jadwal'];$schedule=ak_schedule($scheduleId);
-$days=['Senin'=>1,'Selasa'=>2,'Rabu'=>3,'Kamis'=>4,'Jumat'=>5];$default=new DateTimeImmutable('today');while((int)$default->format('N')!==$days[$schedule['hari']])$default=$default->modify('-1 day');
-$date=isset($_GET['tanggal'])?input_date($_GET,'tanggal'):$default->format('Y-m-d');ak_schedule($scheduleId,false,$date);
+$automaticDate=!isset($_GET['tanggal']);
+$date=$automaticDate?ak_default_schedule_date($schedule,ak_period((int)$schedule['id_tahun_ajaran'])):input_date($_GET,'tanggal');
 $options=[];foreach($schedules as $s)$options[$s['id_jadwal']]=$s['nama_kelas'].' · '.$s['nama_mapel'].' · '.$s['hari'];
+if($date===null):?><form method="get" class="panel form-grid filter"><?php ak_hidden('view','nilai');ak_select('id_jadwal','Penugasan',$options,$scheduleId);ak_field('tanggal','Tanggal roster / penilaian','','date');?><button class="secondary">Tampilkan</button></form><div class="notice" role="status">Belum ada tanggal mengajar yang telah berlangsung dalam rentang penugasan ini. Pilih jadwal lain atau hubungi Admin untuk memeriksa penugasan.</div><?php return;endif;
+ak_schedule($scheduleId,false,$date);
+if($automaticDate):?><div class="notice" role="status">Tanggal otomatis: <?=e($date)?>, tanggal mengajar terakhir dalam rentang penugasan terverifikasi <?=e($schedule['berlaku_mulai'])?> sampai <?=e($schedule['berlaku_selesai'])?>. Periksa tanggal sebelum mengisi atau mengoreksi.</div><?php endif;
 $roster=ak_roster((int)$schedule['id_kelas'],(int)$schedule['id_tahun_ajaran'],$date);
 $studentOptions=[];foreach($roster as $s)$studentOptions[$s['nis']]=$s['nomor_absen'].'. '.$s['nama_siswa'];
 $selectedNis=input_text(['nis'=>$_GET['nis']??''],'nis',15,false);if($selectedNis!==''&&!array_key_exists($selectedNis,$studentOptions))deny_access();
