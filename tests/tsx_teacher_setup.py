@@ -7,6 +7,7 @@ parser.add_argument('--state',type=Path,default=Path.home()/'.local/state/sia-te
 parser.add_argument('--port',type=int,default=18128)
 parser.add_argument('--serve',action='store_true')
 parser.add_argument('--webpack',action='store_true',help='Optional Webpack reproduction; default matches pnpm dev (Turbopack)')
+parser.add_argument('--paperless',action='store_true',help='Add 18 synthetic members for the 20-student physical-book acceptance audit')
 args=parser.parse_args()
 if not 1024 <= args.port <= 65535:parser.error('--port must be between 1024 and 65535')
 os.umask(0o077)
@@ -75,6 +76,11 @@ add('guru',id_guru=3,nama_guru='Guru Piket Review',status='aktif')
 add('users',id_user=6,username='uji_piket',password=hashed,role='guru',id_referensi=3,status='aktif')
 add('ak_tugas_piket',id='task-review',id_guru=3,id_tahun_ajaran=1,id_kelas=0,mulai='2026-07-01',selesai='2026-12-31',aktif=1,boleh_koreksi=0)
 add('ak_nilai',id='old-period',nis=9000001,id_anggota=1,id_tahun_ajaran=2,id_kelas=1,id_mapel=1,id_guru=1,komponen_json='{}',nilai_akhir='60')
+if args.paperless:
+ for number in range(3,21):
+  nis='98000'+str(number).zfill(2)
+  add('siswa',nis=nis,nama_siswa='Siswa Paper '+str(number).zfill(2),jenis_kelamin='L',id_kelas=1,status='aktif')
+  add('ak_anggota_kelas',id='paper-'+str(number),nis=nis,id_kelas=1,id_tahun_ajaran=1,nomor_absen=number,mulai='2026-07-01',selesai='2026-12-31',created_by=1)
 fixture.commit();fixture.close()
 print('Synthetic Mon–Fri schedules, grade rules and duty account added.')
 server_args=[str(root/'node_modules/next/dist/bin/next'),'dev',*(['--webpack'] if args.webpack else []),'--hostname','127.0.0.1','--port',str(args.port)]
