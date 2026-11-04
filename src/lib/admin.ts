@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { currentSchoolYear } from './academic-year';
 import { AuthUser } from './auth';
 import { Row, period } from './academic';
 import { catalog } from './catalog';
@@ -13,7 +14,8 @@ export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0) {
   const where=q?`WHERE ${cols.map(c=>`CAST(${c} AS TEXT) LIKE ?`).join(' OR ')}`:'';const args=cols.map(()=>`%${q.slice(0,100)}%`);
   const total=rows(`SELECT COUNT(*) n FROM ${table} ${where}`,...(q?args:[]))[0].n;
   const data=rows(`SELECT rowid _rowid,* FROM ${table} ${where} ORDER BY CAST(${def.pk} AS INTEGER),${def.pk} LIMIT ? OFFSET ?`,...(q?args:[]),limit,offset).map(publicRow);
-  if(table==='jadwal')for(const r of data){r.nama_kelas=one('kelas',{id_kelas:r.id_kelas})?.nama_kelas;r.nama_guru=one('guru',{id_guru:r.id_guru})?.nama_guru;r.nama_mapel=one('mata_pelajaran',{id_mapel:r.id_mapel})?.nama_mapel;}
+  if(table==='tahun_ajaran')for(const r of data){const p=one('ak_periode',{id_tahun_ajaran:r.id_tahun_ajaran});r.mulai=p?.mulai;r.selesai=p?.selesai;r.terverifikasi=p?.terverifikasi;}
+  if(table==='jadwal')for(const r of data){r.nama_kelas=one('kelas',{id_kelas:r.id_kelas})?.nama_kelas;r.nama_guru=one('guru',{id_guru:r.id_guru})?.nama_guru;r.nama_mapel=one('mata_pelajaran',{id_mapel:r.id_mapel})?.nama_mapel;const y=one('tahun_ajaran',{id_tahun_ajaran:r.id_tahun_ajaran});r.tahun_ajaran=y?.tahun_ajaran;r.semester=y?.semester;r.sudah_ditugaskan=!!one('ak_penugasan',{id_jadwal:r.id_jadwal});}
   if(table==='users')for(const r of data){const ref=r.role==='guru'?one('guru',{id_guru:r.id_referensi}):r.role==='siswa'?one('siswa',{nis:r.id_referensi}):null;r.nama=ref?.nama_guru||ref?.nama_siswa||r.username;r.nip_nis=ref?.nip||ref?.nis||'';r.id=r.id_user;r.is_active=r.status==='aktif';}
   return {data,total,table,definition:def};
 }
@@ -63,6 +65,10 @@ export function saveCatalog(user:AuthUser,input:Row):Row {
       if(rows("SELECT 1 FROM jadwal WHERE status='aktif' AND id_tahun_ajaran=? AND hari=? AND substr(jam_mulai,1,5)<? AND substr(jam_selesai,1,5)>? AND (id_guru=? OR id_kelas=? OR (?<>'' AND ruang=?)) AND id_jadwal<>?",values.id_tahun_ajaran,values.hari,values.jam_selesai,values.jam_mulai,values.id_guru,values.id_kelas,values.ruang,values.ruang,id).length)fail('Jadwal guru, kelas, atau ruang bertabrakan.',409);
     }
     if(table==='tahun_ajaran') {
+      const current = currentSchoolYear();
+      if (!before && (values.tahun_ajaran !== current.tahun_ajaran || values.semester !== current.semester)) fail('Periode baru harus mengikuti tahun ajaran dan semester berjalan.');
+      if (before && (values.tahun_ajaran !== before.tahun_ajaran || values.semester !== before.semester)) fail('Identitas tahun ajaran dan semester tidak dapat diubah.');
+      if (values.status === 'Aktif' && (values.tahun_ajaran !== current.tahun_ajaran || values.semester !== current.semester)) fail('Hanya tahun ajaran dan semester berjalan yang dapat diaktifkan.');
       const m=/^(\d{4})\/(\d{4})$/.exec(values.tahun_ajaran);if(!m||Number(m[2])!==Number(m[1])+1)fail('Tahun ajaran harus dua tahun berurutan.');
       if(rows('SELECT 1 FROM tahun_ajaran WHERE tahun_ajaran=? AND semester=? AND id_tahun_ajaran<>?',values.tahun_ajaran,values.semester,id).length)fail('Periode sudah ada.',409);
       if(before&&(before.tahun_ajaran!==values.tahun_ajaran||before.semester!==values.semester)&&one('ak_periode',{id_tahun_ajaran:id}))fail('Identitas periode bersejarah tidak dapat diubah.',409);
@@ -72,6 +78,7 @@ export function saveCatalog(user:AuthUser,input:Row):Row {
   }
   const target=id||(table==='siswa'?values.nis:nextId(table,def.pk));
   const saved=write(user,table,{[def.pk]:target},values,text(input.alasan||input.catatan||'Perubahan data oleh pengelola','Alasan',500));
+  if(table==='jadwal'&&!before&&(input.penugasan_mulai||input.penugasan_selesai)) saveFoundation(user,{kind:'penugasan',id_jadwal:target,mulai:input.penugasan_mulai,selesai:input.penugasan_selesai,terverifikasi:input.verifikasi_penugasan||'0',catatan:input.alasan||'Penugasan dari jadwal baru'});
   if(['siswa','guru'].includes(table)&&values.status==='nonaktif')for(const u of rows('SELECT * FROM users WHERE role=? AND id_referensi=?',table,target))write(user,'users',{id_user:u.id_user},{status:'nonaktif'},'Referensi dinonaktifkan');
   return publicRow(saved);
 }

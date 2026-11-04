@@ -27,7 +27,7 @@ export function Screen({ title, children }: { title: string; children: React.Rea
 export function Feedback({ error, success }: { error?: string; success?: string }) {
   return <Notice error={error} success={error ? undefined : success} />;
 }
-export function useLookups(tables: string[]) {
+export function useLookups(tables: string[], refresh = 0) {
   const [data, setData] = useState<Record<string, Row[]>>({}), [error, setError] = useState(''), [loading, setLoading] = useState(true);
   const key = tables.join(',');
   useEffect(() => { const c = new AbortController(); setError(''); setLoading(true);
@@ -37,21 +37,25 @@ export function useLookups(tables: string[]) {
       return [table, items] as const;
     })).then(entries => { setData(Object.fromEntries(entries)); setLoading(false); }).catch(e => { if (e.name !== 'AbortError') { setError(message(e)); setLoading(false); } });
     return () => c.abort();
-  }, [key]);
+  }, [key, refresh]);
   return { data, error, loading };
 }
 export function FieldInput({ field, value, onChange, lookups = {}, disabled = false }: {
   field: Field; value: any; onChange: (value: string) => void; lookups?: Record<string, Row[]>; disabled?: boolean;
 }) {
   const props = { 'aria-label': field.label, required: !field.optional, disabled, value: value ?? '', onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => onChange(e.target.value), className: inputClass };
-  const options = field.reference ? (lookups[field.reference] || []).map(r => ({ value: field.key === 'ruang' ? r.nama_ruang : r[catalog[field.reference!].pk], label: field.reference === 'jadwal' ? `${r.nama_kelas || ''} · ${r.nama_mapel || ''} · ${r.hari} ${r.jam_mulai} (#${r.id_jadwal})` : `${labels(r) || r[catalog[field.reference!].pk]}${r.semester && !r.tahun_ajaran ? ' ' + r.semester : ''}` })) : field.options?.map(v => ({ value: v, label: v === '1' ? 'Ya' : v === '0' ? 'Tidak' : v }));
+  const options = field.reference ? (lookups[field.reference] || []).map(r => ({ value: field.key === 'ruang' ? r.nama_ruang : r[catalog[field.reference!].pk], label: field.reference === 'jadwal' ? `${r.nama_kelas || ''} · ${r.nama_mapel || ''} · ${r.nama_guru || ''} · ${r.hari} ${r.jam_mulai} · ${r.tahun_ajaran || ''} ${r.semester || ''} (#${r.id_jadwal})` : `${labels(r) || r[catalog[field.reference!].pk]}${r.semester && !r.tahun_ajaran ? ' ' + r.semester : ''}` })) : field.options?.map(v => ({ value: v, label: v === '1' ? 'Ya' : v === '0' ? 'Tidak' : v }));
   return <label className="block min-w-0 text-sm">{field.label}{field.optional ? ' (opsional)' : ''}
     {options ? <select {...props}><option value="">{field.optional ? 'Semua / tidak ditetapkan' : 'Pilih ' + field.label.toLowerCase()}</option>{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
       : field.type === 'textarea' ? <textarea {...props} rows={3} /> : <input {...props} type={field.type || 'text'} step={field.type === 'number' ? 'any' : undefined} autoComplete={field.type === 'password' ? 'new-password' : 'off'} />}
   </label>;
 }
-export function DataTable({ columns, rows, actions }: { columns: { key: string; label: string; render?: (row: Row) => React.ReactNode }[]; rows: Row[]; actions?: (row: Row) => React.ReactNode }) {
-  return <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left text-sm"><thead className="bg-gray-100"><tr>{columns.map(c => <th key={c.key} className="p-3 whitespace-nowrap">{c.label}</th>)}{actions && <th className="p-3">Aksi</th>}</tr></thead><tbody>{rows.map((row, i) => <tr key={JSON.stringify([row.id ?? row.id_user ?? row.id_jadwal ?? row.nis ?? i, row.tanggal, row.id_tahun_ajaran, row.id_kelas, row.id_mapel, row.id_ekskul])} className="border-t">{columns.map(c => <td key={c.key} className="p-3 align-top">{c.render ? c.render(row) : String(row[c.key] ?? '—')}</td>)}{actions && <td className="p-3"><div className="flex flex-wrap gap-2">{actions(row)}</div></td>}</tr>)}</tbody></table>{!rows.length && <p className="p-4 text-sm">Belum ada data yang sesuai.</p>}</div>;
+export function DataTable({ columns, rows, actions, paginate = true }: { columns: { key: string; label: string; render?: (row: Row) => React.ReactNode }[]; rows: Row[]; actions?: (row: Row) => React.ReactNode; paginate?: boolean }) {
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [JSON.stringify(rows), columns.map(c => c.key).join(',')]);
+  const pages = Math.max(1, Math.ceil(rows.length / 20)), current = Math.min(page, pages - 1);
+  const visible = paginate ? rows.slice(current * 20, (current + 1) * 20) : rows;
+  return <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left text-sm"><thead className="bg-gray-100"><tr>{columns.map(c => <th key={c.key} className="p-3 whitespace-nowrap">{c.label}</th>)}{actions && <th className="p-3">Aksi</th>}</tr></thead><tbody>{visible.map((row, i) => <tr key={JSON.stringify([row.id ?? row.id_user ?? row.id_jadwal ?? row.nis ?? i, row.tanggal, row.id_tahun_ajaran, row.id_kelas, row.id_mapel, row.id_ekskul])} className="border-t">{columns.map(c => <td key={c.key} className="p-3 align-top">{c.render ? c.render(row) : String(row[c.key] ?? '—')}</td>)}{actions && <td className="p-3"><div className="flex flex-wrap gap-2">{actions(row)}</div></td>}</tr>)}</tbody></table>{!rows.length && <p className="p-4 text-sm">Belum ada data yang sesuai.</p>}{paginate && rows.length > 20 && <nav aria-label="Halaman tabel" className="flex flex-wrap items-center gap-3 border-t p-3 text-sm"><button type="button" className={secondaryClass} disabled={current === 0} onClick={() => setPage(current - 1)}>Sebelumnya</button><span>Halaman {current + 1} dari {pages} · {rows.length} data · 20 per halaman</span><button type="button" className={secondaryClass} disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Berikutnya</button></nav>}</div>;
 }
 export function Downloads({ params, setError, formats = ['csv', 'xlsx', 'pdf'] }: { params: Row; setError: (error: string) => void; formats?: string[] }) {
   const [busy, setBusy] = useState('');

@@ -1,3 +1,4 @@
+import { currentSchoolYear } from './academic-year';
 import { AuthUser } from './auth';
 import { Row, period, schedule, roster, duties, weekday, dateValue, revisionCheck } from './academic';
 import { rows, one, fail, role, text, choice, number, reference, range, write, nextId, hash, today } from './store';
@@ -48,4 +49,22 @@ export function saveRule(user:AuthUser,input:Row) {
   const j=schedule(user,input.id_jadwal,undefined,true),components=['tugas','uts','uas','praktik','proyek'],weights:Row={};for(const k of components)weights[k]=number(input.bobot?.[k]);if(Math.abs(Object.values(weights).reduce((a:number,b:any)=>a+Number(b),0)-100)>0.00001)fail('Total bobot harus tepat 100.');
   const old=rows('SELECT * FROM ak_aturan_nilai WHERE id_tahun_ajaran=? AND id_kelas=? AND id_mapel=? AND id_guru=? ORDER BY CAST(versi AS INTEGER) DESC',j.id_tahun_ajaran,j.id_kelas,j.id_mapel,j.id_guru);if(Number(input.versi||0)!==Number(old[0]?.versi||0))fail('Aturan sudah berubah.',409);
   return write(user,'ak_aturan_nilai',{id:nextId('ak_aturan_nilai','id')},{id_tahun_ajaran:j.id_tahun_ajaran,id_kelas:j.id_kelas,id_mapel:j.id_mapel,id_guru:j.id_guru,versi:Number(old[0]?.versi||0)+1,bobot_json:JSON.stringify(weights),kkm:reference('mata_pelajaran','id_mapel',j.id_mapel).kkm,formula:'weighted_kkm_v1',catatan:text(input.catatan,'Catatan',500,false)},'Versi aturan baru; nilai lama dipertahankan');
+}
+
+export function calendarData(user: AuthUser, q: URLSearchParams) {
+  const month = q.get('bulan') || today().slice(0, 7);
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) fail('Bulan tidak valid.');
+  const current = rows("SELECT t.*,p.mulai,p.selesai FROM tahun_ajaran t JOIN ak_periode p ON p.id_tahun_ajaran=t.id_tahun_ajaran WHERE t.status='Aktif' AND p.terverifikasi='1' AND p.mulai<=? AND p.selesai>=?", today(), today());
+  if (current.length > 1) fail('Periode aktif ambigu. Hubungi admin.', 409);
+  const p = current[0];
+  const bounds = user.role === 'siswa' && p ? { min: p.mulai.slice(0, 7), max: p.selesai.slice(0, 7) } : null;
+  if (user.role === 'siswa' && (!p || p.tahun_ajaran !== currentSchoolYear().tahun_ajaran)) return { data: [], bounds: null, period: null, notice: 'Periode berjalan belum ditetapkan admin.' };
+  if (bounds && (month < bounds.min || month > bounds.max)) fail(`Kalender siswa hanya tersedia pada periode berjalan (${bounds.min} sampai ${bounds.max}).`);
+  if (user.role === 'siswa' && q.get('id_tahun_ajaran') && q.get('id_tahun_ajaran') !== p.id_tahun_ajaran) fail('Kalender siswa hanya tersedia pada periode berjalan.', 403);
+  const data = rows('SELECT * FROM ak_kalender ORDER BY mulai,id').filter(r =>
+    (user.role === 'admin' || r.status === 'disahkan') &&
+    (user.role !== 'siswa' || r.id_tahun_ajaran === p.id_tahun_ajaran) &&
+    (!q.get('id_tahun_ajaran') || r.id_tahun_ajaran === q.get('id_tahun_ajaran')) &&
+    r.mulai.slice(0, 7) <= month && r.selesai.slice(0, 7) >= month);
+  return { data, bounds, period: user.role === 'siswa' ? p : null, notice: data.length ? '' : 'Belum ada agenda yang disahkan pada bulan ini.' };
 }

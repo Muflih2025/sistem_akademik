@@ -196,6 +196,8 @@ export function saveGrades(user: AuthUser, body: Row) {
     const before = one('ak_nilai', keys);
     if (before && (before.id_guru !== j.id_guru || before.id_kelas !== j.id_kelas || before.id_anggota !== member.id_anggota)) fail('Pemilik nilai berbeda.', 403);
     revisionCheck(before, item.revision, body.alasan);
+    if (item.deskripsi != null && (typeof item.deskripsi !== 'string' || item.deskripsi.length > 2000)) fail('Deskripsi capaian maksimal 2000 karakter.');
+    const description = item.deskripsi == null ? before?.deskripsi || '' : item.deskripsi.trim();
     const scores: Row = {};
     for (const k of components) {
       const value = item[`nilai_${k}`];
@@ -209,7 +211,7 @@ export function saveGrades(user: AuthUser, body: Row) {
     const predikat = final < Number(rule.kkm) ? 'D' : final < Number(rule.kkm) + interval ? 'C' : final < Number(rule.kkm) + 2 * interval ? 'B' : 'A';
     saveRow('ak_nilai', keys, { id: before?.id || randomUUID(), id_anggota: member.id_anggota,
       id_kelas: j.id_kelas, id_guru: j.id_guru, id_aturan: rule.id, komponen_json: JSON.stringify(scores),
-      nilai_akhir: final.toFixed(2), predikat, deskripsi: String(item.deskripsi || ''),
+      nilai_akhir: final.toFixed(2), predikat, deskripsi: description,
       revision: Number(before?.revision || 0) + 1, created_by: before ? before.created_by : user.id_user }, user, before, body.alasan);
   }
   return body.items.length;
