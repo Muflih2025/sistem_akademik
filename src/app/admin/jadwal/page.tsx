@@ -49,19 +49,19 @@ export default function AdminJadwalPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {jadwal.map((item) => (
-              <div key={item.id} className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div key={item.id_jadwal} className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold">
-                    {item.hari} • Jam {item.jam_ke}
+                    {item.hari}
                   </span>
                   <span className="text-xs font-mono font-semibold text-slate-500">
                     {item.jam_mulai} - {item.jam_selesai}
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 leading-snug">{item.mapel}</h4>
+                  <h4 className="font-bold text-slate-900 leading-snug">{item.nama_mapel}</h4>
                   <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                    <span className="font-semibold text-blue-600">{item.kelas}</span>
+                    <span className="font-semibold text-blue-600">{item.nama_kelas}</span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
@@ -72,9 +72,9 @@ export default function AdminJadwalPage() {
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
                   <span className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-slate-400" />
-                    {item.guru_nama}
+                    {item.nama_guru}
                   </span>
-                  <span className="text-[11px] font-mono text-slate-400">ID #{item.id}</span>
+                  <span className="text-[11px] font-mono text-slate-400">ID #{item.id_jadwal}</span>
                 </div>
               </div>
             ))}
