@@ -69,7 +69,8 @@ export function schedule(user: AuthUser, id: unknown, date?: string, write = fal
   if (date) {
     dateValue(date);
     if (date < j.mulai || date > j.selesai || date < p.mulai || date > p.selesai || weekday(date) !== j.hari.replace("'", '')) fail('Tanggal tidak sesuai hari atau rentang penugasan jadwal.');
-    if (!String(p.hari_efektif).split(',').includes(String(new Date(date + 'T00:00:00Z').getUTCDay()))) fail('Tanggal bukan hari efektif.');
+    const events = db.prepare("SELECT jenis FROM ak_kalender WHERE id_tahun_ajaran=? AND status='disahkan' AND mulai<=? AND selesai>=?").all(j.id_tahun_ajaran, date, date) as Row[];
+    if (!events.some(e => e.jenis === 'Hari Efektif') && !String(p.hari_efektif).split(',').includes(String(new Date(date + 'T00:00:00Z').getUTCDay() || 7))) fail('Tanggal bukan hari efektif.');
     if (write && date > new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date())) fail('Absensi tidak dapat diisi untuk tanggal mendatang.');
     if (write && db.prepare("SELECT 1 FROM ak_kalender WHERE id_tahun_ajaran=? AND status='disahkan' AND jenis='Libur' AND mulai<=? AND selesai>=?").get(j.id_tahun_ajaran, date, date)) fail('Tanggal merupakan hari libur.');
   }
@@ -113,7 +114,7 @@ export function saveMeeting(user: AuthUser, body: Row) {
   checkMeetingScope(j, before);
   revisionCheck(before, body.revision, body.alasan);
   if (typeof body.materi !== 'string' || !body.materi.trim() || body.materi.length > 5000) fail('Materi wajib diisi (maksimum 5000 karakter).');
-  if (!Number.isInteger(Number(body.pertemuan_ke)) || Number(body.pertemuan_ke) < 1) fail('Pertemuan ke harus berupa bilangan positif.');
+  if (!Number.isInteger(Number(body.pertemuan_ke)) || Number(body.pertemuan_ke) < 1 || Number(body.pertemuan_ke) > 1000) fail('Pertemuan ke harus berupa bilangan bulat 1–1000.');
   const members = roster(j, date);
   if (!members.length) fail('Daftar siswa periode ini belum tersedia.', 409);
   if (body.items !== undefined) {
@@ -121,6 +122,16 @@ export function saveMeeting(user: AuthUser, body: Row) {
     for (const item of body.items) if (!members.some(r => r.nis === String(item.nis)) || !['H', 'S', 'I', 'A', 'B'].includes(item.status)) fail('Siswa atau status absensi tidak sesuai jadwal.');
   }
   const fields: Row = {};
+  const replacement = body.id_guru_pengganti === undefined ? before?.id_guru_pengganti || null : body.id_guru_pengganti === '' || body.id_guru_pengganti === null ? null : body.id_guru_pengganti;
+  if (replacement !== null && (typeof replacement !== 'string' || replacement.length > 40 || !db.prepare("SELECT 1 FROM guru WHERE id_guru=? AND status='aktif'").get(replacement))) fail('Guru pengganti tidak dikenal atau nonaktif.');
+  const lesson = body.jam_ke || before?.jam_ke || `${j.jam_mulai}–${j.jam_selesai}`;
+  if (typeof lesson !== 'string' || lesson.length > 30) fail('Jam pelajaran maksimal 30 karakter.');
+  if (lesson !== before?.jam_ke) {
+    const times = /^(\d{2}:\d{2})\s*[–—-]\s*(\d{2}:\d{2})$/.exec(lesson);
+    const validTimes = times && times.slice(1).every(t => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t)) && times[1] < times[2];
+    const numbers = lesson.replace(/[–—]/g, '-').split(/\s*[,-]\s*/);
+    if (!validTimes && !numbers.every((n, i) => /^\d{1,2}$/.test(n) && Number(n) >= 1 && Number(n) <= 40 && (i === 0 || Number(n) > Number(numbers[i - 1])))) fail('Isi nomor jam 1–40 (contoh 1–2) atau rentang waktu 07:00–08:30.');
+  }
   for (const key of ['tp_atp', 'kegiatan', 'refleksi', 'catatan', 'tindak_lanjut']) {
     if (body[key] != null && (typeof body[key] !== 'string' || body[key].length > 5000)) fail('Isian jurnal tidak valid.');
     fields[key] = body[key] ?? before?.[key] ?? '';
@@ -128,7 +139,7 @@ export function saveMeeting(user: AuthUser, body: Row) {
   const meeting = saveRow('ak_pertemuan', keys, {
     id: before?.id || randomUUID(), id_tahun_ajaran: j.id_tahun_ajaran, id_kelas: j.id_kelas,
     id_guru: j.id_guru, id_mapel: j.id_mapel, materi: body.materi.trim(), pertemuan_ke: String(body.pertemuan_ke),
-    jam_ke: body.jam_ke || before?.jam_ke || `${j.jam_mulai}–${j.jam_selesai}`, ...fields,
+    jam_ke: lesson, id_guru_pengganti: replacement, ...fields,
     revision: Number(before?.revision || 0) + 1, created_by: before ? before.created_by : user.id_user,
     created_at: before ? before.created_at : new Date().toISOString(),
   }, user, before, body.alasan);

@@ -13,6 +13,7 @@ export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0) {
   const where=q?`WHERE ${cols.map(c=>`CAST(${c} AS TEXT) LIKE ?`).join(' OR ')}`:'';const args=cols.map(()=>`%${q.slice(0,100)}%`);
   const total=rows(`SELECT COUNT(*) n FROM ${table} ${where}`,...(q?args:[]))[0].n;
   const data=rows(`SELECT rowid _rowid,* FROM ${table} ${where} ORDER BY CAST(${def.pk} AS INTEGER),${def.pk} LIMIT ? OFFSET ?`,...(q?args:[]),limit,offset).map(publicRow);
+  if(table==='jadwal')for(const r of data){r.nama_kelas=one('kelas',{id_kelas:r.id_kelas})?.nama_kelas;r.nama_guru=one('guru',{id_guru:r.id_guru})?.nama_guru;r.nama_mapel=one('mata_pelajaran',{id_mapel:r.id_mapel})?.nama_mapel;}
   if(table==='users')for(const r of data){const ref=r.role==='guru'?one('guru',{id_guru:r.id_referensi}):r.role==='siswa'?one('siswa',{nis:r.id_referensi}):null;r.nama=ref?.nama_guru||ref?.nama_siswa||r.username;r.nip_nis=ref?.nip||ref?.nis||'';r.id=r.id_user;r.is_active=r.status==='aktif';}
   return {data,total,table,definition:def};
 }

@@ -9,6 +9,8 @@ import { TeachingPicker, useTeachingContext } from './TeachingContext';
 export default function MeetingEditor({ attendance = false }: { attendance?: boolean }) {
   const context = useTeachingContext();
   const [students, setStudents] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [downloadStart, setDownloadStart] = useState(''), [downloadEnd, setDownloadEnd] = useState('');
   const [meeting, setMeeting] = useState<any>({});
   const [history, setHistory] = useState<any[]>([]);
   const [error, setError] = useState(''), [success, setSuccess] = useState('');
@@ -17,6 +19,8 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
   const [reason, setReason] = useState(''), [verified, setVerified] = useState(false);
   const [search, setSearch] = useState(''), [page, setPage] = useState(1), [size, setSize] = useState(10);
   const key = `${context.id}/${context.date}`;
+  useEffect(() => { const c = new AbortController(); fetch('/api/guru-options', { signal: c.signal }).then(r => r.json()).then(j => { if (!j.success) throw Error(j.error); setTeachers(j.data); }).catch(e => { if (e.name !== 'AbortError') setError(e.message); }); return () => c.abort(); }, []);
+  useEffect(() => { setDownloadStart(context.date); setDownloadEnd(context.date); }, [context.date]);
   useEffect(() => {
     setStudents([]); setMeeting({}); setHistory([]); setError(''); setSuccess(''); setLoaded(''); setVerified(false); setReason(''); setPage(1);
     if (!context.ready || !context.id || !context.date) return;
@@ -57,7 +61,7 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
     <TeachingPicker context={context} disabled={saving} />
     <Notice error={error} success={success} />
     <Link className="underline text-sm" href="/guru/impor">Impor absensi dari CSV / Excel</Link>
-    {context.id && context.date && <details className="border rounded-xl p-4 bg-white"><summary>Unduh buku absensi, jurnal & agenda</summary><div className="space-y-3 mt-3">{['absensi', 'jurnal', 'agenda'].map(kind => <div key={kind}><h3 className="font-semibold capitalize">{kind}</h3><Downloads params={{ kind, id_jadwal: context.id, mulai: context.date, selesai: context.date }} setError={setError} /></div>)}</div></details>}
+    {context.id && context.date && <details className="border rounded-xl p-4 bg-white"><summary>Unduh buku absensi, jurnal & agenda</summary><div className="space-y-3 mt-3"><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Mulai unduhan<input aria-label="Mulai unduhan buku" type="date" value={downloadStart} onChange={e => setDownloadStart(e.target.value)} className="block w-full border rounded p-2" /></label><label className="text-sm">Selesai unduhan<input aria-label="Selesai unduhan buku" type="date" value={downloadEnd} onChange={e => setDownloadEnd(e.target.value)} className="block w-full border rounded p-2" /></label></div>{['absensi', 'jurnal', 'agenda'].map(kind => <div key={kind}><h3 className="font-semibold capitalize">{kind}</h3><Downloads params={{ kind, id_jadwal: context.id, mulai: downloadStart, selesai: downloadEnd }} setError={setError} /></div>)}</div></details>}
     {loading && <p>Memuat pertemuan…</p>}
     <form onSubmit={save} className="space-y-5">
       {attendance && <section className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
@@ -76,13 +80,14 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
       </section>}
       <section className="grid gap-4 sm:grid-cols-2 bg-white p-4 border border-gray-200 rounded-xl">
         {field('pertemuan_ke', 'Pertemuan ke', true)}{field('jam_ke', 'Jam pelajaran (opsional)')}
-        {field('tp_atp', 'TP / ATP')}{field('materi', 'Materi pembelajaran', true)}
+        <label className="text-sm">Guru pengganti (opsional)<select aria-label="Guru pengganti" disabled={!editable} value={meeting.id_guru_pengganti || ''} onChange={e => setMeeting({ ...meeting, id_guru_pengganti: e.target.value })} className="mt-2 block w-full border rounded-lg p-2.5"><option value="">Tidak ada guru pengganti</option>{teachers.map(t => <option key={t.id_guru} value={t.id_guru}>{t.nama_guru}</option>)}</select></label>{field('tp_atp', 'TP / ATP')}{field('materi', 'Materi pembelajaran', true)}
         {field('kegiatan', 'Kegiatan pembelajaran')}{field('refleksi', 'Refleksi KBM')}
         {field('tindak_lanjut', 'Tindak lanjut')}{field('catatan', 'Catatan')}
         <label className="text-sm">Alasan koreksi<input aria-label="Alasan koreksi" required={!!meeting.id} disabled={!editable} value={reason} onChange={e => setReason(e.target.value)} className="mt-2 w-full border rounded-lg p-2.5" /></label>
         <button disabled={!editable} type="submit" className="bg-black text-white rounded-lg p-3 self-end disabled:opacity-40">{saving ? 'Menyimpan…' : attendance ? 'Simpan Absensi & Jurnal' : 'Simpan Jurnal'}</button>
       </section>
     </form>
+    {!attendance && loaded === key && <section className="bg-white border rounded-xl p-4 space-y-3"><h3 className="font-bold">Kehadiran pertemuan</h3><p className="text-sm">{['H','S','I','A','B'].map(c => `${c}: ${students.filter(s => s.status === c).length}`).join(' · ')}</p>{students.filter(s => s.status !== 'H').map(s => <p key={s.nis} className="text-sm">{s.nama_siswa} ({s.nis}) · {s.status} · {s.keterangan}</p>)}</section>}
     <section className="bg-white border rounded-xl p-4 space-y-3"><h3 className="font-bold">Riwayat Jurnal KBM</h3>
       {history.map(h => <div key={h.id} className="border-t pt-3 text-sm"><p>{h.tanggal} · {h.nama_kelas} · {h.nama_mapel}</p><p>{h.materi}</p><Link className="underline" href={`/guru/jurnal?id_jadwal=${encodeURIComponent(h.id_jadwal)}&tanggal=${h.tanggal}`}>Buka / koreksi jurnal</Link></div>)}
       {!history.length && <p className="text-sm">Belum ada jurnal tersimpan untuk jadwal ini.</p>}

@@ -79,7 +79,7 @@ export default function PortalLayout({
       {
         key: 'penilaian',
         label: 'Nilai & Rapor',
-        items: [{ label: 'Rapor Semester', href: '/admin/nilai' }, { label: 'Absensi Harian & Piket', href: '/piket' }, { label: 'Riwayat Perubahan', href: '/admin/audit' }],
+        items: [{ label: 'Rekap Nilai', href: '/admin/rekap-nilai' }, { label: 'Jurnal & Agenda Guru', href: '/admin/jurnal' }, { label: 'Rapor Semester', href: '/admin/nilai' }, { label: 'Absensi Harian & Piket', href: '/piket' }, { label: 'Riwayat Perubahan', href: '/admin/audit' }],
       },
     ],
     guru: [
@@ -106,7 +106,6 @@ export default function PortalLayout({
           { label: 'Input & Rekap Nilai', href: '/guru/nilai' },
           { label: 'Nilai Ekstrakurikuler', href: '/guru/ekskul' },
           { label: 'Impor CSV / Excel', href: '/guru/impor' },
-          { label: 'Nilai Ekstrakurikuler', href: '/guru/ekskul' },
           { label: 'Buku Rapor Kelas', href: '/guru/rapor' },
         ],
       },
@@ -128,13 +127,16 @@ export default function PortalLayout({
         items: [
           { label: 'Guru Mengajar & KBM', href: '/kepsek/jadwal' },
           { label: 'Posisi Guru', href: '/kepsek/posisi-guru' },
+          { label: 'Jurnal & Agenda Guru', href: '/kepsek/jurnal' },
+          { label: 'Absensi Harian', href: '/piket' },
         ],
       },
       {
         key: 'penilaian',
         label: 'Nilai & Rapor',
         items: [
-          { label: 'Evaluasi Capaian Nilai', href: '/kepsek/evaluasi' },
+          { label: 'Rekap Nilai', href: '/kepsek/rekap-nilai' },
+          { label: 'Catatan Evaluasi', href: '/kepsek/evaluasi' },
           { label: 'Verifikasi Rapor', href: '/kepsek/rapor' },
         ],
       },
@@ -197,7 +199,7 @@ export default function PortalLayout({
     <div className="sia-app min-h-screen flex flex-col bg-[#f3f4f6] text-[#111] font-sans antialiased">
       {/* 1. SIA Top Header (Identik dengan .sia-header di main) */}
       <header className="sia-header flex items-center justify-between gap-4 bg-[#111] text-white px-5 py-3 min-h-[76px] sticky top-0 z-40">
-        <Link href="/" className="sia-brand text-white no-underline text-xl font-extrabold leading-tight">
+        <Link href="/beranda" className="sia-brand text-white no-underline text-xl font-extrabold leading-tight">
           SIA SMKN 2 MAGELANG
           <span className="block text-xs font-normal text-slate-300">
             Sistem Informasi Akademik Terpadu

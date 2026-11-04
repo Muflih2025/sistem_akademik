@@ -126,11 +126,11 @@ tests/                 Pengujian HTTP, browser dan integritas
 docs/                  Panduan, laporan dan bukti pengujian
 ```
 
-Next.js dijalankan dari root repository melalui `pnpm dev`. Direktori PHP seperti `academic/`, `config/academic/`, `includes/` dan launcher `ops/dev/` dipertahankan sebagai sumber legacy; perintah `dev:php`, `dev:setup` dan `dev:check` khusus runtime PHP tersebut.
+Next.js dijalankan dari root repository melalui `pnpm dev`. Sumber aplikasi PHP historis tersedia pada branch `main`. Launcher legacy `ops/dev/` dan perintah `dev:php`, `dev:setup`, serta `dev:check` memerlukan checkout dan lingkungan PHP yang sesuai; perintah tersebut bukan langkah menjalankan aplikasi TypeScript.
 
 ## Pengujian dan operasi
 
-Hasil launcher/UI pada 3 November 2026 berlaku untuk runtime PHP historis. Untuk TypeScript, lihat [audit fungsi](docs/TSX_FUNCTIONAL_AUDIT_2026-11-04.md), [perbaikan Guru](docs/LAPORAN_PERBAIKAN_GURU_2026-11-04.md), dan [verifikasi Admin terbaru](docs/VERIFIKASI_ADMIN_TSX_2026-11-04.md). Setiap laporan menjelaskan versi dan lingkup yang diuji.
+Hasil launcher/UI pada 3 November 2026 berlaku untuk runtime PHP historis. Untuk TypeScript, lihat [audit fungsi](docs/TSX_FUNCTIONAL_AUDIT_2026-11-04.md), [perbaikan Guru](docs/LAPORAN_PERBAIKAN_GURU_2026-11-04.md), [verifikasi Admin](docs/VERIFIKASI_ADMIN_TSX_2026-11-04.md), serta [verifikasi tombol lintas peran terbaru](docs/VERIFIKASI_TOMBOL_LINTAS_PERAN_TSX_2026-11-04.md). Setiap laporan menjelaskan versi dan lingkup yang diuji.
 
 | Dokumen | Isi |
 |---|---|

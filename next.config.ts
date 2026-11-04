@@ -23,16 +23,6 @@ const nextConfig: NextConfig = {
       },
       // Short URLs (sesuai test.md Bagian 6)
       {
-        source: '/absensi',
-        destination: '/guru/absen',
-        permanent: false,
-      },
-      {
-        source: '/jurnal',
-        destination: '/guru/jurnal',
-        permanent: false,
-      },
-      {
         source: '/guru-mengajar',
         destination: '/kepsek/jadwal',
         permanent: false,
@@ -40,26 +30,6 @@ const nextConfig: NextConfig = {
       {
         source: '/piket.php',
         destination: '/piket',
-        permanent: false,
-      },
-      {
-        source: '/nilai',
-        destination: '/guru/nilai',
-        permanent: false,
-      },
-      {
-        source: '/rapor',
-        destination: '/guru/rapor',
-        permanent: false,
-      },
-      {
-        source: '/kalender',
-        destination: '/guru/kalender',
-        permanent: false,
-      },
-      {
-        source: '/jadwal',
-        destination: '/guru/jadwal',
         permanent: false,
       },
       {

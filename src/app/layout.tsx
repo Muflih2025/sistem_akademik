@@ -13,7 +13,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      {/* Browser writing extensions may add attributes to body before hydration. */}
+      <body suppressHydrationWarning className="min-h-screen bg-slate-50 text-slate-900 antialiased">
         {children}
       </body>
     </html>

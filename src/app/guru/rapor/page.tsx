@@ -1,2 +1,3 @@
 import GradeBook from '@/components/academic/GradeBook';
-export default function Page() { return <GradeBook readOnly />; }
+import ReportBoard from '@/components/modules/ReportBoard';
+export default function Page() { return process.env.HOMEROOM_MODE === 'required' ? <ReportBoard /> : <GradeBook readOnly />; }
