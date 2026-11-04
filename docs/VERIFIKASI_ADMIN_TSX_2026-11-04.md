@@ -33,7 +33,9 @@ Typecheck `pnpm exec tsc --noEmit --incremental false`, `pnpm build` dan `git di
 
 Perbaikan akun dipisahkan pada `c8d2ed5` dan `af6fd64`; perbaikan jadwal pada `8ff654a`; ikon pada `4927ddd`. Implementasi bulk dan modul penugasan sudah berada pada `b005849`. Regresi tambahan penugasan dan jadwal disimpan dalam commit tersendiri; bukan diklaim sebagai implementasi baru.
 
-Sandbox Guru/Admin dibuat dari workspace berbasis `b005849`, termasuk penyesuaian label akun dan feedback yang saat itu belum dicommit. Selama pengujian, perubahan lain tetap muncul bersamaan di workspace. Build terakhir mencakup modul tambahan yang sudah ada saat build; hasil runner pada salinan yang lebih awal tidak otomatis memvalidasi setiap perubahan yang muncul kemudian.
+Pengujian awal Guru/Admin memakai workspace berbasis `b005849`, termasuk penyesuaian label akun dan feedback yang saat itu belum dicommit. Untuk memastikan hasil Admin tidak bergantung pada perubahan tersebut, **keenam runner Admin dijalankan lagi dan PASS** pada sandbox baru dengan `src/`, `package.json` dan konfigurasi aplikasi diambil dari commit `d9aefc2`. Data fixture tetap sintetis. Runner akun menerima dua label tombol/form yang setara dan menunggu pesan sukses melalui role aksesibilitas, bukan atribut khusus komponen feedback.
+
+Selama pengujian, perubahan lain tetap muncul bersamaan di workspace. Hasil salinan commit tersebut tidak otomatis memvalidasi setiap perubahan yang muncul kemudian; perubahan aplikasi yang belum dicommit tidak dicampurkan ke commit regresi ini.
 
 Laporan audit awal dan laporan Guru sebelumnya merupakan catatan checkpoint historis. Tabel di atas memperbarui status temuan terfokusnya. Ini belum membuktikan seluruh fitur PHP/main setara, seluruh workflow rapor/kenaikan kelas lolos, atau constraint SQLite sudah dimigrasikan. Database sekolah tidak diubah untuk membuat pengujian lolos.
 
