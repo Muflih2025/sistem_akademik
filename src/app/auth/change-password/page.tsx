@@ -35,7 +35,8 @@ export default function ChangePasswordPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setMessage('Password berhasil diperbarui.');
+        localStorage.removeItem('sia_user');
+        location.assign('/auth/login');
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');

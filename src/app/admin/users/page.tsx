@@ -1,27 +1,2 @@
-'use client';
-import { useEffect,useState } from 'react';
-import PortalLayout from '@/components/PortalLayout';
-import Notice from '@/components/academic/Notice';
-const empty={id_user:'',username:'',role:'guru',id_referensi:'',status:'aktif',password:'',etag:''};
-export default function AdminUsersPage(){
-  const [users,setUsers]=useState<any[]>([]),[refs,setRefs]=useState<Record<string,any[]>>({}),[form,setForm]=useState({...empty}),[open,setOpen]=useState(false);
-  const [error,setError]=useState(''),[success,setSuccess]=useState(''),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[query,setQuery]=useState(''),[role,setRole]=useState('');
-  async function load(signal?:AbortSignal){const r=await fetch('/api/users?references=1',{signal,cache:'no-store'}),j=await r.json();if(!r.ok||!j.success)throw Error(j.error||'Data akun gagal dimuat.');setUsers(j.data);setRefs(j.references);setLoading(false);}
-  useEffect(()=>{const controller=new AbortController();load(controller.signal).catch(e=>{if(e.name!=='AbortError'){setError(e.message);setLoading(false);}});return()=>controller.abort();},[]);
-  function edit(u:any){setForm({...empty,...u,password:''});setOpen(true);setError('');setSuccess('');}
-  async function save(e:React.FormEvent){e.preventDefault();setSaving(true);setError('');setSuccess('');try{const r=await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)}),j=await r.json();if(!r.ok||!j.success)throw Error(j.error||'Akun gagal disimpan.');await load();setForm({...empty,...j.data,password:''});setSuccess('Akun berhasil disimpan.');}catch(e){setError(e instanceof Error?e.message:'Penyimpanan gagal.');}finally{setSaving(false);}}
-  const entries=users.filter(u=>(!role||u.role===role)&&`${u.username} ${u.nama} ${u.nip_nis}`.toLowerCase().includes(query.toLowerCase()));
-  return <PortalLayout roleTitle="Manajemen Akun"><div className="space-y-5 pb-16">
-    <div className="flex justify-between gap-3 flex-wrap"><h2 className="text-2xl font-bold">Manajemen Pengguna & Akun</h2><button onClick={()=>edit(empty)} className="bg-black text-white p-3 rounded-lg">Tambah Pengguna</button></div>
-    <Notice error={error} success={success}/>
-    {open&&<form onSubmit={save} className="bg-white border rounded-xl p-4 space-y-4"><h3 className="font-bold">{form.id_user?'Edit akun':'Akun baru'}</h3><div className="grid gap-4 sm:grid-cols-2">
-      <label>Username<input aria-label="Username akun" required minLength={3} maxLength={50} disabled={saving} value={form.username} onChange={e=>setForm({...form,username:e.target.value})} className="block w-full border rounded p-2 mt-1"/></label>
-      <label>Peran<select aria-label="Peran akun" disabled={saving} value={form.role} onChange={e=>setForm({...form,role:e.target.value,id_referensi:''})} className="block w-full border rounded p-2 mt-1"><option value="admin">Admin</option><option value="guru">Guru</option><option value="kepala_sekolah">Kepala Sekolah</option><option value="siswa">Siswa</option></select></label>
-      {['guru','siswa'].includes(form.role)&&<label>Identitas {form.role}<select aria-label="Identitas akun" required disabled={saving} value={form.id_referensi} onChange={e=>setForm({...form,id_referensi:e.target.value})} className="block w-full border rounded p-2 mt-1"><option value="">Pilih identitas aktif</option>{(refs[form.role]||[]).map(r=><option key={r.id} value={r.id}>{r.nama} ({r.id})</option>)}</select></label>}
-      <label>{form.id_user?'Password baru (opsional)':'Password'}<input aria-label="Password akun" autoComplete="new-password" type="password" required={!form.id_user} minLength={8} maxLength={72} disabled={saving} value={form.password} onChange={e=>setForm({...form,password:e.target.value})} className="block w-full border rounded p-2 mt-1"/></label>
-      <label>Status<select aria-label="Status akun" disabled={saving} value={form.status} onChange={e=>setForm({...form,status:e.target.value})} className="block w-full border rounded p-2 mt-1"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></label></div>
-      <p className="text-sm">Guru dan siswa harus terdaftar di master sebelum dibuatkan akun. Tugas Piket ditetapkan melalui Penugasan Guru.</p><div className="flex gap-3"><button disabled={saving} className="bg-black text-white rounded p-3">{saving?'Menyimpan…':'Simpan Akun'}</button><button type="button" disabled={saving} onClick={()=>setOpen(false)} className="border rounded p-3">Tutup</button></div></form>}
-    <div className="flex flex-wrap gap-3"><input aria-label="Cari akun" placeholder="Cari nama / username / NIS" value={query} onChange={e=>setQuery(e.target.value)} className="border rounded p-2 min-w-0"/><select aria-label="Filter peran" value={role} onChange={e=>setRole(e.target.value)} className="border rounded p-2"><option value="">Semua peran</option>{['admin','guru','kepala_sekolah','siswa'].map(r=><option key={r}>{r}</option>)}</select></div>
-    {loading?<p>Memuat akun…</p>:<div className="overflow-x-auto bg-white border rounded-xl"><table className="w-full text-sm text-left"><thead><tr>{['Username','Nama','Peran','NIP / NIS','Status','Aksi'].map(h=><th key={h} className="p-3">{h}</th>)}</tr></thead><tbody>{entries.map(u=><tr key={u.id_user} className="border-t"><td className="p-3">{u.username}</td><td className="p-3">{u.nama}</td><td className="p-3">{u.role}</td><td className="p-3">{u.nip_nis||'—'}</td><td className="p-3">{u.status}</td><td className="p-3"><button onClick={()=>edit(u)} className="border rounded p-2">Edit / status</button></td></tr>)}</tbody></table>{!entries.length&&<p className="p-4">Tidak ada akun yang cocok.</p>}</div>}
-  </div></PortalLayout>;
-}
+import UserManager from '@/components/modules/UserManager';
+export default function Page() { return <UserManager />; }

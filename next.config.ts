@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ['better-sqlite3', 'pdfkit'],
   async redirects() {
     return [
       // Authentication & legacy entry points
@@ -21,11 +22,6 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       // Short URLs (sesuai test.md Bagian 6)
-      {
-        source: '/beranda',
-        destination: '/guru',
-        permanent: false,
-      },
       {
         source: '/absensi',
         destination: '/guru/absen',
@@ -67,25 +63,21 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
-        source: '/jam-belajar',
-        destination: '/admin/tahun-ajaran',
-        permanent: false,
-      },
-      {
         source: '/akademik',
         destination: '/admin/penugasan',
         permanent: false,
       },
       {
         source: '/kenaikan',
-        destination: '/admin/tahun-ajaran',
+        destination: '/admin/kenaikan',
         permanent: false,
       },
       {
         source: '/alumni',
-        destination: '/admin/master',
+        destination: '/admin/alumni',
         permanent: false,
       },
+      { source: '/kehadiran', destination: '/siswa/absen', permanent: false },
       // Admin legacy .php mappings
       {
         source: '/admin/:path*.php',

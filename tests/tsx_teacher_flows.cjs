@@ -31,7 +31,8 @@ const dates = ['2026-10-26','2026-10-27','2026-10-28','2026-10-29','2026-10-30']
  // No request retries: application failures still fail their individual checks.
  for (const route of ['/auth/login','/guru','/guru/jadwal','/guru/jurnal','/guru/absen','/guru/nilai','/guru/rapor','/piket','/api/jadwal','/api/jurnal','/api/absensi','/api/nilai','/api/piket']) {
    const warm = await request(route);
-   if (![200,401].includes(warm.status)) throw Error(`Route preparation failed: ${route} HTTP ${warm.status}`);
+   const loginRedirect = warm.status === 307 && warm.headers.get('location')?.endsWith('/auth/login');
+   if (![200,401].includes(warm.status) && !loginRedirect) throw Error(`Route preparation failed: ${route} HTTP ${warm.status}`);
  }
  const guru = await login('uji_guru'), other = await login('uji_guru_lain'), piket = await login('uji_piket'), head = await login('uji_kepsek');
  record('AUTH_teacher_other_duty_head_login', !guru.user.is_piket && piket.user.is_piket, { accounts: 4 });

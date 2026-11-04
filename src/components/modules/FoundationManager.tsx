@@ -1,0 +1,31 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { type Field, catalog, labels } from '@/lib/catalog';
+import { api, message, Screen, Feedback, FieldInput, DataTable, useLookups, buttonClass, secondaryClass, type Row } from './Common';
+const reference = (key: string, label: string, table: string, optional = false): Field => ({ key, label, reference: table, optional });
+const dateFields: Field[] = [{ key: 'mulai', label: 'Berlaku mulai', type: 'date' }, { key: 'selesai', label: 'Berlaku sampai', type: 'date' }];
+const year = reference('id_tahun_ajaran', 'Periode', 'tahun_ajaran');
+const configs: Record<string, { label: string; pk: string; fields: Field[] }> = {
+  periode: { label: 'Periode akademik', pk: 'id_tahun_ajaran', fields: [year, ...dateFields, { key: 'hari_efektif', label: 'Hari efektif' }, { key: 'terverifikasi', label: 'Terverifikasi', options: ['0', '1'] }] },
+  anggota: { label: 'Keanggotaan kelas', pk: 'id', fields: [year, reference('nis', 'Siswa', 'siswa'), reference('id_kelas', 'Kelas', 'kelas'), { key: 'nomor_absen', label: 'Nomor absen', type: 'number' }, ...dateFields] },
+  penugasan: { label: 'Penugasan mengajar', pk: 'id_jadwal', fields: [reference('id_jadwal', 'Jadwal', 'jadwal'), ...dateFields, { key: 'terverifikasi', label: 'Terverifikasi', options: ['0', '1'] }] },
+  piket: { label: 'Guru Piket', pk: 'id', fields: [year, reference('id_guru', 'Guru Piket', 'guru'), reference('id_kelas', 'Kelas', 'kelas', true), ...dateFields, { key: 'boleh_koreksi', label: 'Izin koreksi terkonfirmasi', options: ['0', '1'] }, { key: 'aktif', label: 'Tugas aktif', options: ['0', '1'] }] },
+  wali: { label: 'Wali kelas', pk: 'id', fields: [year, reference('id_guru', 'Guru wali', 'guru'), reference('id_kelas', 'Kelas', 'kelas'), ...dateFields, { key: 'aktif', label: 'Tugas aktif', options: ['0', '1'] }] },
+};
+export default function FoundationManager() {
+  const [kind, setKind] = useState('periode'), [rows, setRows] = useState<Row[]>([]), [edit, setEdit] = useState<Row | null>(null), [error, setError] = useState(''), [success, setSuccess] = useState(''), [busy, setBusy] = useState(false), [refresh, setRefresh] = useState(0), [q, setQ] = useState('');
+  const config = configs[kind], lookups = useLookups(['tahun_ajaran', 'siswa', 'guru', 'kelas', 'jadwal']);
+  useEffect(() => { const c = new AbortController(); api('/api/foundation?kind=' + kind, undefined, c.signal).then(j => setRows(j.data)).catch(e => { if (e.name !== 'AbortError') setError(message(e)); }); return () => c.abort(); }, [kind, refresh]);
+  function create() { setEdit({ aktif: '1', boleh_koreksi: '0', terverifikasi: '0', hari_efektif: '1,2,3,4,5', id_kelas: '', catatan: '' }); setSuccess(''); }
+  async function save(e: React.FormEvent) { e.preventDefault(); setBusy(true); setError(''); try { await api('/api/foundation', { ...edit, kind }); setSuccess('Penetapan tersimpan dan daftar dimuat ulang.'); setEdit(null); setRefresh(x => x + 1); } catch (e) { setError(message(e)); } finally { setBusy(false); } }
+  function display(r: Row, f: Field) { if (f.reference) { const data = lookups.data[f.reference] || [], match = data.find(a => String(a[catalog[f.reference!].pk]) === String(r[f.key])); return match ? f.reference === 'jadwal' ? `${match.hari} · ${match.jam_mulai} · #${match.id_jadwal}` : labels(match) : r[f.key] || 'Semua kelas'; } return r[f.key]; }
+  const filtered = rows.filter(r => config.fields.some(f => String(display(r, f) || '').toLowerCase().includes(q.toLowerCase())));
+  return <Screen title="Periode & Penugasan"><div className="flex flex-wrap gap-2">{Object.entries(configs).map(([key, c]) => <button type="button" key={key} className={kind === key ? buttonClass : secondaryClass} onClick={() => { setKind(key); setRows([]); setEdit(null); setQ(''); setError(''); setSuccess(''); }}>{c.label}</button>)}</div>
+    <p className="text-sm">Tetapkan periode terlebih dahulu, lalu roster siswa dan penugasan bertanggal. Nilai 1 berarti aktif/ya; 0 berarti tidak.</p><Feedback error={error || lookups.error} success={success} />
+    <button type="button" className={buttonClass} onClick={create}>Tambah {config.label}</button>
+    {edit && <form onSubmit={save} className="space-y-4 border rounded-xl bg-white p-4"><h2 className="font-bold">{edit.etag ? 'Edit' : 'Tambah'} {config.label}</h2><div className="grid gap-4 sm:grid-cols-2">{config.fields.map(f => f.key === 'hari_efektif' ? <fieldset key={f.key} className="space-y-2"><legend>Hari efektif</legend><div className="flex flex-wrap gap-3">{['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((name, i) => <label key={name} className="flex gap-2 text-sm"><input type="checkbox" checked={String(edit.hari_efektif).split(',').includes(String(i + 1))} onChange={e => { const days = new Set(String(edit.hari_efektif).split(',').filter(Boolean)); e.target.checked ? days.add(String(i + 1)) : days.delete(String(i + 1)); setEdit({ ...edit, hari_efektif: [...days].sort().join(',') }); }} />{name}</label>)}</div></fieldset> : <FieldInput key={f.key} field={f} value={edit[f.key]} lookups={lookups.data} disabled={busy || !!edit.etag && f.key === config.pk} onChange={v => setEdit({ ...edit, [f.key]: v })} />)}
+      <FieldInput field={{ key: 'catatan', label: 'Dasar penetapan / alasan koreksi', type: 'textarea' }} value={edit.catatan} disabled={busy} onChange={v => setEdit({ ...edit, catatan: v, alasan: v })} /></div><div className="flex gap-3"><button className={buttonClass} disabled={busy}>{busy ? 'Menyimpan…' : 'Simpan penetapan'}</button><button type="button" className={secondaryClass} onClick={() => setEdit(null)}>Batal</button></div></form>}
+    <label className="block text-sm">Cari penetapan<input aria-label="Cari penetapan" className="ml-3 p-2 border rounded-lg" value={q} onChange={e => setQ(e.target.value)} /></label>
+    <DataTable columns={config.fields.map(f => ({ key: f.key, label: f.label, render: r => String(display(r, f) ?? '—') }))} rows={filtered} actions={r => <button className={secondaryClass} onClick={() => { setEdit({ ...r }); setSuccess(''); }}>Edit / cabut</button>} />
+  </Screen>;
+}

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Downloads } from '@/components/modules/Common';
 import PortalLayout from '@/components/PortalLayout';
 import Notice from './Notice';
 import { TeachingPicker, useTeachingContext } from './TeachingContext';
@@ -55,6 +56,8 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
     <h2 className="text-2xl font-bold">{attendance ? 'Presensi Siswa & Jurnal Kelas' : 'Jurnal Harian Mengajar'}</h2>
     <TeachingPicker context={context} disabled={saving} />
     <Notice error={error} success={success} />
+    <Link className="underline text-sm" href="/guru/impor">Impor absensi dari CSV / Excel</Link>
+    {context.id && context.date && <details className="border rounded-xl p-4 bg-white"><summary>Unduh buku absensi, jurnal & agenda</summary><div className="space-y-3 mt-3">{['absensi', 'jurnal', 'agenda'].map(kind => <div key={kind}><h3 className="font-semibold capitalize">{kind}</h3><Downloads params={{ kind, id_jadwal: context.id, mulai: context.date, selesai: context.date }} setError={setError} /></div>)}</div></details>}
     {loading && <p>Memuat pertemuan…</p>}
     <form onSubmit={save} className="space-y-5">
       {attendance && <section className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">

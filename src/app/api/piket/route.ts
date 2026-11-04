@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { actor, dateValue, dutySummary, errorResponse } from '@/lib/academic';
-export async function GET(request: Request) {
-  try {
-    const user = await actor(), q = new URL(request.url).searchParams;
-    return NextResponse.json({ success: true, ...dutySummary(user, dateValue(q.get('tanggal')), q.get('id_kelas')) });
-  } catch (error) { return errorResponse(error); }
-}
+import { actor,dateValue,dutySummary,errorResponse,checkWrite } from '@/lib/academic';
+import { db,rows,fail } from '@/lib/store';
+import { reconciliation,reconcile,correctDaily } from '@/lib/operations';
+export async function GET(request:Request){try{const u=await actor(),q=new URL(request.url).searchParams;const summary=q.get('action')==='preview'?reconciliation(u,Object.fromEntries(q)):dutySummary(u,dateValue(q.get('tanggal')),q.get('id_kelas')); if(q.get('action')==='records'){const allowed=dutySummary(u,dateValue(q.get('tanggal')),q.get('id_kelas'));if(!allowed.classes.some(c=>c.id_kelas===q.get('id_kelas')&&c.id_tahun_ajaran===q.get('id_tahun_ajaran')))fail('Kelas di luar penugasan.',403);return NextResponse.json({success:true,records:rows('SELECT id,nis,status,keterangan,revision FROM ak_absensi_harian WHERE tanggal=? AND id_kelas=? AND id_tahun_ajaran=?',q.get('tanggal'),q.get('id_kelas'),q.get('id_tahun_ajaran'))});}return NextResponse.json({success:true,...summary});}catch(e){return errorResponse(e);}}
+export async function POST(request:Request){try{const u=await actor();checkWrite(request);const b=await request.json();return NextResponse.json({success:true,data:db.transaction(()=>b.action==='correct'?correctDaily(u,b):reconcile(u,b)).immediate()});}catch(e){return errorResponse(e);}}

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import PortalLayout from '@/components/PortalLayout';
 import Notice from './Notice';
 import { TeachingPicker, useTeachingContext } from './TeachingContext';
+import RuleEditor from '@/components/modules/RuleEditor';
+import { Downloads } from '@/components/modules/Common';
 const components = ['tugas','uts','uas','praktik','proyek'];
 export default function GradeBook({ readOnly = false }: { readOnly?: boolean }) {
   const context = useTeachingContext();
@@ -46,6 +48,9 @@ export default function GradeBook({ readOnly = false }: { readOnly?: boolean }) 
     <div className="flex flex-wrap gap-3"><input aria-label="Cari siswa" placeholder="Cari siswa / NIS" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="p-2.5 border rounded-lg w-full sm:w-auto min-w-0" />
     <button type="button" disabled={saving} onClick={() => { setSuccess(''); setRefresh(x => x + 1); }} className="border rounded-lg p-2.5">Muat ulang nilai</button>
     {readOnly && <button type="button" onClick={() => window.print()} className="bg-black text-white p-2.5 rounded-lg">Cetak Rekap</button>}</div>
+    {!readOnly && <RuleEditor schedule={context.id} rule={rule} onSaved={() => { setSuccess('Versi aturan tersimpan.'); setRefresh(x => x + 1); }} />}
+    <a href="/guru/impor" className="underline text-sm">Impor nilai dari CSV / Excel</a>
+    {context.id && <Downloads params={{ kind: 'nilai', id_jadwal: context.id }} setError={setError} />}
     <form onSubmit={save} className="space-y-4">
     {loading ? <p>Memuat nilai…</p> : <div className="overflow-x-auto bg-white border rounded-xl"><table className="w-full text-sm text-left"><thead className="bg-gray-100"><tr><th className="p-3">NIS / Nama</th><th className="p-3">Mata Pelajaran</th>{columns.map(c => <th key={c} className="p-3">{c.toUpperCase()}</th>)}<th className="p-3">Nilai akhir</th><th className="p-3">Predikat</th></tr></thead><tbody>
       {filtered.slice((page-1)*10,page*10).map(r => <tr key={r.nis} className="border-t"><td className="p-3">{r.nis}<br />{r.nama_siswa}</td><td className="p-3">{r.nama_mapel}</td>

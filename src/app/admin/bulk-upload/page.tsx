@@ -1,53 +1,15 @@
 'use client';
-
-import React from 'react';
+import { useRef,useState } from 'react';
 import PortalLayout from '@/components/PortalLayout';
-import { Settings, Users, ShieldCheck, Calendar, Clock, Award, Upload, BookOpen, FileSpreadsheet, CheckCircle } from 'lucide-react';
-
-export default function AdminBulkUploadPage() {
-  const navItems = [
-    { label: 'Master Data', href: '/admin/master', icon: Settings },
-    { label: 'Pengguna & Akun', href: '/admin/users', icon: Users },
-    { label: 'Penugasan Guru', href: '/admin/penugasan', icon: ShieldCheck },
-    { label: 'Tahun Ajaran', href: '/admin/tahun-ajaran', icon: Calendar },
-    { label: 'Jadwal Pelajaran', href: '/admin/jadwal', icon: Clock },
-    { label: 'Nilai & Verifikasi', href: '/admin/nilai', icon: Award },
-    { label: 'Bulk Upload Data', href: '/admin/bulk-upload', icon: Upload },
-    { label: 'Ekspor Impor', href: '/admin/export-import', icon: BookOpen },
-  ];
-
-  return (
-    <PortalLayout roleTitle="Administrator - Bulk Upload Excel" roleBadge="Admin" navItems={navItems}>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Bulk Upload Excel Master Data</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Impor massal master siswa, jadwal, dan nilai akademik dari template spreadsheet terstandar.
-            </p>
-          </div>
-          <span className="px-3.5 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-xl border border-blue-200">
-            389 Siswa Terimpor Excel
-          </span>
-        </div>
-
-        <div className="p-8 bg-white rounded-2xl border-2 border-dashed border-slate-300 text-center space-y-4">
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
-            <FileSpreadsheet className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-900 text-base">Unggah Berkas Excel (.xlsx, .xls)</h4>
-            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-              Sistem akan memvalidasi preview data (Jurusan → Kelas → Siswa) sebelum proses commit ke database.
-            </p>
-          </div>
-          <div>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition">
-              Pilih Berkas Excel
-            </button>
-          </div>
-        </div>
-      </div>
-    </PortalLayout>
-  );
+import Notice from '@/components/academic/Notice';
+const modules=[['siswa','Siswa'],['guru','Guru'],['jurusan','Jurusan'],['kelas','Kelas'],['mata_pelajaran','Mata pelajaran'],['ak_ruang','Ruang & laboratorium']];
+export default function BulkUpload(){const file=useRef<HTMLInputElement>(null);const [module,setModule]=useState('siswa'),[preview,setPreview]=useState<any>(null),[error,setError]=useState(''),[success,setSuccess]=useState(''),[busy,setBusy]=useState(false),[confirmed,setConfirmed]=useState(false);
+ async function upload(selected?:File){if(!selected)return;setError('');setSuccess('');setPreview(null);setConfirmed(false);if(selected.size>5_000_000){setError('Ukuran berkas maksimal 5 MB.');return;}setBusy(true);try{const content=await new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onerror=()=>reject(Error('Berkas gagal dibaca.'));r.onload=()=>resolve(String(r.result).split(',')[1]);r.readAsDataURL(selected);});const r=await fetch('/api/impor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module,filename:selected.name,content})}),j=await r.json();if(!r.ok||!j.success)throw Error(j.error||'Preview gagal.');setPreview(j.data);}catch(e){setError(e instanceof Error?e.message:'Unggah gagal.');}finally{setBusy(false);if(file.current)file.current.value='';}}
+ async function commit(){setBusy(true);setError('');try{const r=await fetch('/api/impor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'commit',token:preview.token,konfirmasi:confirmed})}),j=await r.json();if(!r.ok||!j.success)throw Error(j.error||'Impor gagal.');setSuccess(`${j.data.jumlah} data berhasil diimpor.`);setPreview(null);setConfirmed(false);}catch(e){setError(e instanceof Error?e.message:'Impor gagal.');}finally{setBusy(false);}}
+ return <PortalLayout roleTitle="Bulk Upload Excel"><div className="space-y-5 pb-16"><h2 className="text-2xl font-bold">Bulk Upload Excel Master Data</h2><p>Unduh template untuk master yang dipilih, isi datanya, lalu periksa preview sebelum menyimpan. Impor hanya menambahkan data baru.</p><Notice error={error} success={success}/>
+ <label className="block">Master tujuan<select aria-label="Master tujuan" value={module} disabled={busy} onChange={e=>{setModule(e.target.value);setPreview(null);setConfirmed(false);setError('');setSuccess('');}} className="block mt-2 border rounded p-3">{modules.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
+ <div className="flex flex-wrap gap-3">{['xlsx','csv'].map(format=><a key={format} className="p-3 border rounded bg-white" href={`/api/impor?module=${module}&format=${format}`}>Unduh Template {format.toUpperCase()}</a>)}</div>
+ <section className="bg-white border-2 border-dashed rounded-xl p-6 space-y-3"><h3 className="font-bold">Unggah berkas XLSX / CSV</h3><p>Maksimal 5 MB dan 1000 baris. Gunakan NIS sebagai teks agar nol di depan tetap tersimpan.</p><input ref={file} aria-label="Berkas Excel atau CSV" type="file" accept=".xlsx,.csv" disabled={busy} onChange={e=>upload(e.target.files?.[0])}/><button disabled={busy} onClick={()=>file.current?.click()} className="block bg-black text-white p-3 rounded">{busy?'Memproses…':'Pilih Berkas Excel'}</button></section>
+ {preview&&<section className="bg-white border rounded-xl p-4 space-y-4"><h3 className="font-bold">Preview: {preview.total} data valid</h3><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead><tr>{preview.headers.map((h:string)=><th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{preview.data.slice(0,50).map((r:any,i:number)=><tr key={i} className="border-t">{preview.headers.map((h:string)=><td key={h} className="p-2">{r[h]}</td>)}</tr>)}</tbody></table></div>{preview.total>50&&<p>Menampilkan 50 baris pertama dari {preview.total} baris.</p>}<label className="flex gap-2"><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)}/>Saya sudah memeriksa seluruh data preview</label><button onClick={commit} disabled={busy||!confirmed} className="bg-black text-white p-3 rounded disabled:opacity-40">Konfirmasi Impor</button></section>}
+ </div></PortalLayout>;
 }

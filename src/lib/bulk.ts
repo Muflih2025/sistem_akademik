@@ -1,0 +1,24 @@
+import ExcelJS from 'exceljs';
+import { Readable } from 'stream';
+import fs from 'fs';
+import path from 'path';
+import { randomBytes } from 'crypto';
+import { AuthUser } from './auth';
+import { Row } from './academic';
+import { db,rows,role,fail,text,hash } from './store';
+import { catalog } from './catalog';
+import { saveMaster,masterTable } from './master';
+export const bulkHeaders:Record<string,string[]>={siswa:['nis','nama_siswa','jenis_kelamin','tanggal_lahir','id_kelas','alamat'],guru:['nip','nama_guru','email','no_hp'],jurusan:['kode_jurusan','nama_jurusan'],kelas:['nama_kelas','tingkat','id_jurusan'],mata_pelajaran:['kode_mapel','nama_mapel','kelompok','kkm'],ak_ruang:['kode_ruang','nama_ruang','jenis']};
+const fingerprint=()=>hash(['siswa','guru','kelas','jurusan','mata_pelajaran','ak_ruang'].map(t=>[t,rows(`SELECT * FROM ${t} ORDER BY rowid`)]));
+export async function bulkTemplate(user:AuthUser,module:string,format:string){role(user,'admin');module=masterTable(module);if(!bulkHeaders[module])fail('Template tidak tersedia.');const workbook=new ExcelJS.Workbook(),sheet=workbook.addWorksheet(catalog[module].label);sheet.addRow(bulkHeaders[module]);sheet.getRow(1).font={bold:true};sheet.columns.forEach(c=>{c.width=24;});return format==='csv'?{bytes:Buffer.from('\uFEFF'+bulkHeaders[module].join(',')+'\r\n'),type:'text/csv; charset=utf-8',extension:'csv'}:{bytes:Buffer.from(await workbook.xlsx.writeBuffer()),type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',extension:'xlsx'};}
+export async function bulkPreview(user:AuthUser,input:Row){role(user,'admin');const module=masterTable(text(input.module,'Master')),headers=bulkHeaders[module];if(!headers)fail('Master belum mendukung impor.');const filename=text(input.filename,'Nama berkas',180),format=filename.split('.').at(-1)?.toLowerCase();if(!['xlsx','csv'].includes(format||''))fail('Gunakan format XLSX atau CSV sesuai template.');if(typeof input.content!=='string'||input.content.length>7_000_000||! /^[A-Za-z0-9+/\r\n]*={0,2}$/.test(input.content))fail('Berkas tidak valid atau melebihi 5 MB.');const buffer=Buffer.from(input.content,'base64');if(!buffer.length||buffer.length>5_000_000)fail('Ukuran berkas harus 1 byte sampai 5 MB.');
+ const wb=new ExcelJS.Workbook();try{if(format==='xlsx')await wb.xlsx.load(buffer as any);else await wb.csv.read(Readable.from(buffer));}catch{fail('Berkas gagal dibaca. Periksa formatnya.');}if(wb.worksheets.length!==1)fail('Gunakan tepat satu lembar kerja.');const sheet=wb.worksheets[0];if(sheet.rowCount<2||sheet.rowCount>1001)fail('Isi 1–1000 baris data.');
+ const value=(c:ExcelJS.Cell)=>{if(c.type===ExcelJS.ValueType.Formula)fail('Formula tidak boleh dipakai pada data impor.');return c.value instanceof Date?c.value.toISOString().slice(0,10):c.text.trim().replace(/^\uFEFF/,'');};
+ if(JSON.stringify(Array.from({length:sheet.getRow(1).cellCount},(_,i)=>value(sheet.getRow(1).getCell(i+1))))!==JSON.stringify(headers))fail('Header harus tepat sesuai template, termasuk urutan kolom.');
+ const data:Row[]=[];for(let n=2;n<=sheet.rowCount;n++){const r=sheet.getRow(n);if(r.cellCount>headers.length)fail(`Baris ${n}: jumlah kolom berlebih.`);const entry=Object.fromEntries(headers.map((h,i)=>[h,value(r.getCell(i+1))]));if(Object.values(entry).some(v=>v!==''))data.push(entry);}if(!data.length)fail('Tidak ada data yang dapat diimpor.');
+ const rollback=Symbol('preview');try{db.transaction(()=>{for(const [i,r]of data.entries()){try{saveMaster(user,{table:module,...r});}catch(e){if(e instanceof Error)e.message=`Baris ${i+2}: ${e.message}`;throw e;}}throw rollback;}).immediate();}catch(e){if(e!==rollback)throw e;}
+ const dir=path.join(process.cwd(),'data','.imports');fs.mkdirSync(dir,{recursive:true,mode:0o700});const token=randomBytes(32).toString('hex');fs.writeFileSync(path.join(dir,token),JSON.stringify({actor:user.id_user,expires:Date.now()+900000,source:fingerprint(),module,data}),{mode:0o600,flag:'wx'});return{token,module,headers,data,total:data.length};
+}
+export function bulkCommit(user:AuthUser,input:Row){role(user,'admin');if(input.konfirmasi!==true||! /^[a-f0-9]{64}$/.test(input.token))fail('Konfirmasikan preview sebelum mengimpor.');const file=path.join(process.cwd(),'data','.imports',input.token);let preview:Row;try{preview=JSON.parse(fs.readFileSync(file,'utf8'));}catch{fail('Preview tidak ada atau sudah dipakai.',409);}if(preview.actor!==user.id_user||preview.expires<Date.now())fail('Preview kedaluwarsa atau bukan milik akun ini.',403);
+ const data=db.transaction(()=>{if(preview.source!==fingerprint())fail('Data berubah sejak preview. Unggah dan periksa ulang.',409);return preview.data.map((r:Row)=>saveMaster(user,{table:preview.module,...r}));}).immediate();fs.rmSync(file,{force:true});return{jumlah:data.length};
+}

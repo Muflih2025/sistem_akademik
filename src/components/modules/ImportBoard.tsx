@@ -1,0 +1,34 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { catalog } from '@/lib/catalog';
+import { api, message, Screen, Feedback, DataTable, Downloads, useRole, useLookups, FieldInput, inputClass, buttonClass, today, type Row } from './Common';
+const modules: Record<string, string> = { siswa: 'Siswa', guru: 'Guru', kelas: 'Kelas', jurusan: 'Jurusan', mata_pelajaran: 'Mata pelajaran', ak_ruang: 'Ruang', anggota: 'Keanggotaan kelas', penugasan: 'Penugasan', kalender: 'Kalender', absensi: 'Absensi sesi', nilai: 'Nilai' };
+export default function ImportBoard() {
+  const user = useRole(), [module, setModule] = useState('siswa'), [form, setForm] = useState<Row>({ tanggal: '', pertemuan_ke: 1, materi: '', alasan: '' }), [schedules, setSchedules] = useState<Row[]>([]), [file, setFile] = useState<File | null>(null), [preview, setPreview] = useState<Row | null>(null), [confirmed, setConfirmed] = useState(false), [error, setError] = useState(''), [success, setSuccess] = useState(''), [busy, setBusy] = useState(false);
+  const lookup = useLookups(user?.role === 'admin' ? ['tahun_ajaran'] : []), teaching = ['absensi', 'nilai'].includes(module);
+  useEffect(() => { setForm(f => ({ ...f, tanggal: today() })); }, []);
+  useEffect(() => { if (!user) return; if (user.role === 'guru') setModule('absensi'); api('/api/jadwal').then(j => setSchedules(j.data)).catch(e => setError(message(e))); }, [user]);
+  function change(key: string, value: any) { setForm({ ...form, [key]: value }); setPreview(null); setConfirmed(false); }
+  async function inspect(e: React.FormEvent) { e.preventDefault(); if (!file) return; setBusy(true); setError(''); setSuccess(''); setPreview(null); setConfirmed(false);
+    try { if (file.size > 5_000_000) throw Error('Ukuran maksimal 5 MB.'); const content = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = () => reject(Error('Berkas tidak dapat dibaca.')); reader.readAsDataURL(file); });
+      const context = { ...form }; if (module === 'nilai') { const j = await api('/api/nilai?id_jadwal=' + form.id_jadwal); context.id_aturan = j.rule?.id; }
+      if (module === 'absensi') { const j = await api('/api/absensi?' + new URLSearchParams({ id_jadwal: form.id_jadwal, tanggal: form.tanggal })); context.revision = j.meeting?.revision || 0; }
+      const endpoint = ['anggota', 'penugasan', 'kalender', 'absensi', 'nilai'].includes(module) ? '/api/impor-akademik' : '/api/impor';
+      const j = await api(endpoint, { ...context, module, action: 'preview', filename: file.name, content }); setPreview(j.data);
+    } catch (e) { setError(message(e)); } finally { setBusy(false); }
+  }
+  async function commit() { setBusy(true); setError(''); try { const endpoint = ['anggota', 'penugasan', 'kalender', 'absensi', 'nilai'].includes(module) ? '/api/impor-akademik' : '/api/impor'; const j = await api(endpoint, { action: 'commit', token: preview!.token, konfirmasi: confirmed }); setSuccess(`${j.data.jumlah} baris berhasil diimpor. Muat ulang modul terkait untuk melihat hasil.`); setPreview(null); setFile(null); setConfirmed(false); } catch (e) { setError(message(e)); } finally { setBusy(false); } }
+  return <Screen title="Impor & Ekspor Data"><p className="text-sm">Unduh template, isi berkas CSV/XLSX, lalu periksa pratinjau sebelum mengonfirmasi penyimpanan. Maksimal 1.000 baris dan 5 MB.</p><Feedback error={error || lookup.error} success={success} />
+    <label className="block text-sm">Modul<select aria-label="Modul impor" className={inputClass} value={module} onChange={e => { setModule(e.target.value); setPreview(null); setFile(null); setConfirmed(false); setError(''); }} disabled={busy}>{Object.entries(modules).filter(([k]) => user?.role === 'admin' || ['absensi', 'nilai'].includes(k)).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+    <form onSubmit={inspect} className="space-y-4 border rounded-xl bg-white p-4"><div className="grid gap-4 sm:grid-cols-2">
+      {teaching && <label className="text-sm">Jadwal<select aria-label="Jadwal impor" required className={inputClass} value={form.id_jadwal || ''} onChange={e => change('id_jadwal', e.target.value)}><option value="">Pilih jadwal</option>{schedules.map(j => <option key={j.id_jadwal} value={j.id_jadwal}>{j.nama_kelas} · {j.nama_mapel} · {j.hari} · {j.jam_mulai}</option>)}</select></label>}
+      {!teaching && ['anggota', 'penugasan', 'kalender'].includes(module) && <FieldInput field={{ key: 'id_tahun_ajaran', label: 'Periode', reference: 'tahun_ajaran' }} value={form.id_tahun_ajaran} lookups={lookup.data} onChange={v => change('id_tahun_ajaran', v)} />}
+      {module === 'absensi' && <>{[{ key: 'tanggal', label: 'Tanggal pertemuan', type: 'date' }, { key: 'pertemuan_ke', label: 'Pertemuan ke', type: 'number' }, { key: 'materi', label: 'Materi pembelajaran' }].map(f => <FieldInput key={f.key} field={f} value={form[f.key]} onChange={v => change(f.key, v)} />)}</>}
+      <FieldInput field={{ key: 'alasan', label: 'Alasan / dasar impor' }} value={form.alasan} onChange={v => change('alasan', v)} />
+      <label className="text-sm">Berkas CSV atau Excel<input key={module} aria-label="Berkas impor" required disabled={busy} type="file" accept=".csv,.xlsx" className={inputClass} onChange={e => { setFile(e.target.files?.[0] || null); setPreview(null); setConfirmed(false); }} /></label>
+    </div><button disabled={busy || !file} className={buttonClass}>{busy ? 'Memeriksa…' : 'Pratinjau berkas'}</button></form>
+    <section className="space-y-2"><h2 className="font-bold">Template {modules[module]}</h2><Downloads params={{ kind: 'template', module, ...(teaching ? { id_jadwal: form.id_jadwal || '', ...(module === 'absensi' ? { tanggal: form.tanggal } : {}) } : {}) }} setError={setError} /></section>
+    {preview && <section className="space-y-4 p-4 border rounded-xl bg-white"><h2 className="font-bold">Pratinjau tervalidasi · {preview.total} baris</h2><DataTable columns={preview.headers.map((key: string) => ({ key, label: key }))} rows={preview.data.slice(0, 100)} />{preview.total > 100 && <p className="text-sm">Menampilkan 100 baris pertama. Seluruh {preview.total} baris sudah divalidasi.</p>}<label className="flex gap-2 text-sm"><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />Saya sudah memeriksa isi dan konteks impor</label><button disabled={busy || !confirmed} className={buttonClass} onClick={commit}>Konfirmasi impor</button></section>}
+    {user?.role === 'admin' && catalog[module] && <section className="space-y-2"><h2 className="font-bold">Ekspor {modules[module]}</h2><Downloads params={{ kind: 'master', table: module }} setError={setError} /></section>}
+  </Screen>;
+}

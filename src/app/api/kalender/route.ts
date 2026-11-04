@@ -1,30 +1,6 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
-
-export async function GET(request: Request) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const bulan = searchParams.get('bulan');
-
-    let query = 'SELECT * FROM ak_kalender WHERE 1=1';
-    const params: any[] = [];
-
-    // Jika bukan admin, hanya tampilkan agenda yang disahkan (sesuai test.md: draft tidak dianggap resmi)
-    if (user.role !== 'admin') {
-      query += " AND status = 'disahkan'";
-    }
-
-    query += ' ORDER BY mulai ASC';
-    const rows = db.prepare(query).all(...params);
-
-    return NextResponse.json({ success: true, data: rows });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
-}
+import { actor,checkWrite,errorResponse,fail } from '@/lib/academic';
+import { db,rows } from '@/lib/store';
+import { saveEvent } from '@/lib/operations';
+export async function GET(request:Request){try{const u=await actor(),q=new URL(request.url).searchParams;const bulan=q.get('bulan');if(bulan&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(bulan))fail('Bulan tidak valid.');let data=rows('SELECT * FROM ak_kalender ORDER BY mulai,id').filter(r=>(u.role==='admin'||r.status==='disahkan')&&(!q.get('id_tahun_ajaran')||r.id_tahun_ajaran===q.get('id_tahun_ajaran'))&&(!bulan||(r.mulai.slice(0,7)<=bulan&&r.selesai.slice(0,7)>=bulan)));return NextResponse.json({success:true,data});}catch(e){return errorResponse(e);}}
+export async function POST(request:Request){try{const u=await actor();checkWrite(request);const b=await request.json();return NextResponse.json({success:true,data:db.transaction(()=>saveEvent(u,b)).immediate()});}catch(e){return errorResponse(e);}}

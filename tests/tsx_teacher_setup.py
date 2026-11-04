@@ -13,7 +13,7 @@ if not 1024 <= args.port <= 65535:parser.error('--port must be between 1024 and 
 os.umask(0o077)
 root=Path(__file__).resolve().parents[1];state=args.state.expanduser().resolve()
 if state==root or root in state.parents:parser.error('--state must be outside the repository')
-state.mkdir(mode=0o700,exist_ok=True)
+state.mkdir(mode=0o700,parents=True,exist_ok=True)
 app=state/'app'
 if app.exists():raise SystemExit('Review copy already exists; preserved. Use its existing synthetic fixture, never reset the original database.')
 app.mkdir(mode=0o700)

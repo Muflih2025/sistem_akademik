@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
+import DailyReconciliation from '@/components/modules/DailyReconciliation';
+import { Downloads } from '@/components/modules/Common';
 import PortalLayout from '@/components/PortalLayout';
 import Notice from '@/components/academic/Notice';
 import { today } from '@/components/academic/TeachingContext';
 export default function Page() {
+  const [refresh, setRefresh] = useState(0);
   const [date, setDate] = useState(''), [classId, setClassId] = useState('');
   const [classes, setClasses] = useState<any[]>([]), [rows, setRows] = useState<any[]>([]);
   const [error, setError] = useState(''), [loading, setLoading] = useState(false);
@@ -38,7 +41,7 @@ export default function Page() {
       if (!j.success) throw Error(j.error); setClasses(j.classes); setRows(j.data); setLoading(false);
     }).catch(e => { if (e.name !== 'AbortError') { setError(e.message); setLoading(false); } });
     return () => controller.abort();
-  }, [date, classId]);
+  }, [date, classId, refresh]);
   return <PortalLayout roleTitle="Portal Guru Piket"><div className="space-y-5 pb-16">
     <h2 className="text-2xl font-bold">Dashboard Guru Piket</h2>
     <p className="text-sm">Rekap harian sekolah dan pemantauan pengisian jurnal per sesi. Jadwal menunjukkan penugasan, bukan bukti lokasi fisik guru.</p>
@@ -48,6 +51,7 @@ export default function Page() {
     <p className="text-sm">Sumber rekap: absensi harian sekolah yang telah dicatat. Absensi sesi tidak otomatis mengganti status harian. B = Belum Dikonfirmasi, tidak dihitung Hadir atau Alpa.</p>
     <div className="flex flex-wrap gap-3"><button onClick={() => window.print()} className="bg-black text-white p-3 rounded-lg">Cetak Rekap Piket</button>
     <button onClick={loadMatrix} disabled={!date || loading || matrixLoading || !!error} className="border bg-white p-3 rounded-lg disabled:opacity-40">{matrixLoading ? 'Memuat matriks…' : 'Tampilkan Matriks Mingguan'}</button></div>
+    {days.length > 0 && <Downloads params={{ kind: 'piket', mulai: days[0], selesai: days[4], ...(classId ? { id_kelas: classId } : {}) }} setError={setError} />}
     <Notice error={matrixError} />
     {matrix && <section className="bg-white border rounded-xl p-4 space-y-3"><h3 className="font-bold">Matriks Absensi Harian Sekolah</h3>
       <div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead><tr><th className="p-2">Siswa / Kelas</th>{days.map(d => <th key={d} className="p-2">{d}</th>)}<th className="p-2">H/S/I/A/B</th></tr></thead>
@@ -62,6 +66,7 @@ export default function Page() {
       {c.schedules.map((s:any) => <div key={s.id_jadwal} className="border rounded-lg p-3 text-sm">{s.jam_mulai}–{s.jam_selesai} · {s.nama_guru} · {s.nama_mapel}<br /><strong>{s.id_pertemuan ? 'Jurnal sudah diisi' : 'Jurnal belum diisi'}</strong>{s.materi && <p>{s.materi}</p>}</div>)}
       <h4 className="font-semibold text-sm">Siswa Tidak Hadir / Belum Dikonfirmasi</h4>
       {c.students.filter((s:any) => s.status !== 'H').map((s:any) => <p key={s.nis} className="text-sm">{s.nomor_absen}. {s.nama_siswa} ({s.nis}) — {s.status} {s.keterangan || ''}</p>)}
+      <DailyReconciliation date={date} group={c} onSaved={() => setRefresh(x => x + 1)} />
     </section>)}
   </div></PortalLayout>;
 }

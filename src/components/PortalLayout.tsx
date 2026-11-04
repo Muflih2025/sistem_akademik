@@ -28,17 +28,18 @@ export default function PortalLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('sia_user');
-      if (stored) {
-        try {
-          setCurrentUser(JSON.parse(stored));
-        } catch {
-          // ignore
-        }
-      }
-    }
+    const controller = new AbortController();
+    fetch('/api/me', { signal: controller.signal, cache: 'no-store' }).then(r => r.json()).then(j => {
+      if (j.success) { setCurrentUser(j.user); localStorage.setItem('sia_user', JSON.stringify(j.user)); }
+      else { localStorage.removeItem('sia_user'); location.assign('/auth/login'); }
+    }).catch(e => { if (e.name !== 'AbortError') setCurrentUser(null); });
+    return () => controller.abort();
   }, []);
+  async function logout(e: React.MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    const response = await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    if (response.ok) { localStorage.removeItem('sia_user'); location.assign('/auth/login'); }
+  }
 
   const storedRole = currentUser?.role === 'kepala_sekolah' ? 'kepsek' : currentUser?.role;
   const role = storedRole || (pathname.startsWith('/admin') ? 'admin' : pathname.startsWith('/kepsek') ? 'kepsek' : pathname.startsWith('/piket') ? 'piket' : pathname.startsWith('/siswa') ? 'siswa' : 'guru');
@@ -66,14 +67,19 @@ export default function PortalLayout({
         items: [
           { label: 'Penugasan Guru', href: '/admin/penugasan' },
           { label: 'Kelola Jadwal', href: '/admin/jadwal' },
-          { label: 'Tahun Ajaran & Jam', href: '/admin/tahun-ajaran' },
+          { label: 'Tahun Ajaran', href: '/admin/tahun-ajaran' },
+          { label: 'Jam Belajar', href: '/admin/jam-belajar' },
+          { label: 'Kalender Akademik', href: '/admin/kalender' },
+          { label: 'Naik Kelas', href: '/admin/kenaikan' },
+          { label: 'Alumni', href: '/admin/alumni' },
+          { label: 'Ekstrakurikuler', href: '/admin/ekskul' },
           { label: 'Ekspor Impor Data', href: '/admin/export-import' },
         ],
       },
       {
         key: 'penilaian',
         label: 'Nilai & Rapor',
-        items: [{ label: 'Verifikasi Nilai', href: '/admin/nilai' }],
+        items: [{ label: 'Rapor Semester', href: '/admin/nilai' }, { label: 'Absensi Harian & Piket', href: '/piket' }, { label: 'Riwayat Perubahan', href: '/admin/audit' }],
       },
     ],
     guru: [
@@ -90,6 +96,7 @@ export default function PortalLayout({
           { label: 'Riwayat Jurnal KBM', href: '/guru/jurnal' },
           { label: 'Jadwal Mengajar', href: '/guru/jadwal' },
           { label: 'Kalender Akademik', href: '/guru/kalender' },
+          { label: 'Jam Belajar', href: '/jam-belajar' },
         ],
       },
       {
@@ -97,6 +104,9 @@ export default function PortalLayout({
         label: 'Penilaian',
         items: [
           { label: 'Input & Rekap Nilai', href: '/guru/nilai' },
+          { label: 'Nilai Ekstrakurikuler', href: '/guru/ekskul' },
+          { label: 'Impor CSV / Excel', href: '/guru/impor' },
+          { label: 'Nilai Ekstrakurikuler', href: '/guru/ekskul' },
           { label: 'Buku Rapor Kelas', href: '/guru/rapor' },
         ],
       },
@@ -147,6 +157,7 @@ export default function PortalLayout({
           { label: 'Matriks & Rekap Presensi', href: '/piket' },
           { label: 'Jadwal Mengajar Guru', href: '/guru/jadwal' },
           { label: 'Kalender Akademik', href: '/guru/kalender' },
+          { label: 'Jam Belajar', href: '/jam-belajar' },
         ],
       },
     ],
@@ -199,6 +210,7 @@ export default function PortalLayout({
           </span>
           <Link
             href="/auth/login"
+            onClick={logout}
             className="sia-logout inline-flex items-center justify-center min-h-[38px] border border-white bg-white text-[#111] hover:bg-slate-100 rounded-[10px] px-3.5 py-1.5 font-semibold text-xs no-underline transition"
           >
             Keluar

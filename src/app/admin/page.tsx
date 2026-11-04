@@ -45,7 +45,7 @@ export default function AdminDashboard() {
             </p>
           </div>
           <a
-            href="/admin"
+            href="/admin/master"
             className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-xs transition"
           >
             Buka Panel Admin

@@ -9,7 +9,7 @@ export class AcademicError extends Error {
 }
 export function fail(message: string, status = 422): never { throw new AcademicError(message, status); }
 export function errorResponse(error: unknown) {
-  return NextResponse.json({ success: false, error: error instanceof AcademicError ? error.message : 'Operasi gagal. Data tidak disimpan; hubungi pengelola.' }, { status: error instanceof AcademicError ? error.status : 500 });
+  return NextResponse.json({ success: false, error: error instanceof AcademicError ? error.message : 'Operasi gagal. Data tidak disimpan; hubungi pengelola.' }, { status: error instanceof AcademicError ? error.status : error instanceof SyntaxError ? 400 : 500 });
 }
 export async function actor() {
   const user = await getCurrentUser();
@@ -41,6 +41,7 @@ export function period(id: string, write = false) {
   const p = one('ak_periode', { id_tahun_ajaran: id });
   const y = one('tahun_ajaran', { id_tahun_ajaran: id });
   if (!p || String(p.terverifikasi) !== '1' || !y) fail('Periode akademik belum terverifikasi.', 409);
+  if (write && y.status !== 'Aktif') fail('Periode tidak aktif.', 409);
   if (write && (String(y.dikunci) !== '0' || String(y.rapor_diterbitkan) !== '0')) fail('Periode terkunci atau rapor telah diterbitkan.', 409);
   return { ...y, ...p };
 }
@@ -69,12 +70,13 @@ export function schedule(user: AuthUser, id: unknown, date?: string, write = fal
     dateValue(date);
     if (date < j.mulai || date > j.selesai || date < p.mulai || date > p.selesai || weekday(date) !== j.hari.replace("'", '')) fail('Tanggal tidak sesuai hari atau rentang penugasan jadwal.');
     if (!String(p.hari_efektif).split(',').includes(String(new Date(date + 'T00:00:00Z').getUTCDay()))) fail('Tanggal bukan hari efektif.');
-    if (write && db.prepare("SELECT 1 FROM ak_kalender WHERE id_tahun_ajaran=? AND status='aktif' AND jenis='libur' AND mulai<=? AND selesai>=?").get(j.id_tahun_ajaran, date, date)) fail('Tanggal merupakan hari libur.');
+    if (write && date > new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date())) fail('Absensi tidak dapat diisi untuk tanggal mendatang.');
+    if (write && db.prepare("SELECT 1 FROM ak_kalender WHERE id_tahun_ajaran=? AND status='disahkan' AND jenis='Libur' AND mulai<=? AND selesai>=?").get(j.id_tahun_ajaran, date, date)) fail('Tanggal merupakan hari libur.');
   }
   return j;
 }
 export function roster(j: Row, date?: string): Row[] {
-  const rows = db.prepare(`SELECT a.*, a.id AS id_anggota, s.nama_siswa FROM ak_anggota_kelas a
+  const rows = db.prepare(`SELECT a.*, a.id AS id_anggota, s.nama_siswa, s.jenis_kelamin FROM ak_anggota_kelas a
     JOIN siswa s ON s.nis=a.nis WHERE a.id_kelas=? AND a.id_tahun_ajaran=?
     ${date ? 'AND a.mulai<=? AND a.selesai>=?' : 'AND a.mulai<=? AND a.selesai>=?'}
     ORDER BY CAST(a.nomor_absen AS INTEGER),a.nis`).all(j.id_kelas, j.id_tahun_ajaran, date || j.selesai, date || j.mulai) as Row[];
@@ -215,7 +217,7 @@ export function duties(user: AuthUser, date: string): Row[] {
   if (!classes.length) fail('Tidak ada penugasan Guru Piket yang berlaku pada tanggal ini.', 403);
   return classes;
 }
-export function dutySummary(user: AuthUser, date: string, classId?: string | null) {
+export function dutySummary(user: AuthUser, date: string, classId?: string | null): { classes: Row[]; data: Row[] } {
   dateValue(date);
   const classes = duties(user, date);
   if (classId && !classes.some(c => c.id_kelas === classId)) fail('Kelas di luar penugasan piket.', 403);

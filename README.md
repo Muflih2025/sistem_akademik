@@ -2,7 +2,7 @@
 
 Website akademik responsif untuk **Admin, Guru Mapel, Guru Piket, dan Kepala Sekolah**, dengan akses siswa opsional. Dibuka melalui browser komputer maupun smartphone, menggunakan tema putih–hitam.
 
-Backend memakai **PHP native modular dan MariaDB**. Perintah **`pnpm dev` menjalankan server PHP**; Node.js/pnpm adalah alat bantu development, bukan pengganti backend. Tidak memerlukan Python, Docker, atau aplikasi APK untuk menjalankan website lokal.
+Backend memakai **Next.js dan SQLite**. Perintah **`pnpm dev` menjalankan server Next.js** dan seluruh API akademik; data lokal dibaca dari `data/sia.db`. Jangan memakai database sekolah produksi untuk pengujian lokal.
 
 ## Mulai di komputer baru
 
@@ -11,9 +11,8 @@ Backend memakai **PHP native modular dan MariaDB**. Perintah **`pnpm dev` menjal
 | Kebutuhan | Keterangan |
 |---|---|
 | Git | Mengambil kode repository |
-| Node.js 18+ dan pnpm 9+ | Menjalankan perintah development |
-| PHP CLI 8.1+ | Ekstensi `pdo_mysql`, `mbstring`, `dom`, dan `zip` |
-| MariaDB lokal | Database development terpisah, dengan skema akademik release ini |
+| Node.js 18+ dan pnpm 9+ | Menjalankan aplikasi dan build |
+| SQLite | File database development pada `data/sia.db` |
 
 ### 2. Clone dan buat konfigurasi lokal
 
@@ -21,37 +20,18 @@ Backend memakai **PHP native modular dan MariaDB**. Perintah **`pnpm dev` menjal
 git clone --branch main https://github.com/Muflih2025/sistem_akademik.git
 cd sistem_akademik
 pnpm install
-pnpm dev:setup
 ```
 
-Setup menampilkan lokasi file konfigurasi privat. Default Linux/macOS:
+Database development sudah disediakan sebagai SQLite. Untuk pengujian terisolasi, gunakan fixture pada `tests/tsx_review_setup.py`; script tersebut membuat salinan database sintetis dan tidak mengubah `data/sia.db`.
 
-```text
-~/.config/sia-akademik/local.json
-```
 
-Edit file tersebut menggunakan editor lokal:
-
-| Key | Isi |
-|---|---|
-| `DB_HOST` / `DB_PORT` | Host dan port MariaDB lokal; gunakan `DB_SOCKET` bila memakai Unix socket |
-| `DB_NAME` | Database development dengan nama bertanda `local`, `dev`, `testing`, atau `staging` |
-| `DB_USER` / `DB_PASS` | Akun runtime non-root untuk database development |
-| `APP_ENV` | Pertahankan `development` untuk konfigurasi lokal baru |
-| `ALLOW_SCHEMA_CHANGES` | Pertahankan string `"0"` |
-
-Semua nilai konfigurasi berupa string. Pengaturan sesi, log, dan fitur lainnya sudah disediakan template. **Konfigurasi tetap di luar repository**, bukan `.env` dalam folder aplikasi. Setup tidak menimpa file existing.
-
-**Database dan akun testing harus disiapkan terlebih dahulu.** `pnpm install` memasang tooling; `pnpm dev:setup` hanya membuat template konfigurasi. Keduanya tidak membuat tabel, mengimpor data, membuat akun, atau mereset database. Untuk database kosong, minta provisioning skema dan data sintetis yang diizinkan dari pengelola development. Clone Git tidak menyalin database komputer pengembang.
-
-### 3. Periksa dan jalankan
+### 3. Jalankan
 
 ```bash
-pnpm dev:check
 pnpm dev
 ```
 
-Buka **http://127.0.0.1:18125/auth/login.php**. Tekan **Ctrl+C** pada terminal untuk berhenti.
+Buka **http://127.0.0.1:3000/auth/login**. Tekan **Ctrl+C** pada terminal untuk berhenti.
 
 Setelah setup pertama selesai, penggunaan sehari-hari cukup:
 
@@ -62,22 +42,21 @@ pnpm dev
 Jika port 18125 sedang dipakai:
 
 ```bash
-pnpm dev --port 18126
+pnpm dev -- --port 18126
 ```
 
-Lalu buka **http://127.0.0.1:18126/auth/login.php**. Launcher tidak menghentikan server lain dan menolak port layanan aktif 8085. Cookie session dipisahkan per port agar login pada dua server development tidak saling menimpa.
+Lalu buka **http://127.0.0.1:18126/auth/login**.
 
 ### Perintah yang tersedia
 
 | Perintah | Fungsi |
 |---|---|
-| `pnpm dev` | Menjalankan website PHP pada localhost |
-| `pnpm dev --port 18126` | Memilih port development lain |
-| `pnpm dev:setup` | Membuat template konfigurasi privat tanpa menimpa file existing |
-| `pnpm dev:check` | Memeriksa PHP, konfigurasi, koneksi dan tabel secara baca-saja |
-| `pnpm dev --help` | Menampilkan bantuan launcher |
+| `pnpm dev` | Menjalankan website Next.js pada localhost |
+| `pnpm dev -- --port 18126` | Memilih port development lain |
+| `pnpm build` | Memvalidasi dan membangun aplikasi production |
+| `pnpm start` | Menjalankan hasil build production |
 
-Panduan Windows, konfigurasi existing melalui `SIA_CONFIG_FILE`, executable PHP dan troubleshooting: **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**. Perubahan PHP/CSS/JS terlihat setelah refresh browser; tidak ada proses build frontend atau hot module replacement.
+Detail pengembangan dan pengujian: **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**.
 
 ## Modul dan pembagian tugas
 

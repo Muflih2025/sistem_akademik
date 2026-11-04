@@ -1,99 +1,24 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { createSessionToken } from '@/lib/auth';
-
-export async function POST(request: Request) {
+import { createSessionToken,userProfile,SESSION_COOKIE } from '@/lib/auth';
+import { checkWrite,errorResponse,fail } from '@/lib/academic';
+const attempts=new Map<string,{count:number;until:number}>();
+export async function POST(request:Request) {
   try {
-    const { username, password } = await request.json();
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { success: false, error: 'Username dan password harus diisi.' },
-        { status: 400 }
-      );
+    checkWrite(request);const {username,password}=await request.json();
+    if(typeof username!=='string'||typeof password!=='string'||!username||!password||username.length>50||Buffer.byteLength(password)>72)fail('Username atau password tidak valid.',400);
+    const key=username.toLowerCase(),now=Date.now(),attempt=attempts.get(key);
+    if(attempt&&attempt.until>now&&attempt.count>=10)fail('Terlalu banyak percobaan. Coba lagi dalam 15 menit.',429);
+    const users=db.prepare("SELECT * FROM users WHERE username=? AND status='aktif'").all(username) as any[];
+    const user=users.length===1?users[0]:null;
+    if(!user||!await bcrypt.compare(password,String(user.password).replace(/^\$2y\$/,'$2a$'))) {
+      if(attempts.size>10000)for(const[k,v]of attempts)if(v.until<now)attempts.delete(k);
+      attempts.set(key,{count:attempt&&attempt.until>now?attempt.count+1:1,until:now+900000});fail('Username atau password salah/nonaktif.',401);
     }
-
-    const user = db
-      .prepare("SELECT * FROM users WHERE username = ? AND status = 'aktif'")
-      .get(username) as any;
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Username atau password salah/nonaktif.' },
-        { status: 401 }
-      );
-    }
-
-    // Verify password with bcrypt (supports PHP $2y$ prefix converted to $2a$)
-    const hash = user.password.replace(/^\$2y\$/, '$2a$');
-    const isValid = bcrypt.compareSync(password, hash);
-
-    if (!isValid) {
-      return NextResponse.json(
-        { success: false, error: 'Username atau password salah/nonaktif.' },
-        { status: 401 }
-      );
-    }
-
-    // Ambil nama profil dari tabel guru / siswa
-    let nama = user.username;
-    let isPiket = false;
-
-    if (user.role === 'guru') {
-      const g = db.prepare('SELECT nama_guru FROM guru WHERE id_guru = ?').get(user.id_referensi) as any;
-      if (g) nama = g.nama_guru;
-      // Cek apakah guru piket aktif
-      const p = db.prepare('SELECT 1 FROM ak_tugas_piket WHERE id_guru = ? AND aktif = 1').get(user.id_referensi);
-      if (p) isPiket = true;
-    } else if (user.role === 'siswa') {
-      const s = db.prepare('SELECT nama_siswa FROM siswa WHERE nis = ?').get(user.id_referensi) as any;
-      if (s) nama = s.nama_siswa;
-    } else if (user.role === 'admin') {
-      nama = 'Administrator SIA';
-    } else if (user.role === 'kepala_sekolah') {
-      nama = 'Drs. H. Muflih, M.Pd (Kepala Sekolah)';
-    }
-
-    const authUser = {
-      id_user: String(user.id_user),
-      username: user.username,
-      role: user.role,
-      id_referensi: user.id_referensi,
-      nama,
-      is_piket: isPiket,
-    };
-
-    const token = createSessionToken(authUser as any);
-
-    // Redirect mapping
-    let redirect = '/guru';
-    if (user.role === 'admin') redirect = '/admin';
-    else if (user.role === 'kepala_sekolah') redirect = '/kepsek';
-    else if (user.role === 'siswa') redirect = '/siswa';
-    else if (isPiket) redirect = '/piket';
-
-    const response = NextResponse.json({
-      success: true,
-      user: authUser,
-      redirect,
-    });
-
-    // Set secure HTTP-only session cookie
-    response.cookies.set({
-      name: 'sia_session_token',
-      value: token,
-      httpOnly: true,
-      path: '/',
-      sameSite: 'lax',
-      maxAge: 8 * 60 * 60,
-    });
-
-    return response;
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: 'Layanan login sementara tidak tersedia.' },
-      { status: 500 }
-    );
-  }
+    if(user.role==='guru'&&!db.prepare("SELECT 1 FROM guru WHERE id_guru=? AND status='aktif'").get(user.id_referensi)||user.role==='siswa'&&!db.prepare("SELECT 1 FROM siswa WHERE nis=? AND status='aktif'").get(user.id_referensi))fail('Profil akun tidak aktif.',401);
+    if(!['admin','guru','kepala_sekolah','siswa'].includes(user.role))fail('Peran tidak dikenal.',403);attempts.delete(key);
+    const profile=userProfile(user),token=createSessionToken(profile);const redirect=user.role==='admin'?'/admin':user.role==='kepala_sekolah'?'/kepsek':user.role==='siswa'?'/siswa':profile.is_piket?'/piket':'/guru';
+    const response=NextResponse.json({success:true,user:profile,redirect});response.cookies.set({name:SESSION_COOKIE,value:token,httpOnly:true,path:'/',sameSite:'lax',maxAge:28800,secure:new URL(request.url).protocol==='https:'});return response;
+  }catch(e){return errorResponse(e);}
 }
