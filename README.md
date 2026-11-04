@@ -11,13 +11,13 @@ Backend memakai **Next.js dan SQLite**. Perintah **`pnpm dev` menjalankan server
 | Kebutuhan | Keterangan |
 |---|---|
 | Git | Mengambil kode repository |
-| Node.js 18+ dan pnpm 9+ | Menjalankan aplikasi dan build |
+| Node.js 22+ dan pnpm 9+ | Menjalankan aplikasi dan build; dibutuhkan oleh better-sqlite3 |
 | SQLite | File database development pada `data/sia.db` |
 
 ### 2. Clone dan buat konfigurasi lokal
 
 ```bash
-git clone --branch main https://github.com/Muflih2025/sistem_akademik.git
+git clone --branch rebase-tsx https://github.com/Muflih2025/sistem_akademik.git
 cd sistem_akademik
 pnpm install
 ```
@@ -39,20 +39,20 @@ Setelah setup pertama selesai, penggunaan sehari-hari cukup:
 pnpm dev
 ```
 
-Jika port 18125 sedang dipakai:
+Jika port 3000 sedang dipakai:
 
 ```bash
-pnpm dev -- --port 18126
+pnpm dev --hostname 127.0.0.1 --port 3001
 ```
 
-Lalu buka **http://127.0.0.1:18126/auth/login**.
+Lalu buka **http://127.0.0.1:3001/auth/login**. XAMPP tidak diperlukan untuk runtime TypeScript ini.
 
 ### Perintah yang tersedia
 
 | Perintah | Fungsi |
 |---|---|
 | `pnpm dev` | Menjalankan website Next.js pada localhost |
-| `pnpm dev -- --port 18126` | Memilih port development lain |
+| `pnpm dev --port 3001` | Memilih port development lain |
 | `pnpm build` | Memvalidasi dan membangun aplikasi production |
 | `pnpm start` | Menjalankan hasil build production |
 
@@ -90,7 +90,7 @@ Nilai mengikuti mapel yang diampu dan bobot berversi. Rapor menggunakan snapshot
 
 Bulk Upload Excel tersedia pada master Admin dengan template, preview dan konfirmasi. Modul akademik yang relevan menyediakan impor/ekspor, matriks, CSV, Excel dan cetak.
 
-Download PDF memakai worker Node/Playwright dan Chromium lokal yang perlu dikonfigurasi terpisah. `pnpm dev` tidak mengunduh browser atau memasang library sistem otomatis. Tombol **Cetak** dapat menggunakan dialog browser untuk menyimpan PDF. Detail: [dependensi PDF](docs/DEVELOPMENT.md#pdf-dan-dependensi-opsional).
+Ekspor XLSX memakai ExcelJS dan PDF memakai PDFKit di server Node; unduhan API tidak memerlukan Chromium. Tombol **Cetak** menggunakan dialog browser. Playwright/Chromium digunakan oleh pengujian browser, dengan konfigurasi tersendiri. Detail: [dependensi PDF](docs/DEVELOPMENT.md#pdf-dan-dependensi-opsional).
 
 ## Akun dan pengujian manual
 
@@ -112,29 +112,25 @@ Simulasi existing menggunakan **26–30 Oktober 2026**. Pilih tanggal sesuai jad
 
 Langkah per peran, tautan contoh, hasil yang diharapkan dan checklist manual tersedia di **[test.md](test.md)** dan **[docs/SIMULASI_5_HARI.md](docs/SIMULASI_5_HARI.md)**.
 
-Setelah **Simpan tugas Guru Piket**, tugas terbuka kembali beserta ID dan isiannya. Untuk tugas existing, pilih **Edit / cabut izin** pada daftar Tugas Guru Piket; gunakan **Tambah tugas Guru Piket** hanya untuk penugasan baru.
+Pada halaman **Penugasan Guru**, pilih tab **Guru Piket**, lalu **Tambah Guru Piket** dan **Simpan penetapan**. Setelah tersimpan, gunakan **Edit / cabut** pada baris terkait untuk membuka kembali data atau mencabut tugas.
 
 ## Struktur proyek
 
 ```text
-public/                Document root dan router allowlist
-academic/              Halaman/modul akademik
-config/academic/       Layanan dan validasi domain akademik
-admin/                 Master data, akun, jadwal dan bulk upload
-guru/, kepsek/, siswa/ Halaman per peran dan kompatibilitas rute lama
-includes/              Layout, navigasi dan komponen CRUD
-assets/                CSS, JavaScript dan aset vendor lokal
-database/migrations/   Perubahan skema melalui deployment terkontrol
-ops/                   Launcher development dan alat operator
+src/app/               Halaman per peran dan route API Next.js
+src/components/        Layout, formulir, tabel dan komponen akademik
+src/lib/               Autentikasi, akses SQLite dan aturan akademik
+data/sia.db            Database lokal SQLite
+public/                Aset statis yang disajikan Next.js
 tests/                 Pengujian HTTP, browser dan integritas
 docs/                  Panduan, laporan dan bukti pengujian
 ```
 
-`public/` wajib menjadi document root dan `public/index.php` wajib menjadi router. Launcher sudah menetapkannya. Jangan menjalankan server dari root repository yang mengekspos konfigurasi atau berkas internal.
+Next.js dijalankan dari root repository melalui `pnpm dev`. Direktori PHP seperti `academic/`, `config/academic/`, `includes/` dan launcher `ops/dev/` dipertahankan sebagai sumber legacy; perintah `dev:php`, `dev:setup` dan `dev:check` khusus runtime PHP tersebut.
 
 ## Pengujian dan operasi
 
-Hasil merge launcher/UI pada 3 November 2026: **16 skenario terfokus PASS, 0 FAIL**, mencakup startup PHP melalui pnpm, login/logout, navigasi lintas peran, tampilan 320–1440px, CSRF/RBAC/IDOR, proteksi berkas, penghentian server dan integritas database. Hasil ini bukan klaim seluruh suite proyek dijalankan ulang.
+Hasil launcher/UI pada 3 November 2026 berlaku untuk runtime PHP historis. Untuk TypeScript, lihat [audit fungsi](docs/TSX_FUNCTIONAL_AUDIT_2026-11-04.md), [perbaikan Guru](docs/LAPORAN_PERBAIKAN_GURU_2026-11-04.md), dan [verifikasi Admin terbaru](docs/VERIFIKASI_ADMIN_TSX_2026-11-04.md). Setiap laporan menjelaskan versi dan lingkup yang diuji.
 
 | Dokumen | Isi |
 |---|---|

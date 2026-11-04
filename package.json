@@ -2,7 +2,7 @@
   "name": "sia-smkn2-magelang",
   "version": "0.1.0",
   "private": true,
-  "description": "Website akademik PHP native dengan perintah development pnpm",
+  "description": "Website akademik Next.js, TypeScript dan SQLite",
   "scripts": {
     "dev": "next dev",
     "dev:php": "node ops/dev/dev.cjs",
@@ -12,7 +12,7 @@
     "start": "next start"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=22",
     "pnpm": ">=9"
   },
   "dependencies": {
