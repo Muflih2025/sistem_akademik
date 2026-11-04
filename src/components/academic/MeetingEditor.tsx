@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Downloads } from '@/components/modules/Common';
 import PortalLayout from '@/components/PortalLayout';
@@ -18,7 +18,9 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
   const [loaded, setLoaded] = useState('');
   const [reason, setReason] = useState(''), [verified, setVerified] = useState(false);
   const [search, setSearch] = useState(''), [page, setPage] = useState(1), [size, setSize] = useState(10);
+  const notice = useRef<HTMLDivElement>(null);
   const key = `${context.id}/${context.date}`;
+  useEffect(() => { if (error) notice.current?.scrollIntoView({ block: 'nearest' }); }, [error]);
   useEffect(() => { const c = new AbortController(); fetch('/api/guru-options', { signal: c.signal }).then(r => r.json()).then(j => { if (!j.success) throw Error(j.error); setTeachers(j.data); }).catch(e => { if (e.name !== 'AbortError') setError(e.message); }); return () => c.abort(); }, []);
   useEffect(() => { setDownloadStart(context.date); setDownloadEnd(context.date); }, [context.date]);
   useEffect(() => {
@@ -44,9 +46,13 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
       const json = await response.json();
       if (!response.ok || !json.success) throw Error(json.error || 'Penyimpanan gagal.');
       setMeeting(json.data); setReason(''); setSuccess(json.message);
-      const h = await fetch(`/api/jurnal?id_jadwal=${encodeURIComponent(context.id)}`, { cache: 'no-store' }).then(r => r.json());
-      if (!h.success) throw Error(h.error);
-      setHistory(h.data);
+      try {
+        const h = await fetch(`/api/jurnal?id_jadwal=${encodeURIComponent(context.id)}`, { cache: 'no-store' }).then(r => r.json());
+        if (!h.success) throw Error(h.error);
+        setHistory(h.data);
+      } catch {
+        setSuccess(`${json.message} Riwayat belum dapat diperbarui. Muat ulang halaman untuk melihatnya.`);
+      }
     } catch (e) { setError(e instanceof Error ? e.message : 'Penyimpanan gagal.'); }
     finally { setSaving(false); }
   }
@@ -54,16 +60,23 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
   const pages = Math.max(1, Math.ceil(filtered.length / size));
   const editable = loaded === key && !loading && !saving;
   function field(name: string, label: string, required = false) {
-    return <label className="text-sm min-w-0">{label}<input aria-label={label} required={required} disabled={!editable} type={name === 'pertemuan_ke' ? 'number' : 'text'} min={name === 'pertemuan_ke' ? 1 : undefined} value={meeting[name] || ''} onChange={e => setMeeting({ ...meeting, [name]: e.target.value })} className="mt-2 w-full p-2.5 border border-gray-300 rounded-lg" /></label>;
+    return <label className="text-sm min-w-0">{label}{required && <span className="text-xs"> (wajib)</span>}<input aria-label={label} required={required} disabled={!editable} type={name === 'pertemuan_ke' ? 'number' : 'text'} min={name === 'pertemuan_ke' ? 1 : undefined} max={name === 'pertemuan_ke' ? 1000 : undefined} maxLength={name === 'jam_ke' ? 30 : name === 'pertemuan_ke' ? undefined : 5000} aria-describedby={name === 'jam_ke' ? 'lesson-help' : undefined} value={meeting[name] || ''} onChange={e => setMeeting({ ...meeting, [name]: e.target.value })} className="mt-2 w-full p-2.5 border border-gray-300 rounded-lg" />{name === 'jam_ke' && <span id="lesson-help" className="block mt-1 text-xs">Contoh: 1–2 atau 07:00–08:30. Boleh dikosongkan untuk mengikuti jadwal.</span>}</label>;
+  }
+  function invalid(event: React.InvalidEvent<HTMLFormElement>) {
+    const input = event.currentTarget.querySelector<HTMLInputElement>('input:invalid');
+    setSuccess('');
+    setError(input?.getAttribute('aria-label') === 'Alasan koreksi'
+      ? 'Alasan koreksi wajib diisi karena pertemuan ini sudah tersimpan, termasuk jika dibuat melalui absensi.'
+      : `${input?.getAttribute('aria-label') || 'Isian jurnal'} belum lengkap atau tidak valid. Periksa isian yang ditandai.`);
   }
   return <PortalLayout roleTitle="Portal Guru"><div className="space-y-6 pb-16">
     <h2 className="text-2xl font-bold">{attendance ? 'Presensi Siswa & Jurnal Kelas' : 'Jurnal Harian Mengajar'}</h2>
     <TeachingPicker context={context} disabled={saving} />
-    <Notice error={error} success={success} />
+    <div ref={notice}><Notice error={error} success={success} /></div>
     <Link className="underline text-sm" href="/guru/impor">Impor absensi dari CSV / Excel</Link>
     {context.id && context.date && <details className="border rounded-xl p-4 bg-white"><summary>Unduh buku absensi, jurnal & agenda</summary><div className="space-y-3 mt-3"><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Mulai unduhan<input aria-label="Mulai unduhan buku" type="date" value={downloadStart} onChange={e => setDownloadStart(e.target.value)} className="block w-full border rounded p-2" /></label><label className="text-sm">Selesai unduhan<input aria-label="Selesai unduhan buku" type="date" value={downloadEnd} onChange={e => setDownloadEnd(e.target.value)} className="block w-full border rounded p-2" /></label></div>{['absensi', 'jurnal', 'agenda'].map(kind => <div key={kind}><h3 className="font-semibold capitalize">{kind}</h3><Downloads params={{ kind, id_jadwal: context.id, mulai: downloadStart, selesai: downloadEnd }} setError={setError} /></div>)}</div></details>}
     {loading && <p>Memuat pertemuan…</p>}
-    <form onSubmit={save} className="space-y-5">
+    <form onSubmit={save} onInvalidCapture={invalid} className="space-y-5">
       {attendance && <section className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
         <p className="text-sm">Absensi per sesi pelajaran. Rekap harian sekolah dikelola terpisah oleh Guru Piket.</p>
         <div className="flex flex-wrap gap-3 text-sm">{['H','S','I','A','B'].map(c => <span key={c}>{c === 'B' ? 'Belum Dikonfirmasi' : c}: {students.filter(s => s.status === c).length}</span>)}</div>
@@ -83,7 +96,7 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
         <label className="text-sm">Guru pengganti (opsional)<select aria-label="Guru pengganti" disabled={!editable} value={meeting.id_guru_pengganti || ''} onChange={e => setMeeting({ ...meeting, id_guru_pengganti: e.target.value })} className="mt-2 block w-full border rounded-lg p-2.5"><option value="">Tidak ada guru pengganti</option>{teachers.map(t => <option key={t.id_guru} value={t.id_guru}>{t.nama_guru}</option>)}</select></label>{field('tp_atp', 'TP / ATP')}{field('materi', 'Materi pembelajaran', true)}
         {field('kegiatan', 'Kegiatan pembelajaran')}{field('refleksi', 'Refleksi KBM')}
         {field('tindak_lanjut', 'Tindak lanjut')}{field('catatan', 'Catatan')}
-        <label className="text-sm">Alasan koreksi<input aria-label="Alasan koreksi" required={!!meeting.id} disabled={!editable} value={reason} onChange={e => setReason(e.target.value)} className="mt-2 w-full border rounded-lg p-2.5" /></label>
+        <label className="text-sm">Alasan koreksi{meeting.id && <span className="text-xs"> (wajib)</span>}<input aria-label="Alasan koreksi" aria-describedby="correction-help" required={!!meeting.id} disabled={!editable} value={reason} onChange={e => setReason(e.target.value)} className="mt-2 w-full border rounded-lg p-2.5" /><span id="correction-help" className="block mt-1 text-xs">{meeting.id ? 'Pertemuan ini sudah tersimpan. Isi alasan untuk mengubah jurnal atau absensi yang sama.' : 'Hanya wajib saat mengubah pertemuan yang sudah tersimpan.'}</span></label>
         <button disabled={!editable} type="submit" className="bg-black text-white rounded-lg p-3 self-end disabled:opacity-40">{saving ? 'Menyimpan…' : attendance ? 'Simpan Absensi & Jurnal' : 'Simpan Jurnal'}</button>
       </section>
     </form>

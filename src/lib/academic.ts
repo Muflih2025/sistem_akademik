@@ -124,7 +124,8 @@ export function saveMeeting(user: AuthUser, body: Row) {
   const fields: Row = {};
   const replacement = body.id_guru_pengganti === undefined ? before?.id_guru_pengganti || null : body.id_guru_pengganti === '' || body.id_guru_pengganti === null ? null : body.id_guru_pengganti;
   if (replacement !== null && (typeof replacement !== 'string' || replacement.length > 40 || !db.prepare("SELECT 1 FROM guru WHERE id_guru=? AND status='aktif'").get(replacement))) fail('Guru pengganti tidak dikenal atau nonaktif.');
-  const lesson = body.jam_ke || before?.jam_ke || `${j.jam_mulai}–${j.jam_selesai}`;
+  const submittedLesson = typeof body.jam_ke === 'string' && body.jam_ke !== before?.jam_ke ? body.jam_ke.trim() : body.jam_ke;
+  const lesson = submittedLesson || before?.jam_ke || `${j.jam_mulai}–${j.jam_selesai}`;
   if (typeof lesson !== 'string' || lesson.length > 30) fail('Jam pelajaran maksimal 30 karakter.');
   if (lesson !== before?.jam_ke) {
     const times = /^(\d{2}:\d{2})\s*[–—-]\s*(\d{2}:\d{2})$/.exec(lesson);

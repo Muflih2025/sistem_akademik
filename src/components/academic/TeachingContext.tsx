@@ -40,6 +40,7 @@ export function TeachingPicker({ context, withDate = true, disabled = false }: {
     </label>
     {withDate && <label className="text-sm min-w-0">Tanggal KBM
       <input aria-label="Tanggal KBM" disabled={disabled} type="date" value={context.date} min={selected ? [selected.mulai, selected.periode_mulai].sort().at(-1) : undefined} max={selected ? [selected.selesai, selected.periode_selesai].sort()[0] : undefined} onChange={e => context.setDate(e.target.value)} className="mt-2 w-full min-w-0 border border-gray-300 rounded-lg p-2.5" />
+      {selected && <span className="block mt-1 text-xs">Pilih tanggal hari {selected.hari} sesuai jadwal, dalam rentang penugasan.</span>}
     </label>}
     {context.error && <p role="alert" className="text-red-800 sm:col-span-2">{context.error}</p>}
   </div>;
