@@ -49,7 +49,7 @@ export default function Page() {
     <label className="text-sm min-w-0">Kelas<select aria-label="Kelas piket" disabled={matrixLoading} value={classId} onChange={e => setClassId(e.target.value)} className="mt-2 block p-2.5 border rounded-lg w-full min-w-0"><option value="">Semua kelas yang ditugaskan</option>{classes.map(c => <option key={`${c.id_kelas}/${c.id_tahun_ajaran}`} value={c.id_kelas}>{c.nama_kelas}</option>)}</select></label></div>
     <Notice error={error} />
     <p className="text-sm">Sumber rekap: absensi harian sekolah yang telah dicatat. Absensi sesi tidak otomatis mengganti status harian. B = Belum Dikonfirmasi, tidak dihitung Hadir atau Alpa.</p>
-    <div className="flex flex-wrap gap-3"><button onClick={() => window.print()} className="bg-black text-white p-3 rounded-lg">Cetak Rekap Piket</button>
+    <div className="flex flex-wrap gap-3"><button onClick={() => window.print()} className="bg-black text-white p-3 rounded-lg">Cetak Tampilan Piket</button>
     <button onClick={loadMatrix} disabled={!date || loading || matrixLoading || !!error} className="border bg-white p-3 rounded-lg disabled:opacity-40">{matrixLoading ? 'Memuat matriks…' : 'Tampilkan Matriks Mingguan'}</button></div>
     {days.length > 0 && <Downloads params={{ kind: 'piket', mulai: days[0], selesai: days[4], ...(classId ? { id_kelas: classId } : {}) }} setError={setError} />}
     <Notice error={matrixError} />

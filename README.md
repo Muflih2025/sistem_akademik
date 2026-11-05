@@ -65,7 +65,7 @@ Pilih **modul utama di atas**, kemudian fitur pada **sidebar kiri**. Di smartpho
 | Pengguna | Fungsi |
 |---|---|
 | **Admin** | Akun/role, master siswa/guru/kelas/jurusan/mapel/ruang, bulk Excel, jadwal, periode/penugasan, jam belajar, kalender, kenaikan kelas/alumni, serta verifikasi dan penerbitan rapor |
-| **Guru Mapel** | Absensi sesi, jurnal kelas dan agenda harian dari pertemuan yang sama, input/rekap nilai, cetak dan ekspor sesuai penugasan |
+| **Guru Mapel** | Absensi dan nilai sesuai penugasan; mengisi/mengedit jurnal kelas bersama, termasuk sesi guru lain setelah memilih kelas dan mengonfirmasi konteks; cetak dan ekspor |
 | **Guru Piket** | Pantau kelas yang sudah/belum mengisi, periksa ketidakhadiran, rekonsiliasi absensi harian dan unduh rekap sesuai cakupan izin |
 | **Kepala Sekolah** | Lihat jadwal guru per jam, kelas/ruang, status jurnal, serta supervisi kehadiran, nilai dan rapor |
 | **Siswa, opsional** | Lihat kehadiran dan rapor terbit miliknya sendiri |
@@ -79,6 +79,10 @@ Admin menetapkan periode, keanggotaan kelas bertanggal dan penugasan guru terver
 Status absensi: **H — Hadir, S — Sakit, I — Izin, A — Alpa**, serta **Belum Dikonfirmasi**. Status Belum tidak dihitung sebagai Hadir atau Alpa. Pencarian dan pagination mempertahankan isian seluruh kelas.
 
 Satu pertemuan menghasilkan jurnal kelas, agenda guru dan matriks absensi sesi. Guru Piket memeriksa bukti sesi untuk menetapkan rekap harian; beberapa sesi pada satu tanggal tidak dihitung sebagai beberapa hari. Pengisi dan koreksi dicatat pada audit.
+
+Pada **Jadwal Mengajar**, bagian **Jurnal kelas per sesi** menyediakan pilihan kelas dan sesi guru pada tanggal terpilih, lengkap dengan jam ke (misalnya **1–2**, **3–4**), mata pelajaran, dan guru terjadwal. Semua guru dapat membuka **Jurnal Kelas Bersama**. Pilih kelas, tanggal, dan sesi, tekan **Edit jurnal kelas**, lalu periksa peringatan kelas/hari/tanggal/jam sebelum menyetujui. Mengganti kelas, sesi, atau tanggal meminta konfirmasi baru. Koreksi jurnal mencatat akun pengubah; absensi sesi dan nilai tetap mengikuti penugasan masing-masing guru.
+
+Admin mengelola jam melalui **Akademik → Ubah Jam Pembelajaran**: gunakan contoh Senin, Selasa–Kamis, atau Jumat dari lampiran; pilih hari berlaku; ubah waktu; tambah/hapus jam pelajaran atau istirahat; lalu simpan dengan alasan. Profil referensi memerlukan pemeriksaan dan hari berlaku yang tidak bertabrakan. Setiap revisi tersimpan sebagai versi baru, sementara waktu jadwal dan isi jurnal yang sudah tersimpan tetap menjadi riwayat.
 
 ### Nilai, rapor, dan wali kelas
 
@@ -112,7 +116,7 @@ Simulasi existing menggunakan **26–30 Oktober 2026**. Pilih tanggal sesuai jad
 
 Langkah per peran, tautan contoh, hasil yang diharapkan dan checklist manual tersedia di **[test.md](test.md)** dan **[docs/SIMULASI_5_HARI.md](docs/SIMULASI_5_HARI.md)**.
 
-Pada halaman **Penugasan Guru**, pilih tab **Guru Piket**, lalu **Tambah Guru Piket** dan **Simpan penetapan**. Setelah tersimpan, gunakan **Edit / cabut** pada baris terkait untuk membuka kembali data atau mencabut tugas.
+Pada halaman **Periode & Penugasan**, pilih tab **Guru Piket**, lalu **Tambah Guru Piket** dan **Simpan penetapan**. Setelah tersimpan, gunakan **Edit / cabut** pada baris terkait untuk membuka kembali data atau mencabut tugas.
 
 ## Struktur proyek
 

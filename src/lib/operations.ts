@@ -1,3 +1,4 @@
+import { schoolDays, profileDays } from './bell-times';
 import { currentSchoolYear } from './academic-year';
 import { AuthUser } from './auth';
 import { Row, period, schedule, roster, duties, weekday, dateValue, revisionCheck } from './academic';
@@ -18,10 +19,14 @@ export function listBells(): Row[] {
 }
 export function saveBell(user:AuthUser,input:Row) {
   role(user,'admin');const nama=text(input.nama,'Profil hari',80),old=listBells().filter(r=>r.nama===nama);if(old.length>1)fail('Versi profil ambigu.',409);const before=old[0];if(before&&String(before.id)!==String(input.id)||before&&Number(input.versi)!==Number(before.versi))fail('Versi profil berubah. Muat ulang.',409);
-  const status=choice(input.status,['referensi','perlu_konfirmasi']);if(status==='referensi'&&input.terverifikasi!==true)fail('Konfirmasi pemeriksaan jam wajib diisi.');
+  const hari = input.hari === undefined ? profileDays(before ? JSON.parse(before.payload_json) : { nama }) : input.hari;
+  if (!Array.isArray(hari) || hari.some(d => !schoolDays.includes(d)) || new Set(hari).size !== hari.length) fail('Hari profil jam tidak valid.');
+  const status=choice(input.status,['referensi','perlu_konfirmasi']);
+  if (status === 'referensi' && !hari.length) fail('Pilih minimal satu hari berlaku untuk profil referensi.');
+  if (status === 'referensi' && old.length <= 1 && listBells().some(p => p.nama !== nama && p.status === 'referensi' && profileDays(p.payload).some(d => hari.includes(d)))) fail('Hari sudah memiliki profil referensi. Revisi profil hari yang sama.');if(status==='referensi'&&input.terverifikasi!==true)fail('Konfirmasi pemeriksaan jam wajib diisi.');
   const slots=input.slots;if(!Array.isArray(slots)||!slots.length||slots.length>40)fail('Isi 1–40 baris jam.');let last='00:00',n=1;
   const normalized=slots.map((s:any)=>{if(!Array.isArray(s)||s.length!==4)fail('Baris jam tidak valid.');const start=text(s[1],'Jam mulai',5),end=text(s[2],'Jam selesai',5);if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end)||start>=end||start<last)fail('Jam tidak valid atau bertumpang tindih.');last=end;let num=null;if(s[0]!==null&&s[0]!==''){num=number(s[0],1,40);if(num!==n++)fail('Nomor pelajaran harus berurutan.');}return[num,start,end,text(s[3],'Keterangan',80)];});
-  if(n===1)fail('Minimal satu jam pelajaran bernomor.');const version=Number(before?.versi||0)+1,payload={nama,versi:version,status,catatan:text(input.catatan,'Catatan',1000,false),slots:normalized};return write(user,'ak_jam_belajar',{id:nextId('ak_jam_belajar','id')},{nama,versi:version,status,payload_json:JSON.stringify(payload),sumber_sha256:hash(payload),catatan:payload.catatan},text(input.alasan,'Alasan'));
+  if(n===1)fail('Minimal satu jam pelajaran bernomor.');const version=Number(before?.versi||0)+1,payload={nama,hari,versi:version,status,catatan:text(input.catatan,'Catatan',1000,false),slots:normalized};return write(user,'ak_jam_belajar',{id:nextId('ak_jam_belajar','id')},{nama,versi:version,status,payload_json:JSON.stringify(payload),sumber_sha256:hash(payload),catatan:payload.catatan},text(input.alasan,'Alasan'));
 }
 function dutyContext(user:AuthUser,input:Row,correct=false) {
   const date=dateValue(input.tanggal),year=text(input.id_tahun_ajaran,'Periode'),cls=text(input.id_kelas,'Kelas'),p=period(year,true);

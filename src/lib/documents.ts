@@ -33,7 +33,11 @@ export function documentTable(user:AuthUser,q:URLSearchParams):DocumentTable {
     return {title:'Rekap nilai akademik',headers:['NIS','Nama siswa','Kelas','Mapel','Nilai akhir','Predikat','Deskripsi capaian'],data:gradeRows.map(n=>[n.nis,n.nama_siswa,n.nama_kelas,n.nama_mapel,n.nilai_akhir,n.predikat,n.deskripsi||'Belum diisi'])};
   }
   if(['jurnal','agenda','absensi'].includes(kind)) {
-    const allowed=q.get('id_jadwal')?[schedule(user,q.get('id_jadwal'))]:schedules(user);const dates=dateRange(q);
+    const scope = kind !== 'absensi' && q.get('scope') === 'kelas' ? 'journal' : 'own';
+    if (scope === 'journal' && (!q.get('id_kelas') || !q.get('id_tahun_ajaran'))) fail('Pilih kelas dan periode jurnal terlebih dahulu.');
+    const allowed=(q.get('id_jadwal')?[schedule(user,q.get('id_jadwal'),undefined,false,scope)]:schedules(user,scope)).filter(j => scope !== 'journal' || j.id_kelas === q.get('id_kelas') && j.id_tahun_ajaran === q.get('id_tahun_ajaran'));
+    if (scope === 'journal' && !allowed.length) fail('Sesi tidak sesuai kelas atau periode jurnal.');
+    const dates=dateRange(q);
     if(kind==='absensi') {
       if(allowed.length!==1)fail('Pilih satu jadwal untuk daftar hadir.');const j=allowed[0];
       const records=rows('SELECT a.*,p.tanggal FROM ak_absensi_sesi a JOIN ak_pertemuan p ON p.id=a.id_pertemuan WHERE p.id_jadwal=? AND p.tanggal BETWEEN ? AND ?',j.id_jadwal,dates[0],dates.at(-1));

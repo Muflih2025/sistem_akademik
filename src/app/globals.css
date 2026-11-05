@@ -10,3 +10,15 @@ body {
   background: var(--background);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
+
+/* Native date/time controls must fit narrow form columns, including iOS. */
+input, select, textarea { min-width: 0; max-width: 100%; }
+.sia-content, .sia-sidebar { overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    font-size: 16px;
+  }
+  button, select, input:not([type="checkbox"]):not([type="radio"]), summary {
+    min-height: 44px;
+  }
+}

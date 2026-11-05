@@ -24,8 +24,9 @@ export default function PortalLayout({
   navItems,
 }: PortalLayoutProps) {
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  useEffect(() => setSidebarOpen(false), [pathname]);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -56,7 +57,7 @@ export default function PortalLayout({
         key: 'master',
         label: 'Master Data',
         items: [
-          { label: 'Data Siswa & Kelas', href: '/admin/master' },
+          { label: 'Master Data Akademik', href: '/admin/master' },
           { label: 'Manajemen Akun', href: '/admin/users' },
           { label: 'Bulk Upload Excel', href: '/admin/bulk-upload' },
         ],
@@ -65,10 +66,10 @@ export default function PortalLayout({
         key: 'akademik',
         label: 'Akademik',
         items: [
-          { label: 'Penugasan Guru', href: '/admin/penugasan' },
+          { label: 'Periode & Penugasan', href: '/admin/penugasan' },
           { label: 'Kelola Jadwal', href: '/admin/jadwal' },
           { label: 'Tahun Ajaran', href: '/admin/tahun-ajaran' },
-          { label: 'Jam Belajar', href: '/admin/jam-belajar' },
+          { label: 'Ubah Jam Pembelajaran', href: '/admin/jam-belajar' },
           { label: 'Kalender Akademik', href: '/admin/kalender' },
           { label: 'Naik Kelas', href: '/admin/kenaikan' },
           { label: 'Alumni', href: '/admin/alumni' },
@@ -93,7 +94,7 @@ export default function PortalLayout({
         label: 'Mengajar',
         items: [
           { label: 'Absensi & Isi Jurnal', href: '/guru/absen' },
-          { label: 'Riwayat Jurnal KBM', href: '/guru/jurnal' },
+          { label: 'Jurnal Kelas Bersama', href: '/guru/jurnal' },
           { label: 'Jadwal Mengajar', href: '/guru/jadwal' },
           { label: 'Kalender Akademik', href: '/guru/kalender' },
           { label: 'Jam Belajar', href: '/jam-belajar' },
@@ -106,7 +107,7 @@ export default function PortalLayout({
           { label: 'Input & Rekap Nilai', href: '/guru/nilai' },
           { label: 'Nilai Ekstrakurikuler', href: '/guru/ekskul' },
           { label: 'Impor CSV / Excel', href: '/guru/impor' },
-          { label: 'Buku Rapor Kelas', href: '/guru/rapor' },
+          { label: 'Nilai & Rapor Kelas', href: '/guru/rapor' },
         ],
       },
       {
@@ -137,13 +138,13 @@ export default function PortalLayout({
         items: [
           { label: 'Rekap Nilai', href: '/kepsek/rekap-nilai' },
           { label: 'Catatan Evaluasi', href: '/kepsek/evaluasi' },
-          { label: 'Verifikasi Rapor', href: '/kepsek/rapor' },
+          { label: 'Rapor Semester', href: '/kepsek/rapor' },
         ],
       },
       {
         key: 'akademik',
         label: 'Akademik',
-        items: [{ label: 'Kalender Pendidikan', href: '/kepsek/kalender' }],
+        items: [{ label: 'Kalender Pendidikan', href: '/kepsek/kalender' }, { label: 'Jam Belajar', href: '/jam-belajar' }],
       },
     ],
     piket: [
@@ -175,6 +176,7 @@ export default function PortalLayout({
         items: [
           { label: 'Jadwal Kelas', href: '/siswa/jadwal' },
           { label: 'Kalender Akademik', href: '/siswa/kalender' },
+          { label: 'Jam Belajar', href: '/jam-belajar' },
         ],
       },
       {
@@ -188,25 +190,27 @@ export default function PortalLayout({
     ],
   };
 
-  const currentModules = (modulesByRole[role] || modulesByRole.guru).filter(m => m.key !== 'piket' || role !== 'guru' || currentUser?.is_piket);
+  const currentModules = (currentUser ? modulesByRole[role] || modulesByRole.guru : []).filter(m => m.key !== 'piket' || role !== 'guru' || currentUser?.is_piket);
 
-  // Temukan modul yang sedang aktif berdasarkan path
+  const matchesItem = (item: { href: string }) => pathname === item.href || pathname === '/jam-belajar' && item.href === '/admin/jam-belajar';
+
+  // Shared pages retain the signed-in role's academic navigation.
   const activeModule = currentModules.find((m) =>
-    m.items.some((item) => pathname === item.href)
-  ) || currentModules[0];
+    m.items.some(matchesItem)
+  ) || currentModules[0] || { key: 'loading', label: 'Memuat menu…', items: [] };
 
   return (
     <div className="sia-app min-h-screen flex flex-col bg-[#f3f4f6] text-[#111] font-sans antialiased">
       {/* 1. SIA Top Header (Identik dengan .sia-header di main) */}
-      <header className="sia-header flex items-center justify-between gap-4 bg-[#111] text-white px-5 py-3 min-h-[76px] sticky top-0 z-40">
-        <Link href="/beranda" className="sia-brand text-white no-underline text-xl font-extrabold leading-tight">
+      <header className="sia-header flex items-center justify-between gap-3 bg-[#111] text-white px-4 sm:px-5 py-3 min-h-[76px] sticky top-0 z-40">
+        <Link href="/beranda" className="sia-brand min-w-0 text-white no-underline text-lg sm:text-xl font-extrabold leading-tight">
           SIA SMKN 2 MAGELANG
           <span className="block text-xs font-normal text-slate-300">
             Sistem Informasi Akademik Terpadu
           </span>
         </Link>
 
-        <div className="sia-identity flex items-center gap-4 text-xs">
+        <div className="sia-identity flex shrink-0 items-center gap-4 text-xs">
           <span className="hidden sm:inline text-slate-300">
             {currentUser?.nama || roleTitle} ({role})
           </span>
@@ -221,7 +225,7 @@ export default function PortalLayout({
       </header>
 
       {/* 2. Horizontal Module Bar (Identik dengan .sia-modules di main) */}
-      <nav className="sia-modules flex gap-2 px-5 py-2.5 overflow-x-auto max-w-full bg-white border-b border-[#e5e7eb] scrollbar-thin">
+      <nav aria-label="Modul utama" aria-busy={!currentUser} className="sia-modules flex gap-2 px-5 py-2.5 overflow-x-auto max-w-full bg-white border-b border-[#e5e7eb] scrollbar-thin">
         {currentModules.map((mod) => {
           const isCurrent = mod.key === activeModule.key;
           const firstTarget = mod.items[0]?.href || '#';
@@ -229,6 +233,7 @@ export default function PortalLayout({
             <Link
               key={mod.key}
               href={firstTarget}
+              aria-current={isCurrent ? 'page' : undefined}
               className={`flex items-center justify-center flex-none min-h-[40px] rounded-[10px] px-4 py-2 text-sm font-semibold whitespace-nowrap no-underline transition ${
                 isCurrent
                   ? 'bg-[#111] text-white'
@@ -242,26 +247,28 @@ export default function PortalLayout({
       </nav>
 
       {/* 3. Main Shell: Sidebar Kiri & Konten Tengah (Identik dengan .sia-shell di main) */}
-      <div className="sia-shell flex-1 grid grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)] items-start">
+      <div className="sia-shell mx-auto w-full max-w-[1920px] flex-1 grid grid-cols-1 md:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[256px_minmax(0,1fr)] items-start">
         {/* Contextual Feature Sidebar */}
-        <aside className="sia-sidebar bg-white border-b md:border-b-0 md:border-r border-[#e5e7eb] md:sticky md:top-[128px] md:min-h-[calc(100vh-128px)]">
-          <div className="sia-sidebar-inner p-4 space-y-3">
-            <div>
-              <h3 className="sia-module-title text-sm font-bold text-[#111] px-2.5">
+        <aside className="sia-sidebar bg-white border-b md:border-b-0 md:border-r border-[#e5e7eb] md:sticky md:top-[76px] md:min-h-[calc(100vh-136px)]">
+          <div className="sia-sidebar-inner p-3 md:p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div><h3 className="sia-module-title text-sm font-bold text-[#111] px-2.5">
                 {activeModule.label}
               </h3>
-              <p className="sia-sidebar-hint text-[11px] text-[#60646c] px-2.5 mb-2">
+              <p className="sia-sidebar-hint hidden md:block text-[11px] text-[#60646c] px-2.5 mb-2">
                 Pilih menu fitur di bawah ini
-              </p>
+              </p></div>
+              <button type="button" aria-expanded={sidebarOpen} aria-controls="feature-menu" onClick={() => setSidebarOpen(v => !v)} className="md:hidden min-h-11 rounded-lg border px-3 py-2 text-sm font-semibold">{sidebarOpen ? 'Tutup menu fitur' : 'Menu fitur'}</button>
             </div>
 
-            <nav className="grid gap-1">
+            <nav id="feature-menu" aria-label="Fitur modul" aria-busy={!currentUser} className={(sidebarOpen ? 'grid' : 'hidden') + ' md:grid gap-1'}>
               {activeModule.items.map((item) => {
-                const isItemActive = pathname === item.href;
+                const isItemActive = matchesItem(item);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    aria-current={isItemActive ? 'page' : undefined}
                     className={`flex items-center justify-between px-3 py-2.5 rounded-[10px] text-xs leading-normal transition no-underline ${
                       isItemActive
                         ? 'bg-[#111] text-white font-bold'
@@ -277,13 +284,13 @@ export default function PortalLayout({
         </aside>
 
         {/* Content Area */}
-        <main className="sia-content p-4 sm:p-6 md:p-8 min-w-0 max-w-7xl">
+        <main className="sia-content w-full min-w-0 p-4 pb-24 sm:p-6 sm:pb-24 xl:p-8 xl:pb-24">
           {children}
         </main>
       </div>
 
       {/* 4. Mobile Bottom Navigation bar (Identik dengan .sia-bottom di main) */}
-      <div className="md:hidden sia-bottom fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[#e5e7eb] py-2 px-1">
+      <div className="md:hidden sia-bottom fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[#e5e7eb] pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
         {currentModules.slice(0, 4).map((mod) => (
           <Link
             key={mod.key}

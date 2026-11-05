@@ -1,3 +1,4 @@
+import { lessonPeriod } from './bell-times';
 import db from './db';
 import { AuthUser, getCurrentUser } from './auth';
 import { NextResponse } from 'next/server';
@@ -45,7 +46,7 @@ export function period(id: string, write = false) {
   if (write && (String(y.dikunci) !== '0' || String(y.rapor_diterbitkan) !== '0')) fail('Periode terkunci atau rapor telah diterbitkan.', 409);
   return { ...y, ...p };
 }
-export function schedules(user: AuthUser): Row[] {
+export function schedules(user: AuthUser, scope: 'own' | 'journal' = 'own'): Row[] {
   if (!['admin', 'guru', 'kepala_sekolah'].includes(user.role)) fail('Akses jadwal guru ditolak.', 403);
   const rows = db.prepare(`SELECT j.*, g.nama_guru, k.nama_kelas, m.nama_mapel,
     p.mulai AS periode_mulai, p.selesai AS periode_selesai, a.mulai, a.selesai,
@@ -55,14 +56,15 @@ export function schedules(user: AuthUser): Row[] {
     JOIN ak_penugasan a ON a.id_jadwal=j.id_jadwal AND a.terverifikasi='1'
     JOIN ak_periode p ON p.id_tahun_ajaran=j.id_tahun_ajaran AND p.terverifikasi='1'
     JOIN tahun_ajaran y ON y.id_tahun_ajaran=j.id_tahun_ajaran
-    WHERE j.status='aktif' ${user.role === 'guru' ? 'AND j.id_guru=?' : ''}
-    ORDER BY j.hari,j.jam_mulai,j.id_jadwal`).all(...(user.role === 'guru' ? [user.id_referensi] : [])) as Row[];
+    WHERE j.status='aktif' ${user.role === 'guru' && scope === 'own' ? 'AND j.id_guru=?' : ''}
+    ORDER BY j.hari,j.jam_mulai,j.id_jadwal`).all(...(user.role === 'guru' && scope === 'own' ? [user.id_referensi] : [])) as Row[];
   // Ambiguous legacy assignments never widen access.
-  return rows.filter(r => rows.filter(x => x.id_jadwal === r.id_jadwal).length === 1);
+  const profiles = (db.prepare('SELECT b.* FROM ak_jam_belajar b WHERE CAST(b.versi AS INTEGER)=(SELECT MAX(CAST(v.versi AS INTEGER)) FROM ak_jam_belajar v WHERE v.nama=b.nama)').all() as Row[]).map(p => ({ ...p, payload: JSON.parse(p.payload_json) }));
+  return rows.filter(r => rows.filter(x => x.id_jadwal === r.id_jadwal).length === 1).map(r => ({ ...r, jam_ke: lessonPeriod(r.hari,r.jam_mulai,r.jam_selesai,profiles) }));
 }
-export function schedule(user: AuthUser, id: unknown, date?: string, write = false) {
+export function schedule(user: AuthUser, id: unknown, date?: string, write = false, scope: 'own' | 'journal' = 'own') {
   if (!id) fail('Pilih jadwal mengajar terlebih dahulu.');
-  const j = schedules(user).find(r => String(r.id_jadwal) === String(id));
+  const j = schedules(user, scope).find(r => String(r.id_jadwal) === String(id));
   if (!j) fail('Jadwal tidak tersedia atau di luar penugasan Anda.', 403);
   if (write && !['admin', 'guru'].includes(user.role)) fail('Akses tulis ditolak.', 403);
   const p = period(j.id_tahun_ajaran, write);
@@ -107,8 +109,10 @@ export function revisionCheck(before: Row | undefined, revision: unknown, reason
 function checkMeetingScope(j: Row, meeting?: Row) {
   if (meeting && ['id_tahun_ajaran','id_kelas','id_guru','id_mapel'].some(k => meeting[k] !== j[k])) fail('Pertemuan lama memiliki penugasan berbeda. Minta admin memeriksa.', 409);
 }
-export function saveMeeting(user: AuthUser, body: Row) {
-  const date = dateValue(body.tanggal), j = schedule(user, body.id_jadwal, date, true);
+export function saveMeeting(user: AuthUser, body: Row, scope: 'own' | 'journal' = 'own') {
+  if (scope === 'journal' && body.items !== undefined) fail('Edit jurnal bersama tidak boleh mengubah absensi sesi.',403);
+  const date = dateValue(body.tanggal), j = schedule(user, body.id_jadwal, date, true, scope);
+  if (scope === 'journal' && (body.id_kelas !== j.id_kelas || body.id_tahun_ajaran !== j.id_tahun_ajaran || body.konfirmasi !== true)) fail('Pilih kelas dan konfirmasi konteks jurnal terlebih dahulu.');
   const keys = { id_jadwal: j.id_jadwal, tanggal: date };
   const before = one('ak_pertemuan', keys);
   checkMeetingScope(j, before);
@@ -125,7 +129,7 @@ export function saveMeeting(user: AuthUser, body: Row) {
   const replacement = body.id_guru_pengganti === undefined ? before?.id_guru_pengganti || null : body.id_guru_pengganti === '' || body.id_guru_pengganti === null ? null : body.id_guru_pengganti;
   if (replacement !== null && (typeof replacement !== 'string' || replacement.length > 40 || !db.prepare("SELECT 1 FROM guru WHERE id_guru=? AND status='aktif'").get(replacement))) fail('Guru pengganti tidak dikenal atau nonaktif.');
   const submittedLesson = typeof body.jam_ke === 'string' && body.jam_ke !== before?.jam_ke ? body.jam_ke.trim() : body.jam_ke;
-  const lesson = submittedLesson || before?.jam_ke || `${j.jam_mulai}–${j.jam_selesai}`;
+  const lesson = submittedLesson || before?.jam_ke || j.jam_ke || `${j.jam_mulai}–${j.jam_selesai}`;
   if (typeof lesson !== 'string' || lesson.length > 30) fail('Jam pelajaran maksimal 30 karakter.');
   if (lesson !== before?.jam_ke) {
     const times = /^(\d{2}:\d{2})\s*[–—-]\s*(\d{2}:\d{2})$/.exec(lesson);
@@ -154,8 +158,8 @@ export function saveMeeting(user: AuthUser, body: Row) {
   }
   return meeting;
 }
-export function attendance(user: AuthUser, id: string | null, date: string) {
-  const j = schedule(user, id, date);
+export function attendance(user: AuthUser, id: string | null, date: string, scope: 'own' | 'journal' = 'own') {
+  const j = schedule(user, id, date, false, scope);
   const meeting = one('ak_pertemuan', { id_jadwal: j.id_jadwal, tanggal: date });
   checkMeetingScope(j, meeting);
   return { schedule: j, meeting: meeting || null, data: roster(j, date).map(s => {

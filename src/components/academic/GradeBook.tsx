@@ -15,7 +15,7 @@ export default function GradeBook({ readOnly = false }: { readOnly?: boolean }) 
   const [refresh, setRefresh] = useState(0);
   useEffect(() => { setSuccess(''); }, [context.id]);
   useEffect(() => {
-    setRows([]); setRule(null); setLoaded(''); setError(''); setPage(1); setReason('');
+    setRows([]); setRule(null); setLoaded(''); setLoading(false); setError(''); setPage(1); setReason('');
     if (!context.ready || !context.id) return;
     const controller = new AbortController(); setLoading(true);
     fetch(`/api/nilai?id_jadwal=${encodeURIComponent(context.id)}`, { signal: controller.signal, cache: 'no-store' }).then(r => r.json()).then(j => {
@@ -39,7 +39,7 @@ export default function GradeBook({ readOnly = false }: { readOnly?: boolean }) 
   const filtered = rows.filter(r => `${r.nama_siswa} ${r.nis}`.toLowerCase().includes(search.toLowerCase()));
   const pages = Math.max(1, Math.ceil(filtered.length / 10));
   return <PortalLayout roleTitle="Portal Guru - Nilai & Rapor"><div className="space-y-5 pb-16">
-    <h2 className="text-2xl font-bold">{readOnly ? 'Buku Rapor Kelas — Nilai Berjalan' : 'Input & Rekap Nilai'}</h2>
+    <h2 className="text-2xl font-bold">{readOnly ? 'Rekap Nilai Kelas' : 'Input & Rekap Nilai'}</h2>
     <p className="text-sm">Rekap nilai terbaru sesuai kelas, mata pelajaran, dan periode penugasan. Rapor resmi yang sudah diterbitkan merupakan arsip terpisah.</p>
     <TeachingPicker context={context} withDate={false} disabled={saving} />
     <Notice error={error} success={success} />
@@ -52,6 +52,7 @@ export default function GradeBook({ readOnly = false }: { readOnly?: boolean }) 
     <a href="/guru/impor" className="underline text-sm">Impor nilai dari CSV / Excel</a>
     {context.id && <Downloads params={{ kind: 'nilai', id_jadwal: context.id }} setError={setError} />}
     <form onSubmit={save} className="space-y-4">
+    <p className="text-xs text-gray-600 md:hidden">Geser tabel ke samping untuk melihat seluruh kolom nilai dan deskripsi.</p>
     {loading ? <p>Memuat nilai…</p> : <div className="overflow-x-auto bg-white border rounded-xl"><table className="w-full text-sm text-left"><thead className="bg-gray-100"><tr><th className="p-3">NIS / Nama</th><th className="p-3">Mata Pelajaran</th>{columns.map(c => <th key={c} className="p-3">{c.toUpperCase()}</th>)}<th className="p-3">Nilai akhir</th><th className="p-3">Predikat</th><th className="p-3">Deskripsi capaian</th></tr></thead><tbody>
       {filtered.slice((page-1)*10,page*10).map(r => <tr key={r.nis} className="border-t"><td className="p-3">{r.nis}<br />{r.nama_siswa}</td><td className="p-3">{r.nama_mapel}</td>
         {columns.map(c => <td key={c} className="p-3">{readOnly ? r[`nilai_${c}`] === '' ? 'Belum diisi' : r[`nilai_${c}`] : <input aria-label={`${r.nis} ${c}`} type="number" min="0" max="100" step="0.01" required disabled={saving || loaded !== context.id} value={r[`nilai_${c}`] ?? ''} onChange={e => setRows(rows.map(x => x.nis === r.nis ? { ...x, [`nilai_${c}`]: e.target.value } : x))} className="w-20 border rounded-lg p-2" />}</td>)}
