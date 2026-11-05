@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Downloads } from '@/components/modules/Common';
+import { Downloads, useRole } from '@/components/modules/Common';
 import PortalLayout from '@/components/PortalLayout';
 import Notice from './Notice';
 import JournalConfirmation from './JournalConfirmation';
 import { classKey, TeachingPicker, useTeachingContext } from './TeachingContext';
 
 export default function MeetingEditor({ attendance = false }: { attendance?: boolean }) {
+  const user = useRole();
   const context = useTeachingContext({ sharedJournal: !attendance });
   const [confirmedKey, setConfirmedKey] = useState(''), [confirmOpen, setConfirmOpen] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
@@ -78,6 +79,8 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
     {!attendance && <p className="text-sm leading-relaxed">Semua guru dapat mengisi atau mengoreksi jurnal kelas, termasuk sesi guru lain. Pilih kelas, tanggal, lalu sesi pelajaran dan konfirmasi sebelum mengedit.</p>}
     <TeachingPicker context={context} disabled={saving} />
     <div ref={notice}><Notice error={error} success={success} /></div>
+    {context.ready && !context.schedules.length && <section role="status" className="space-y-3 rounded-xl border bg-white p-4 text-sm"><p>{attendance ? 'Absensi sesi membutuhkan jadwal mengajar milik Anda, periode dan penugasan terverifikasi, serta anggota kelas yang ditetapkan admin.' : 'Jurnal kelas membutuhkan jadwal kelas dengan periode dan penugasan terverifikasi dari admin.'}</p>{user?.is_piket && <p>Tugas piket menggunakan rekap kehadiran harian. <Link className="underline" href="/piket">Buka presensi harian piket</Link></p>}</section>}
+    {context.ready && context.schedules.length > 0 && !context.id && <p role="status" className="text-sm">{attendance ? 'Pilih jadwal mengajar dan tanggal yang sesuai untuk memuat siswa dan jurnal.' : 'Pilih kelas, tanggal, dan sesi pelajaran untuk melihat riwayat serta mengisi jurnal.'}</p>}
     <Link className="underline text-sm" href="/guru/impor">Impor absensi dari CSV / Excel</Link>
     {context.id && context.date && <details className="border rounded-xl p-4 bg-white"><summary>Unduh buku absensi, jurnal & agenda</summary><div className="space-y-3 mt-3"><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Mulai unduhan<input aria-label="Mulai unduhan buku" type="date" value={downloadStart} onChange={e => setDownloadStart(e.target.value)} className="block w-full border rounded p-2" /></label><label className="text-sm">Selesai unduhan<input aria-label="Selesai unduhan buku" type="date" value={downloadEnd} onChange={e => setDownloadEnd(e.target.value)} className="block w-full border rounded p-2" /></label></div>{(attendance ? ['absensi', 'jurnal', 'agenda'] : ['jurnal', 'agenda']).map(kind => <div key={kind}><h3 className="font-semibold capitalize">{kind}</h3><Downloads params={{ kind, id_jadwal: context.id, mulai: downloadStart, selesai: downloadEnd, ...(!attendance ? { scope: 'kelas', id_kelas: selected?.id_kelas || '', id_tahun_ajaran: selected?.id_tahun_ajaran || '' } : {}) }} setError={setError} /></div>)}</div></details>}
     {loading && <p>Memuat pertemuan…</p>}
@@ -87,7 +90,7 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
       {confirmedKey !== key && <button type="button" onClick={() => setConfirmOpen(true)} className="rounded-lg bg-black px-4 py-3 text-sm text-white">Edit jurnal kelas</button>}
     </section>}
     <JournalConfirmation open={confirmOpen && !attendance && loaded === key} schedule={selected} date={context.date} onCancel={() => setConfirmOpen(false)} onConfirm={() => { if (loaded === key && selected && context.classId) { setConfirmedKey(key); setConfirmOpen(false); } }} />
-    <form onSubmit={save} onInvalidCapture={invalid} className="space-y-5">
+    {loaded === key && <form onSubmit={save} onInvalidCapture={invalid} className="space-y-5">
       {attendance && <section className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
         <p className="text-sm">Absensi per sesi pelajaran. Rekap harian sekolah dikelola terpisah oleh Guru Piket.</p>
         <div className="flex flex-wrap gap-3 text-sm">{['H','S','I','A','B'].map(c => <span key={c}>{c === 'B' ? 'Belum Dikonfirmasi' : c}: {students.filter(s => s.status === c).length}</span>)}</div>
@@ -110,7 +113,7 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
         <label className="text-sm">Alasan koreksi{meeting.id && <span className="text-xs"> (wajib)</span>}<input aria-label="Alasan koreksi" aria-describedby="correction-help" required={!!meeting.id} disabled={!editable} value={reason} onChange={e => setReason(e.target.value)} className="mt-2 w-full border rounded-lg p-2.5" /><span id="correction-help" className="block mt-1 text-xs">{meeting.id ? 'Pertemuan ini sudah tersimpan. Isi alasan untuk mengubah jurnal atau absensi yang sama.' : 'Hanya wajib saat mengubah pertemuan yang sudah tersimpan.'}</span></label>
         <button disabled={!editable} type="submit" className="bg-black text-white rounded-lg p-3 self-end disabled:opacity-40">{saving ? 'Menyimpan…' : attendance ? 'Simpan Absensi & Jurnal' : 'Simpan Jurnal'}</button>
       </section>
-    </form>
+    </form>}
 
     <section className="bg-white border rounded-xl p-4 space-y-3"><h3 className="font-bold">Riwayat Jurnal KBM</h3>
       {history.map(h => <div key={h.id} className="border-t pt-3 text-sm"><p>{h.tanggal} · {h.nama_kelas} · {h.jam_ke ? `Jam ke ${h.jam_ke} · ` : ''}{h.nama_mapel} · {h.nama_guru}</p><p>{h.materi}</p><Link className="underline" onClick={() => { context.setClassId(classKey(h)); context.setDate(h.tanggal); context.setId(String(h.id_jadwal)); }} href={`/guru/jurnal?id_jadwal=${encodeURIComponent(h.id_jadwal)}&id_kelas=${encodeURIComponent(h.id_kelas)}&id_tahun_ajaran=${encodeURIComponent(h.id_tahun_ajaran)}&tanggal=${h.tanggal}`}>Buka / koreksi jurnal</Link></div>)}

@@ -34,7 +34,18 @@ export function saveCatalog(user:AuthUser,input:Row):Row {
       if(f.key==='password')continue;
       const v=input[f.key]??before?.[f.key];
       values[f.key]=f.options?choice(v,f.options,f.label):text(v,f.label,f.key==='alamat'||f.key==='isi'?4000:150,!f.optional);
-      if(f.reference&&values[f.key]){const ref=catalog[f.reference];if(f.key==='ruang'){const room=rows("SELECT * FROM ak_ruang WHERE (id_ruang=? OR nama_ruang=? OR kode_ruang=?) AND status='aktif'",values[f.key],values[f.key],values[f.key]);if(room.length!==1)fail('Ruang aktif tidak ditemukan.');values.ruang=room[0].nama_ruang;}else reference(f.reference,ref.pk,values[f.key]);}
+      if(f.reference&&values[f.key]) {
+        const ref=catalog[f.reference];
+        if(f.key==='ruang') {
+          const room=rows("SELECT * FROM ak_ruang WHERE (id_ruang=? OR nama_ruang=? OR kode_ruang=?) AND status='aktif'",values[f.key],values[f.key],values[f.key]);
+          if(room.length!==1)fail('Ruang aktif tidak ditemukan.');values.ruang=room[0].nama_ruang;
+        } else {
+          // Supervisory notes may refer to an archived period without reopening it.
+          // Other catalog references still require an active record.
+          const archivedEvaluationPeriod=table==='catatan_evaluasi'&&f.key==='id_tahun_ajaran'&&f.reference==='tahun_ajaran';
+          reference(f.reference,ref.pk,values[f.key],!archivedEvaluationPeriod);
+        }
+      }
     }
     if(table!=='tahun_ajaran'&&table!=='catatan_evaluasi')values.status=choice(input.status||before?.status||'aktif',['aktif','nonaktif'],'Status');
   }

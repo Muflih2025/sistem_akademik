@@ -1,4 +1,4 @@
-export interface Field { key: string; label: string; type?: string; options?: string[]; reference?: string; optional?: boolean }
+export interface Field { key: string; label: string; type?: string; options?: string[]; reference?: string; optional?: boolean; min?: number; max?: number; step?: number }
 export interface Definition { label: string; pk: string; fields: Field[] }
 const f = (key: string, label: string, extra: Partial<Field> = {}): Field => ({ key, label, ...extra });
 export const catalog: Record<string, Definition> = {

@@ -39,7 +39,7 @@ export default function Page() {
       {chosen ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-black px-4 py-3 text-sm text-white" href={journalUrl(chosen)}>Buka jurnal kelas</Link> : <button disabled className="rounded-lg bg-black px-4 py-3 text-sm text-white opacity-40">Buka jurnal kelas</button>}
     </section>
     <h3 className="text-lg font-bold">Jadwal mengajar</h3>
-    {loading ? <p>Memuat jadwal…</p> : !rows.length && !error ? <p>Tidak ada penugasan terverifikasi pada tanggal ini. Pilih tanggal lain atau hubungi admin.</p> : null}
+    {loading ? <p>Memuat jadwal…</p> : !rows.length && !error ? <p role="status">Tidak ada penugasan terverifikasi pada tanggal ini. Pilih tanggal lain atau hubungi admin. Jadwal pribadi muncul setelah admin menetapkan dan memverifikasi penugasan mengajar. Jurnal kelas lain dapat dibuka melalui pilihan kelas dan sesi di atas.</p> : null}
     <div className="grid gap-4 lg:grid-cols-2">{rows.map(j => <article key={j.id_jadwal} className="bg-white p-5 border rounded-xl space-y-3">
       <h3 className="font-bold">{j.nama_mapel} · {j.nama_kelas}</h3><p>{j.jam_ke ? `Jam ke ${j.jam_ke} · ` : ''}{j.hari}, {date} · {j.jam_mulai}–{j.jam_selesai}</p>
       <p>{j.nama_guru} · {j.ruang}</p><p className="text-sm">{j.tahun_ajaran} · {j.semester}</p>

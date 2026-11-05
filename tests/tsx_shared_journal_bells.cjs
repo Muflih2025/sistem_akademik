@@ -113,7 +113,8 @@ async function confirm(page, cls = 'XII PPLG 2', date = '30-10-2026') {
     await g.goto(base + '/guru/jurnal');
     await g.getByLabel('Kelas jurnal', { exact: true }).waitFor();
     assert.equal(await g.getByLabel('Kelas jurnal', { exact: true }).inputValue(), '');
-    assert(await g.getByRole('button', { name: 'Simpan Jurnal', exact: true }).isDisabled());
+    await g.getByText('Pilih kelas, tanggal, dan sesi pelajaran untuk melihat riwayat serta mengisi jurnal.', { exact: true }).waitFor();
+    assert.equal(await g.getByRole('button', { name: 'Simpan Jurnal', exact: true }).count(), 0);
     await choose(g, '1/1', '100');
     assert.equal(await g.getByLabel('Pilih / edit jurnal kelas', { exact: true }).locator('option').count(), 5);
     assert(await g.getByLabel('Materi pembelajaran', { exact: true }).isDisabled());
@@ -131,7 +132,8 @@ async function confirm(page, cls = 'XII PPLG 2', date = '30-10-2026') {
     await confirm(g);
     await g.getByLabel('Kelas jurnal', { exact: true }).selectOption('1/2');
     assert.equal(await g.getByLabel('Pilih / edit jurnal kelas', { exact: true }).inputValue(), '');
-    assert(await g.getByRole('button', { name: 'Simpan Jurnal', exact: true }).isDisabled());
+    await g.getByText('Pilih kelas, tanggal, dan sesi pelajaran untuk melihat riwayat serta mengisi jurnal.', { exact: true }).waitFor();
+    assert.equal(await g.getByRole('button', { name: 'Simpan Jurnal', exact: true }).count(), 0);
     await choose(g, '1/2', '2');
     await g.getByRole('button', { name: 'Edit jurnal kelas', exact: true }).click();
     assert((await g.getByRole('dialog').innerText()).includes('XII PPLG 1'));

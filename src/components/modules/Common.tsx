@@ -6,7 +6,7 @@ import { catalog, labels, type Field } from '@/lib/catalog';
 export type Row = Record<string, any>;
 export const inputClass = 'w-full min-w-0 rounded-lg border border-gray-300 bg-white p-2.5 text-sm disabled:bg-gray-100';
 export const buttonClass = 'rounded-lg bg-black px-4 py-2.5 text-sm text-white disabled:opacity-40';
-export const secondaryClass = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-40';
+export const secondaryClass = 'whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-40';
 export const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 export async function api(url: string, body?: Row, signal?: AbortSignal): Promise<Row> {
   const response = await fetch(url, { method: body ? 'POST' : 'GET', cache: 'no-store', signal,
@@ -47,7 +47,7 @@ export function FieldInput({ field, value, onChange, lookups = {}, disabled = fa
   const options = field.reference ? (lookups[field.reference] || []).map(r => ({ value: field.key === 'ruang' ? r.nama_ruang : r[catalog[field.reference!].pk], label: field.reference === 'jadwal' ? `${r.nama_kelas || ''} · ${r.nama_mapel || ''} · ${r.nama_guru || ''} · ${r.hari} ${r.jam_mulai} · ${r.tahun_ajaran || ''} ${r.semester || ''} (#${r.id_jadwal})` : `${labels(r) || r[catalog[field.reference!].pk]}${r.semester && !r.tahun_ajaran ? ' ' + r.semester : ''}` })) : field.options?.map(v => ({ value: v, label: v === '1' ? 'Ya' : v === '0' ? 'Tidak' : v }));
   return <label className="block min-w-0 text-sm">{field.label}{field.optional ? ' (opsional)' : ''}
     {options ? <select {...props}><option value="">{field.optional ? 'Semua / tidak ditetapkan' : 'Pilih ' + field.label.toLowerCase()}</option>{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-      : field.type === 'textarea' ? <textarea {...props} rows={3} /> : <input {...props} type={field.type || 'text'} step={field.type === 'number' ? 'any' : undefined} autoComplete={field.type === 'password' ? 'new-password' : 'off'} />}
+      : field.type === 'textarea' ? <textarea {...props} rows={3} /> : <input {...props} type={field.type || 'text'} min={field.min} max={field.max} step={field.type === 'number' ? field.step ?? 'any' : undefined} autoComplete={field.type === 'password' ? 'new-password' : 'off'} />}
   </label>;
 }
 export function DataTable({ columns, rows, actions, paginate = true }: { columns: { key: string; label: string; render?: (row: Row) => React.ReactNode }[]; rows: Row[]; actions?: (row: Row) => React.ReactNode; paginate?: boolean }) {
