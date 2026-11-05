@@ -14,7 +14,9 @@ export function journalSelection(user:AuthUser,input:Row) {
   if(from>until||(Date.parse(until)-Date.parse(from))/86400000>369)fail('Pilih rentang jurnal berurutan, maksimal 370 hari.');
   if(year&&(from<year.mulai||until>year.selesai))fail('Tanggal jurnal harus berada dalam periode yang dipilih.');
   if(input.hari&&!['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'].includes(input.hari))fail('Hari jurnal tidak valid.');
-  const allowed=(chosen?[chosen]:schedules(user,scope)).filter(j=>(!input.id_tahun_ajaran||j.id_tahun_ajaran===input.id_tahun_ajaran)&&(!input.id_kelas||j.id_kelas===input.id_kelas));
+  const context=(chosen?[chosen]:schedules(user,scope)).filter(j=>(!input.id_tahun_ajaran||j.id_tahun_ajaran===input.id_tahun_ajaran)&&(!input.id_kelas||j.id_kelas===input.id_kelas));
+  if(input.id_guru&&!context.some(j=>j.id_guru===input.id_guru))fail('Guru tidak tersedia untuk kelas atau periode jurnal yang dipilih.');
+  const allowed=context.filter(j=>!input.id_guru||j.id_guru===input.id_guru);
   if(chosen&&!allowed.length||input.scope==='kelas'&&!allowed.length)fail('Sesi tidak sesuai kelas atau periode jurnal.');
   return {allowed,from,until,year};
 }

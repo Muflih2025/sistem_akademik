@@ -96,7 +96,7 @@ Nilai mengikuti mapel yang diampu dan bobot berversi. Rapor menggunakan snapshot
 
 Bulk Upload Excel tersedia pada master Admin dengan template, preview dan konfirmasi. Modul akademik yang relevan menyediakan impor/ekspor, matriks, CSV, Excel dan cetak.
 
-Tombol **Ekspor jurnal** dan **Impor jurnal** membuka popup untuk satu kelas atau seluruh kelas, periode, tanggal tertentu atau rentang tanggal, serta filter hari. CSV/XLSX dapat diimpor kembali; template mengisi identitas sesi dan revisinya. Isi materi pada baris yang akan disimpan, unggah, periksa pratinjau, lalu konfirmasi. Impor memperbarui jurnal tanpa mengubah absensi atau nilai. PDF jurnal berisi identitas periode/kelas/tanggal dan rincian tiap pertemuan.
+Tombol **Ekspor jurnal** dan **Impor jurnal** membuka popup untuk satu kelas atau seluruh kelas, periode, tanggal tertentu atau rentang tanggal, serta filter hari. CSV/XLSX dapat diimpor kembali; template mengisi identitas sesi dan revisinya. Isi materi pada baris yang akan disimpan, unggah, periksa pratinjau, lalu konfirmasi. Impor memperbarui jurnal tanpa mengubah absensi atau nilai. PDF jurnal harian menampilkan seluruh sesi tersimpan dalam tabel per kelas dan tanggal, berurutan menurut jam. Guru yang mengajar beberapa sesi tetap muncul pada tiap sesi. Filter guru opsional memakai **Semua guru** sebagai pilihan awal. Lihat [hasil uji jurnal harian](docs/DAILY_JOURNAL_2026-11-05.md).
 
 Ekspor XLSX memakai ExcelJS dan PDF memakai PDFKit di server Node; unduhan API tidak memerlukan Chromium. Tombol **Cetak** menggunakan dialog browser. Playwright/Chromium digunakan oleh pengujian browser, dengan konfigurasi tersendiri. Detail: [dependensi PDF](docs/DEVELOPMENT.md#pdf-dan-dependensi-opsional).
 

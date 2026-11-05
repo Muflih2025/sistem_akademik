@@ -28,7 +28,7 @@ async function filters(page,classId=''){await page.getByLabel('Kelas transfer ju
  const pdf=await request('/api/export?'+query({kind:'jurnal',format:'pdf'}),head);assert.equal(pdf.status,200);assert.equal(pdf.bytes.subarray(0,4).toString(),'%PDF');fs.writeFileSync(path.join(state,'reports/journal-all.pdf'),pdf.bytes);
  const python=process.env.SIA_PDF_PYTHON||path.join(os.homedir(),'.local/state/sia-pdf-inspection/venv/bin/python');assert(fs.existsSync(python),'Provide SIA_PDF_PYTHON with pypdf for PDF content validation');
  const pdfText=cp.execFileSync(python,['-c','import sys,io;from pypdf import PdfReader;print("\\n".join(p.extract_text() for p in PdfReader(io.BytesIO(sys.stdin.buffer.read())).pages))'],{input:pdf.bytes,encoding:'utf8'}).replace(/\s+/g,' ');
- for(const term of ['Jurnal kelas','Periode: 2026/2027 Ganjil','Kelas: Seluruh kelas','2026-10-26 sampai 2026-10-30','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Guru pengganti','Siswa Review 2','XII PPLG 1','XII PPLG 2'])assert(pdfText.includes(term),'PDF missing '+term);
+ for(const term of ['Jurnal harian kelas','Periode: 2026/2027 Ganjil','Kelas: Seluruh kelas','2026-10-26 sampai 2026-10-30','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Siswa Review 2','XII PPLG 1','XII PPLG 2'])assert(pdfText.includes(term),'PDF missing '+term);
  pass('PDF_actual_text_contains_period_class_dates_journal_fields_and_absence_details');
 
  const templateResponse=await request('/api/export?'+query({kind:'template',module:'jurnal',format:'csv'}),duty);assert.equal(templateResponse.status,200);const template=await csv(templateResponse.bytes);assert.equal(template.rows.length,7);

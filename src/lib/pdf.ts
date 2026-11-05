@@ -31,7 +31,7 @@ export async function tablePdf(table: DocumentTable) {
     }
     return lines.length ? lines : [''];
   }
-  function grid(headers: string[], data: unknown[][], weights?: number[]) {
+  function grid(headers: string[], data: unknown[][], weights?: number[], repeatTitle?:()=>void) {
     const sizes = weights || headers.map(h => h === 'No' ? .35 : /^(Nilai|Predikat)/.test(h) ? .65 : /Deskripsi/.test(h) ? 3 : /Nama|pelajaran|Mapel/.test(h) ? 2 : 1);
     const sum = sizes.reduce((a, b) => a + b, 0), widths = sizes.map(n => width * n / sum);
     const lineHeight = 12, padding = 6;
@@ -51,7 +51,7 @@ export async function tablePdf(table: DocumentTable) {
       const lines = headers.map((h, i) => wrap(h, widths[i] - padding * 2));
       draw(lines, Math.max(...lines.map(c => c.length)), true);
     }
-    if (y > bottom - 80) { doc.addPage(); pageTitle(); }
+    if (y > bottom - 80) { doc.addPage(); pageTitle(); repeatTitle?.(); }
     header();
     const records = data.length ? data : [headers.map((_, i) => i === 0 ? 'Belum ada data yang sesuai.' : '')];
     for (const row of records) {
@@ -62,7 +62,7 @@ export async function tablePdf(table: DocumentTable) {
       while (offset < total) {
         let capacity = Math.floor((bottom - y - padding * 2) / lineHeight);
         if (capacity < 1 || offset === 0 && total <= 12 && total > capacity) {
-          doc.addPage(); pageTitle(); header();
+          doc.addPage(); pageTitle(); repeatTitle?.(); header();
           capacity = Math.floor((bottom - y - padding * 2) / lineHeight);
         }
         const count = Math.min(total - offset, capacity);
@@ -78,7 +78,24 @@ export async function tablePdf(table: DocumentTable) {
     table.metadata.forEach(line => { doc.text(printable(line), left, y, { width }); y = doc.y + 5; });
     y += 8;
   }
-  if (table.layout === 'journal') {
+  if (table.layout === 'journal-daily') {
+    if (!table.journalGroups?.length) grid(['Jurnal harian kelas'], [['Belum ada pertemuan pada rentang tanggal yang dipilih.']]);
+    table.journalGroups?.forEach((group,index)=>{
+      if(index>0){doc.addPage();pageTitle();}
+      const heading=()=>{
+        doc.fillColor('#111111').font('Helvetica-Bold').fontSize(10).text(printable(group.title),left,y,{width});y=doc.y+5;
+        doc.font('Helvetica').fontSize(9).text(printable(group.period),left,y,{width});y=doc.y+8;
+      };
+      heading();
+      const labeled=(label:string,value:unknown)=>value?`${label}: ${printable(value)}`:'';
+      grid(['No','Jam / Pertemuan','Guru','Mapel','TP / ATP & Materi','Kegiatan','Refleksi / Tindak lanjut','Catatan'],group.data.map((r,i)=>[
+        i+1,`${printable(r[1])}\nPertemuan ${printable(r[2])}`,r[3],r[5],
+        [labeled('TP / ATP',r[6]),labeled('Materi',r[7])].filter(Boolean).join('\n'),r[8],
+        [labeled('Refleksi',r[9]),labeled('Tindak lanjut',r[10])].filter(Boolean).join('\n'),
+        [r[11],labeled('Guru pengganti',r[12]),labeled('Siswa tidak hadir / belum dikonfirmasi',r[13])].filter(Boolean).join('\n'),
+      ]),[.35,.95,1.3,1.25,2.2,1.6,2,2.2],heading);
+    });
+  } else if (table.layout === 'journal') {
     if (!table.data.length) grid(['Jurnal kelas'], [['Belum ada pertemuan pada rentang tanggal yang dipilih.']]);
     table.data.forEach((row, index) => {
       if (y > bottom - 100) { doc.addPage(); pageTitle(); }

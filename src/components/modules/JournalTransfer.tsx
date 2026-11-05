@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
+import { groupJournalDays } from '@/lib/journal-view';
 import { api, message, DataTable, Downloads, inputClass, buttonClass, secondaryClass, today, type Row } from './Common';
 
 type Initial={id_kelas?:string;id_tahun_ajaran?:string;tanggal?:string};
@@ -10,7 +11,7 @@ export default function JournalTransfer({user,initial={},onImported}:{user:Row|n
   return <><div className="flex flex-wrap gap-3"><button type="button" className={secondaryClass} onClick={()=>setMode('export')}>Ekspor jurnal</button>{user.role!=='kepala_sekolah'&&<button type="button" className={buttonClass} onClick={()=>setMode('import')}>Impor jurnal</button>}</div>{mode&&<TransferDialog mode={mode} initial={initial} onClose={()=>setMode(null)} onImported={onImported} />}</>;
 }
 function TransferDialog({mode,initial,onClose,onImported}:{mode:'import'|'export';initial:Initial;onClose:()=>void;onImported?:()=>void}) {
-  const [schedules,setSchedules]=useState<Row[]>([]),[ready,setReady]=useState(false),[period,setPeriod]=useState(''),[classId,setClassId]=useState(initial.id_kelas||''),[range,setRange]=useState(false),[start,setStart]=useState(initial.tanggal||today()),[end,setEnd]=useState(initial.tanggal||today()),[day,setDay]=useState('');
+  const [schedules,setSchedules]=useState<Row[]>([]),[ready,setReady]=useState(false),[period,setPeriod]=useState(''),[classId,setClassId]=useState(initial.id_kelas||''),[range,setRange]=useState(false),[start,setStart]=useState(initial.tanggal||today()),[end,setEnd]=useState(initial.tanggal||today()),[day,setDay]=useState(''),[teacherId,setTeacherId]=useState('');
   const [entries,setEntries]=useState<Row[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[loadError,setLoadError]=useState(''),[success,setSuccess]=useState(''),[busy,setBusy]=useState(false),[file,setFile]=useState<File|null>(null),[reason,setReason]=useState(''),[preview,setPreview]=useState<Row|null>(null),[confirmed,setConfirmed]=useState(false);
   const fileInput=useRef<HTMLInputElement>(null);
   useEffect(()=>{const c=new AbortController();api('/api/jadwal?scope=jurnal',undefined,c.signal).then(j=>{
@@ -18,7 +19,8 @@ function TransferDialog({mode,initial,onClose,onImported}:{mode:'import'|'export
     if(first){setPeriod(first.id_tahun_ajaran);const date=[first.periode_mulai,initial.tanggal||today()].sort().at(-1)!;setStart([date,first.periode_selesai].sort()[0]);setEnd([date,first.periode_selesai].sort()[0]);}setReady(true);
   }).catch(e=>{if(e.name!=='AbortError'){setLoadError(message(e));setReady(true);}});return()=>c.abort();},[]);
   const periods=[...new Map(schedules.map(s=>[s.id_tahun_ajaran,s])).values()],selected=periods.find(p=>p.id_tahun_ajaran===period),classes=[...new Map(schedules.filter(s=>s.id_tahun_ajaran===period).map(s=>[s.id_kelas,s])).values()];
-  const params:Row={scope:classId?'kelas':'seluruh',id_tahun_ajaran:period,...(classId?{id_kelas:classId}:{}),mulai:start,selesai:range?end:start,...(day?{hari:day}:{})};
+  const teachers=[...new Map(schedules.filter(s=>s.id_tahun_ajaran===period&&(!classId||s.id_kelas===classId)).map(s=>[s.id_guru,s])).values()];
+  const params:Row={scope:classId?'kelas':'seluruh',id_tahun_ajaran:period,...(classId?{id_kelas:classId}:{}),mulai:start,selesai:range?end:start,...(day?{hari:day}:{}),...(teacherId?{id_guru:teacherId}:{})};
   const until=range?end:start,key=JSON.stringify(params),valid=!!period&&!!start&&!!until&&start<=until&&(!selected||start>=selected.periode_mulai&&until<=selected.periode_selesai)&&(mode==='export'||until<=today());
   function changed(){setPreview(null);setConfirmed(false);setError('');setLoadError('');setSuccess('');}
   useEffect(()=>{
@@ -39,8 +41,9 @@ function TransferDialog({mode,initial,onClose,onImported}:{mode:'import'|'export
   return <Modal title={mode==='export'?'Ekspor jurnal kelas':'Impor jurnal kelas'} error={error||loadError} busy={busy} onClose={onClose}>
     {!ready?<p role="status">Memuat kelas dan periode jurnal…</p>:!schedules.length?<p role="status">Belum ada jadwal kelas terverifikasi. Hubungi admin untuk menetapkan periode dan jadwal.</p>:<>
       <fieldset disabled={busy} className="grid min-w-0 gap-4 sm:grid-cols-2">
-        <label className="text-sm">Periode<select aria-label="Periode jurnal" className={inputClass} value={period} onChange={e=>{changed();setPeriod(e.target.value);setClassId('');const p=periods.find(p=>p.id_tahun_ajaran===e.target.value);if(p){const date=[p.periode_mulai,today()].sort().at(-1)!;setStart([date,p.periode_selesai].sort()[0]);setEnd([date,p.periode_selesai].sort()[0]);}}}>{periods.map(p=><option key={p.id_tahun_ajaran} value={p.id_tahun_ajaran}>{p.tahun_ajaran} {p.semester}</option>)}</select></label>
-        <label className="text-sm">Kelas<select aria-label="Kelas transfer jurnal" className={inputClass} value={classId} onChange={e=>{changed();setClassId(e.target.value);}}><option value="">Seluruh kelas</option>{classes.map(c=><option key={c.id_kelas} value={c.id_kelas}>{c.nama_kelas}</option>)}</select></label>
+        <label className="text-sm">Periode<select aria-label="Periode jurnal" className={inputClass} value={period} onChange={e=>{changed();setPeriod(e.target.value);setClassId('');setTeacherId('');const p=periods.find(p=>p.id_tahun_ajaran===e.target.value);if(p){const date=[p.periode_mulai,today()].sort().at(-1)!;setStart([date,p.periode_selesai].sort()[0]);setEnd([date,p.periode_selesai].sort()[0]);}}}>{periods.map(p=><option key={p.id_tahun_ajaran} value={p.id_tahun_ajaran}>{p.tahun_ajaran} {p.semester}</option>)}</select></label>
+        <label className="text-sm">Kelas<select aria-label="Kelas transfer jurnal" className={inputClass} value={classId} onChange={e=>{changed();setClassId(e.target.value);setTeacherId('');}}><option value="">Seluruh kelas</option>{classes.map(c=><option key={c.id_kelas} value={c.id_kelas}>{c.nama_kelas}</option>)}</select></label>
+        <label className="text-sm">Guru<select aria-label="Guru jurnal" className={inputClass} value={teacherId} onChange={e=>{changed();setTeacherId(e.target.value);}}><option value="">Semua guru</option>{teachers.map(t=><option key={t.id_guru} value={t.id_guru}>{t.nama_guru}</option>)}</select></label>
         <label className="text-sm">Pilihan tanggal<select aria-label="Pilihan tanggal jurnal" className={inputClass} value={range?'range':'date'} onChange={e=>{changed();setRange(e.target.value==='range');}}><option value="date">Tanggal tertentu</option><option value="range">Rentang tanggal</option></select></label>
         <label className="text-sm">Hari<select aria-label="Hari jurnal" className={inputClass} value={day} onChange={e=>{changed();setDay(e.target.value);}}><option value="">Semua hari</option>{['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'].map(d=><option key={d}>{d}</option>)}</select></label>
         <label className="text-sm">{range?'Mulai':'Tanggal'}<input aria-label={range?'Mulai jurnal':'Tanggal jurnal'} type="date" required min={selected?.periode_mulai} max={mode==='import'?[selected?.periode_selesai||today(),today()].sort()[0]:selected?.periode_selesai} className={inputClass} value={start} onChange={e=>{changed();setStart(e.target.value);}} /></label>
@@ -50,8 +53,8 @@ function TransferDialog({mode,initial,onClose,onImported}:{mode:'import'|'export
       {!valid&&<p role="alert" className="text-sm text-red-700">Pilih tanggal berurutan dalam periode yang dipilih. Impor tersedia sampai hari ini.</p>}
       {success&&<p role="status" className="rounded-lg border border-green-300 bg-green-50 p-3 text-sm">{success}</p>}
       {mode==='export'?<>
-        <p className="text-sm">CSV/Excel dapat diedit dan diimpor kembali. PDF berisi identitas periode, kelas, tanggal, dan isi jurnal untuk dicetak.</p>
-        {loading?<p role="status">Memuat pratinjau jurnal…</p>:valid&&!loadError&&<><p className="text-sm">{entries.length} jurnal sesuai pilihan.</p><Downloads formats={['csv','xlsx']} params={{...params,kind:'jurnal_data'}} setError={setError} /><Downloads formats={['pdf']} params={{...params,kind:'jurnal'}} setError={setError} /><DataTable rows={entries} columns={columns} /></>}
+        <p className="text-sm">CSV/Excel dapat diedit dan diimpor kembali. PDF jurnal harian menggabungkan seluruh sesi yang sudah tersimpan dalam tabel per kelas dan tanggal, berurutan menurut jam. Guru yang mengajar beberapa sesi tetap muncul pada setiap sesi.</p>
+        {loading?<p role="status">Memuat pratinjau jurnal…</p>:valid&&!loadError&&<><p className="text-sm">{entries.length} jurnal sesuai pilihan.</p><Downloads formats={['csv','xlsx']} params={{...params,kind:'jurnal_data'}} setError={setError} /><Downloads formats={['pdf']} params={{...params,kind:'jurnal'}} setError={setError} />{groupJournalDays(entries).map(group=><section key={group.key} className="min-w-0 space-y-2"><h3 className="font-bold">{group.title}</h3><p className="text-sm">{group.period} · {group.entries.length} sesi</p><DataTable rows={group.entries} columns={columns} /></section>)}</>}
       </>:<>
         <p className="text-sm">Gunakan berkas ekspor CSV/Excel atau unduh template sesuai pilihan. Pertahankan tanggal YYYY-MM-DD dan identitas sesi. Isi materi pada sesi yang akan disimpan; baris materi kosong diabaikan. Maksimal 1.000 baris dan 5 MB.</p>
         {valid&&<Downloads formats={['csv','xlsx']} params={{...params,kind:'template',module:'jurnal'}} setError={setError} />}

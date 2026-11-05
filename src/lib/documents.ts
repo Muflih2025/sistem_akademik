@@ -8,7 +8,17 @@ import { studentData } from './students';
 import { listCatalog } from './admin';
 import { importTemplate } from './imports';
 import { journalEntries, journalHeaders } from './journal-transfer';
-export interface DocumentTable { title:string;headers:string[];data:unknown[][]; layout?: 'journal'; metadata?: string[]; notes?: string[]; journalRoundTrip?:boolean }
+import { groupJournalDays } from './journal-view';
+export interface DocumentTable { title:string;headers:string[];data:unknown[][]; layout?: 'journal'|'journal-daily'; metadata?: string[]; notes?: string[]; journalRoundTrip?:boolean; journalGroups?:{title:string;period:string;data:unknown[][]}[] }
+const journalColumns=['Tanggal','Jam','Pertemuan','Guru','Kelas','Mapel','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Catatan','Guru pengganti','Siswa tidak hadir / belum dikonfirmasi'];
+function journalDocument(entries:Row[],daily:boolean) {
+  const data=entries.map(p=>{
+    const absent=rows("SELECT nama_snapshot,status,keterangan FROM ak_absensi_sesi WHERE id_pertemuan=? AND status<>'H' ORDER BY CAST(nomor_absen AS INTEGER)",p.id).map(r=>`${r.nama_snapshot}: ${r.status}${r.keterangan?' ('+r.keterangan+')':''}`).join('; ');
+    const replacement=p.id_guru_pengganti?rows('SELECT nama_guru FROM guru WHERE id_guru=?',p.id_guru_pengganti)[0]?.nama_guru:'';
+    return {...p,documentRow:[p.tanggal,p.jam_ke||`${p.jam_mulai}–${p.jam_selesai}`,p.pertemuan_ke,p.nama_guru,p.nama_kelas,p.nama_mapel,p.tp_atp,p.materi,p.kegiatan,p.refleksi,p.tindak_lanjut,p.catatan,replacement,absent]};
+  });
+  return {layout:daily?'journal-daily' as const:'journal' as const,headers:journalColumns,data:data.map(p=>p.documentRow),...(daily?{journalGroups:groupJournalDays(data).map(g=>({title:g.title,period:g.period,data:g.entries.map(p=>p.documentRow)}))}:{})};
+}
 const statuses=['H','S','I','A','B'];
 export function dateRange(q:URLSearchParams) {
   const from=dateValue(q.get('mulai')||q.get('tanggal')||today()),until=dateValue(q.get('selesai')||from);if(from>until||(Date.parse(until)-Date.parse(from))/86400000>62)fail('Pilih rentang berurutan, maksimal 63 hari.');const dates:string[]=[];for(let d=from;d<=until;d=new Date(Date.parse(d+'T00:00:00Z')+86400000).toISOString().slice(0,10))dates.push(d);return dates;
@@ -40,16 +50,9 @@ export function documentTable(user:AuthUser,q:URLSearchParams):DocumentTable {
   if(['jurnal','agenda','absensi'].includes(kind)) {
     if(kind!=='absensi'&&['kelas','seluruh'].includes(q.get('scope')||'')) {
       const result=journalEntries(user,Object.fromEntries(q));
-      return {layout:'journal',title:kind==='jurnal'?'Jurnal kelas':'Agenda harian guru',metadata:[`Periode: ${result.year?.tahun_ajaran||'-'} ${result.year?.semester||''}`,`Kelas: ${q.get('scope')==='seluruh'?'Seluruh kelas':result.allowed[0]?.nama_kelas||'-'}`,`Tanggal: ${result.from} sampai ${result.until}${q.get('hari')?' | Hari: '+q.get('hari'):''}`],headers:['Tanggal','Jam','Pertemuan','Guru','Kelas','Mapel','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Catatan','Guru pengganti','Siswa tidak hadir / belum dikonfirmasi'],data:result.data.map(p=>{
-        const absent=rows("SELECT nama_snapshot,status,keterangan FROM ak_absensi_sesi WHERE id_pertemuan=? AND status<>'H' ORDER BY CAST(nomor_absen AS INTEGER)",p.id).map(r=>`${r.nama_snapshot}: ${r.status}${r.keterangan?' ('+r.keterangan+')':''}`).join('; ');
-        const replacement=p.id_guru_pengganti?rows('SELECT nama_guru FROM guru WHERE id_guru=?',p.id_guru_pengganti)[0]?.nama_guru:'';
-        return [p.tanggal,p.jam_ke,p.pertemuan_ke,p.nama_guru,p.nama_kelas,p.nama_mapel,p.tp_atp,p.materi,p.kegiatan,p.refleksi,p.tindak_lanjut,p.catatan,replacement,absent];
-      })};
+      return {...journalDocument(result.data,kind==='jurnal'),title:kind==='jurnal'?'Jurnal harian kelas':'Agenda harian guru',metadata:[`Periode: ${result.year?.tahun_ajaran||'-'} ${result.year?.semester||''}`,`Kelas: ${q.get('scope')==='seluruh'?'Seluruh kelas':result.allowed[0]?.nama_kelas||'-'}`,`Tanggal: ${result.from} sampai ${result.until}${q.get('hari')?' | Hari: '+q.get('hari'):''}`,`Guru: ${q.get('id_guru')?result.allowed[0]?.nama_guru:'Semua guru'}`]};
     }
-    const scope = kind !== 'absensi' && q.get('scope') === 'kelas' ? 'journal' : 'own';
-    if (scope === 'journal' && (!q.get('id_kelas') || !q.get('id_tahun_ajaran'))) fail('Pilih kelas dan periode jurnal terlebih dahulu.');
-    const allowed=(q.get('id_jadwal')?[schedule(user,q.get('id_jadwal'),undefined,false,scope)]:schedules(user,scope)).filter(j => scope !== 'journal' || j.id_kelas === q.get('id_kelas') && j.id_tahun_ajaran === q.get('id_tahun_ajaran'));
-    if (scope === 'journal' && !allowed.length) fail('Sesi tidak sesuai kelas atau periode jurnal.');
+    const allowed=q.get('id_jadwal')?[schedule(user,q.get('id_jadwal'))]:schedules(user);
     const dates=dateRange(q);
     if(kind==='absensi') {
       if(allowed.length!==1)fail('Pilih satu jadwal untuk daftar hadir.');const j=allowed[0];
@@ -57,7 +60,7 @@ export function documentTable(user:AuthUser,q:URLSearchParams):DocumentTable {
       return{title:`Daftar hadir sesi — ${j.nama_kelas} — ${j.nama_mapel}`,headers:['No','NIS','Nama siswa','L/P',...dates,...statuses.map(s=>'Total '+s)],data:roster(j).map(m=>{const codes=dates.map(date=>records.find(r=>r.nis===m.nis&&r.tanggal===date)?.status||'B');return[m.nomor_absen,m.nis,m.nama_siswa,m.jenis_kelamin,...codes,...statuses.map(s=>codes.filter(c=>c===s).length)];})};
     }
     const meetings=rows('SELECT * FROM ak_pertemuan WHERE tanggal BETWEEN ? AND ? ORDER BY tanggal,jam_ke',dates[0],dates.at(-1)).filter(p=>allowed.some(j=>j.id_jadwal===p.id_jadwal&&j.id_guru===p.id_guru&&j.id_kelas===p.id_kelas&&j.id_tahun_ajaran===p.id_tahun_ajaran));
-    return {layout:'journal',title:kind==='jurnal'?'Jurnal kelas':'Agenda harian guru',headers:['Tanggal','Jam','Pertemuan','Guru','Kelas','Mapel','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Catatan','Guru pengganti','Siswa tidak hadir / belum dikonfirmasi'],data:meetings.map(p=>{const j=allowed.find(j=>j.id_jadwal===p.id_jadwal)!;const absent=rows("SELECT nama_snapshot,status,keterangan FROM ak_absensi_sesi WHERE id_pertemuan=? AND status<>'H' ORDER BY CAST(nomor_absen AS INTEGER)",p.id).map(r=>`${r.nama_snapshot}: ${r.status}${r.keterangan?' ('+r.keterangan+')':''}`).join('; ');const g=p.id_guru_pengganti?rows('SELECT nama_guru FROM guru WHERE id_guru=?',p.id_guru_pengganti)[0]?.nama_guru:'';return[p.tanggal,p.jam_ke,p.pertemuan_ke,j.nama_guru,j.nama_kelas,j.nama_mapel,p.tp_atp,p.materi,p.kegiatan,p.refleksi,p.tindak_lanjut,p.catatan,g,absent];})};
+    return {...journalDocument(meetings.map(p=>({...allowed.find(j=>j.id_jadwal===p.id_jadwal),...p})),kind==='jurnal'),title:kind==='jurnal'?'Jurnal harian kelas':'Agenda harian guru'};
   }
   fail('Jenis dokumen tidak dikenal.',404);
 }
