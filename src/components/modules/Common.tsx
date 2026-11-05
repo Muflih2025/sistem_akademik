@@ -29,16 +29,17 @@ export function Feedback({ error, success }: { error?: string; success?: string 
 }
 export function useLookups(tables: string[], refresh = 0) {
   const [data, setData] = useState<Record<string, Row[]>>({}), [error, setError] = useState(''), [loading, setLoading] = useState(true);
-  const key = tables.join(',');
+  const key = tables.join(','),generation=key+'#'+refresh;
+  const [loadedGeneration,setLoadedGeneration]=useState('');
   useEffect(() => { const c = new AbortController(); setError(''); setLoading(true);
     Promise.all(key.split(',').filter(Boolean).map(async table => {
       const items: Row[] = []; let total = 0;
       do { const result = await api(`/api/admin?table=${table}&limit=1000&offset=${items.length}`, undefined, c.signal); items.push(...result.data); total = Number(result.total); if (!result.data.length) break; } while (items.length < total);
       return [table, items] as const;
-    })).then(entries => { setData(Object.fromEntries(entries)); setLoading(false); }).catch(e => { if (e.name !== 'AbortError') { setError(message(e)); setLoading(false); } });
+    })).then(entries => { if(c.signal.aborted)return;setData(Object.fromEntries(entries));setLoadedGeneration(generation); setLoading(false); }).catch(e => { if (!c.signal.aborted&&e.name !== 'AbortError') { setData({});setError(message(e));setLoadedGeneration(generation); setLoading(false); } });
     return () => c.abort();
   }, [key, refresh]);
-  return { data, error, loading };
+  return { data:loadedGeneration===generation?data:{}, error, loading:loading||loadedGeneration!==generation };
 }
 export function FieldInput({ field, value, onChange, lookups = {}, disabled = false }: {
   field: Field; value: any; onChange: (value: string) => void; lookups?: Record<string, Row[]>; disabled?: boolean;

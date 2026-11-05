@@ -4,6 +4,7 @@ import { AuthUser } from './auth';
 import { Row, period } from './academic';
 import { catalog } from './catalog';
 import { db, rows, one, fail, role, text, choice, number, reference, unique, write, nextId, ensureVersion, publicRow, range, today } from './store';
+import { removeManaged, restoreManaged, revokeMembership, visibleRecordSql } from './management';
 export const aliases:Record<string,string>={mapel:'mata_pelajaran',ruang:'ak_ruang'};
 export function canonical(value:string) { return aliases[value]||value; }
 function scheduleEditLock(schedule:Row) {
@@ -18,12 +19,13 @@ function scheduleEditLock(schedule:Row) {
 function checkScheduleCollision(schedule:Row,id:string) {
   if(rows("SELECT 1 FROM jadwal WHERE status='aktif' AND id_tahun_ajaran=? AND hari=? AND substr(jam_mulai,1,5)<? AND substr(jam_selesai,1,5)>? AND (id_guru=? OR id_kelas=? OR (?<>'' AND ruang=?)) AND id_jadwal<>?",schedule.id_tahun_ajaran,schedule.hari,String(schedule.jam_selesai).slice(0,5),String(schedule.jam_mulai).slice(0,5),schedule.id_guru,schedule.id_kelas,schedule.ruang,schedule.ruang,id).length)fail('Jadwal guru, kelas, atau ruang bertabrakan.',409);
 }
-export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0) {
+export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0,archived=false) {
   table=canonical(table);if(!catalog[table])fail('Modul tidak dikenal.',404);
   role(user,...(['catatan_evaluasi','tahun_ajaran'].includes(table)?['admin','kepala_sekolah']:['admin']));
+  if(archived)role(user,'admin');
   if(!Number.isInteger(limit)||limit<1||limit>1000||!Number.isInteger(offset)||offset<0)fail('Pagination tidak valid.');
   const def=catalog[table], cols=def.fields.filter(f=>f.type!=='password').map(f=>f.key);
-  const where=q?`WHERE ${cols.map(c=>`CAST(${c} AS TEXT) LIKE ?`).join(' OR ')}`:'';const args=cols.map(()=>`%${q.slice(0,100)}%`);
+  const where=`WHERE ${archived?'NOT':''} (${visibleRecordSql(table,def.pk)})${q?` AND (${cols.map(c=>`CAST(${c} AS TEXT) LIKE ?`).join(' OR ')})`:''}`;const args=cols.map(()=>`%${q.slice(0,100)}%`);
   const total=rows(`SELECT COUNT(*) n FROM ${table} ${where}`,...(q?args:[]))[0].n;
   const data=rows(`SELECT rowid _rowid,* FROM ${table} ${where} ORDER BY CAST(${def.pk} AS INTEGER),${def.pk} LIMIT ? OFFSET ?`,...(q?args:[]),limit,offset).map(publicRow);
   if(table==='tahun_ajaran')for(const r of data){const p=one('ak_periode',{id_tahun_ajaran:r.id_tahun_ajaran});r.mulai=p?.mulai;r.selesai=p?.selesai;r.terverifikasi=p?.terverifikasi;}
@@ -34,6 +36,8 @@ export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0) {
 export function saveCatalog(user:AuthUser,input:Row):Row {
   const table=canonical(text(input.table,'Modul'));const def=catalog[table];if(!def)fail('Modul tidak dikenal.',404);
   role(user,...(table==='catatan_evaluasi'?['admin','kepala_sekolah']:['admin']));
+  if(input.action==='delete')return removeManaged(user,table,def.pk,text(input.id||input[def.pk],'ID',40),input);
+  if(input.action==='restore')return restoreManaged(user,table,def.pk,text(input.id||input[def.pk],'ID',40),input);
   const id=input.id||input.original_id||input[def.pk]&&input.action!=='create'?String(input.id||input.original_id||input[def.pk]):'';
   const before=id?one(table,{[def.pk]:id}):undefined;if(id&&!before)fail('Data tidak ditemukan.',404);
   ensureVersion(before,input);
@@ -121,9 +125,12 @@ export const foundationDefs:Record<string,{table:string;pk:string;fields:string[
   piket:{table:'ak_tugas_piket',pk:'id',fields:['id_guru','id_kelas','id_tahun_ajaran','mulai','selesai','boleh_koreksi','aktif','catatan']},
   wali:{table:'ak_wali_kelas',pk:'id',fields:['id_guru','id_kelas','id_tahun_ajaran','mulai','selesai','aktif','catatan']},
 };
-export function listFoundation(user:AuthUser,kind:string) {role(user,'admin');const d=foundationDefs[kind];if(!d)fail('Modul tidak dikenal.',404);return {data:rows(`SELECT rowid _rowid,* FROM ${d.table} ORDER BY ${d.pk} DESC`).map(publicRow),definition:d};}
+export function listFoundation(user:AuthUser,kind:string) {role(user,'admin');const d=foundationDefs[kind];if(!d)fail('Modul tidak dikenal.',404);return {data:rows(`SELECT rowid _rowid,* FROM ${d.table} WHERE ${visibleRecordSql(d.table,d.pk)} ORDER BY ${d.pk} DESC`).map(publicRow),archived:rows(`SELECT rowid _rowid,* FROM ${d.table} WHERE NOT (${visibleRecordSql(d.table,d.pk)}) ORDER BY ${d.pk} DESC`).map(publicRow),definition:d};}
 export function saveFoundation(user:AuthUser,input:Row) {
   role(user,'admin');const d=foundationDefs[input.kind];if(!d)fail('Modul tidak dikenal.',404);
+  if(input.action==='restore')return restoreManaged(user,d.table,d.pk,text(input[d.pk]||input.id,'ID',40),input);
+  if(input.action==='revoke'&&input.kind==='anggota')return revokeMembership(user,input);
+  if(['delete','revoke'].includes(input.action))return removeManaged(user,d.table,d.pk,text(input[d.pk]||input.id,'ID',40),input,input.action==='revoke'?'cabut':'hapus');
   const keys={[d.pk]:text(input[d.pk]||input.id||nextId(d.table,d.pk),d.pk,40)},before=one(d.table,keys);ensureVersion(before,input);
   const v:Row=Object.fromEntries(d.fields.map(k=>[k,text(input[k]??before?.[k]??'',k,500,!['catatan','id_kelas'].includes(k))]));
   const year=input.kind==='penugasan'?reference('jadwal','id_jadwal',v.id_jadwal).id_tahun_ajaran:v.id_tahun_ajaran;

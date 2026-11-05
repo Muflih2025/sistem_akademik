@@ -83,8 +83,16 @@ export function roster(j: Row, date?: string): Row[] {
     JOIN siswa s ON s.nis=a.nis WHERE a.id_kelas=? AND a.id_tahun_ajaran=?
     ${date ? 'AND a.mulai<=? AND a.selesai>=?' : 'AND a.mulai<=? AND a.selesai>=?'}
     ORDER BY CAST(a.nomor_absen AS INTEGER),a.nis`).all(j.id_kelas, j.id_tahun_ajaran, date || j.selesai, date || j.mulai) as Row[];
-  if (new Set(rows.map(r => r.nis)).size !== rows.length) fail('Keanggotaan siswa ambigu; minta admin memeriksa.', 409);
-  return rows;
+  if (new Set(rows.map(r => r.nis)).size === rows.length) return rows;
+  if(date)fail('Keanggotaan siswa ambigu; minta admin memeriksa.', 409);
+  // A student may return after a revoked membership. Disjoint dated spans
+  // represent one student for semester grades; retain the existing grade owner.
+  return [...new Set(rows.map(r=>r.nis))].map(nis=>{
+    const spans=rows.filter(r=>r.nis===nis).sort((a,b)=>a.mulai.localeCompare(b.mulai));
+    if(spans.some((r,i)=>i>0&&r.mulai<=spans[i-1].selesai))fail('Keanggotaan siswa ambigu; minta admin memeriksa.',409);
+    const grade=j.id_mapel?one('ak_nilai',{nis,id_tahun_ajaran:j.id_tahun_ajaran,id_mapel:j.id_mapel}):null;
+    return spans.find(r=>r.id_anggota===grade?.id_anggota)||spans[spans.length-1];
+  });
 }
 // TEXT-only imported SQLite schemas lack UNIQUE/defaults. Serialize application writes,
 // refuse ambiguous rows, and assign explicit IDs. No runtime DDL or historical cleanup.

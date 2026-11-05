@@ -2,6 +2,7 @@ import { createHash } from 'crypto';
 import { AuthUser } from './auth';
 import { Row, period, revisionCheck, dateValue } from './academic';
 import { rows, one, fail, role, text, choice, hash, write, nextId, today } from './store';
+import { actionReason, removeManaged, visibleRecordSql } from './management';
 export const homeroomRequired = () => process.env.HOMEROOM_MODE === 'required';
 export function schoolDay(p:Row,date:string) {
   const events=rows("SELECT jenis FROM ak_kalender WHERE id_tahun_ajaran=? AND mulai<=? AND selesai>=? AND status='disahkan'",p.id_tahun_ajaran,date,date);
@@ -15,20 +16,28 @@ function wali(user:AuthUser,r:Row,date:string) {return rows("SELECT * FROM ak_wa
 export function readReport(user:AuthUser,id:string): Row {
   const snapshot=one('ak_rapor_snapshot',{id}),state=one('ak_rapor_status',{id_snapshot:id});
   if(!snapshot||!state)fail('Rapor tidak ditemukan.',404);
+  if(user.role!=='admin'&&!rows(`SELECT 1 FROM ak_rapor_snapshot WHERE id=? AND ${visibleRecordSql('ak_rapor_snapshot','id')}`,id).length)fail('Rapor tidak ditemukan.',404);
   if(user.role==='siswa'&&(snapshot.nis!==user.id_referensi||state.status!=='diterbitkan'))fail('Rapor belum diterbitkan atau bukan milik Anda.',403);
   if(user.role==='guru'&&!homeroomRequired())fail('Gunakan rekap nilai sesuai penugasan.',403);
   if(createHash('sha256').update(snapshot.payload_json).digest('hex')!==snapshot.payload_hash)fail('Integritas arsip rapor gagal.',409);
   const payload=JSON.parse(snapshot.payload_json);
   if(user.role==='guru'&&!wali(user,snapshot,payload.periode.batas_rekap))fail('Rapor di luar penugasan wali.',403);
-  return {...snapshot,...state,id:snapshot.id,payload,reviews:rows('SELECT id,actor_id,keputusan,catatan,created_at FROM ak_review_rapor WHERE id_snapshot=? ORDER BY created_at',id)};
+  return {...snapshot,...state,id:snapshot.id,etag:hash(snapshot),payload,reviews:rows('SELECT id,actor_id,keputusan,catatan,created_at FROM ak_review_rapor WHERE id_snapshot=? ORDER BY created_at',id)};
 }
 export function listReports(user:AuthUser,q:URLSearchParams) {
   role(user,'admin','kepala_sekolah','siswa',...(homeroomRequired()?['guru']:[]));
-  const args:any[]=[];let where='WHERE 1=1';
+  const args:any[]=[];let where=`WHERE ${visibleRecordSql('ak_rapor_snapshot','id','r')}`;
   if(user.role==='siswa'){where+=" AND r.nis=? AND s.status='diterbitkan'";args.push(user.id_referensi);}
   for(const key of ['id_kelas','id_tahun_ajaran','nis'])if(q.get(key)){if(user.role==='siswa'&&key==='nis'&&q.get(key)!==user.id_referensi)fail('Akses ditolak.',403);where+=` AND r.${key}=?`;args.push(q.get(key));}
   const list=rows(`SELECT r.id,r.nis,r.id_kelas,r.id_tahun_ajaran,r.versi,r.created_at,s.status,s.revision,t.tahun_ajaran,t.semester,k.nama_kelas,st.nama_siswa FROM ak_rapor_snapshot r JOIN ak_rapor_status s ON s.id_snapshot=r.id JOIN tahun_ajaran t ON t.id_tahun_ajaran=r.id_tahun_ajaran JOIN kelas k ON k.id_kelas=r.id_kelas JOIN siswa st ON st.nis=r.nis ${where} ORDER BY r.created_at DESC,r.id DESC`,...args);
+  for(const r of list)r.etag=hash(one('ak_rapor_snapshot',{id:r.id}));
   return user.role==='guru'?list.filter(r=>{try{readReport(user,r.id);return true;}catch{return false;}}):list;
+}
+export function removeReport(user:AuthUser,input:Row) {
+  const id=text(input.id,'Rapor',40),snapshot=one('ak_rapor_snapshot',{id}),reason=actionReason(user,input,snapshot);
+  const state=one('ak_rapor_status',{id_snapshot:id});revisionCheck(state,input.revision,reason);
+  if(state)write(user,'ak_rapor_status',{id_snapshot:id},{status:'ditarik',revision:Number(state.revision)+1},reason);
+  return removeManaged(user,'ak_rapor_snapshot','id',id,input);
 }
 export function buildReport(user:AuthUser,input:Row) {
   role(user,'admin');const year=text(input.id_tahun_ajaran,'Periode'),date=dateValue(input.tanggal),p=period(year,true),nis=text(input.nis,'NIS',15);

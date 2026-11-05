@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { bellTemplates, profileDays, schoolDays } from '@/lib/bell-times';
 import { api, message, Screen, Feedback, DataTable, useRole, FieldInput, inputClass, buttonClass, secondaryClass, type Row } from './Common';
+import Modal from './Modal';
+import ManagementAction from './ManagementAction';
 
 export default function BellBoard() {
   const user = useRole();
@@ -14,7 +16,6 @@ export default function BellBoard() {
     api('/api/jam-belajar', undefined, c.signal).then(j => { setRows(j.data); setLoading(false); }).catch(e => { if (e.name !== 'AbortError') { setError(message(e)); setLoading(false); } });
     return () => c.abort();
   }, [refresh]);
-  useEffect(() => { if (edit) form.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, [edit?.id, edit?.nama]);
   function open(value: Row) { setEdit(value); setError(''); setSuccess(''); }
   async function save(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError('');
@@ -43,11 +44,10 @@ export default function BellBoard() {
   const columns = [{ key: 'nomor', label: 'Jam ke' }, { key: 'waktu', label: 'Waktu' }, { key: 'keterangan', label: 'Keterangan' }];
   const timetable = (slots: any[]) => slots.map((s: any[], i: number) => ({ id: i, nomor: s[0] ?? '—', waktu: `${s[1]}–${s[2]}`, keterangan: s[3] }));
   return <Screen title="Jam Pembelajaran">
-    <Feedback error={error} success={success} />
+    <Feedback error={edit?'':error} success={success} />
     <p className="text-sm leading-relaxed">Jam pembelajaran berlaku sesuai hari yang dipilih. Admin dapat menambah profil, mengubah waktu, serta menambah atau menghapus jam pelajaran, istirahat, dan kegiatan.</p>
     {user?.role === 'admin' && <button type="button" disabled={busy || loading} className={buttonClass} onClick={() => open({ nama: '', hari: [], status: 'perlu_konfirmasi', catatan: '', alasan: '', slots: [[1, '07:00', '07:40', 'Pelajaran']] })}>Tambah profil jam</button>}
-    {edit && <form ref={form} className="scroll-mt-40 space-y-5 rounded-xl border bg-white p-4 sm:p-6" onSubmit={save}>
-      <h2 className="text-lg font-bold">{edit.id ? 'Ubah jam pembelajaran' : 'Tambah jam pembelajaran'}</h2>
+    {edit && <Modal title={edit.id?'Ubah jam pembelajaran':'Tambah jam pembelajaran'} error={error} busy={busy} onClose={()=>setEdit(null)}><form ref={form} className="space-y-5" onSubmit={save}>
       <div className="grid gap-4 md:grid-cols-2">
         {[{ key: 'nama', label: 'Nama profil hari' }, { key: 'status', label: 'Status profil', options: ['referensi', 'perlu_konfirmasi'] }, { key: 'catatan', label: 'Catatan', optional: true }, { key: 'alasan', label: 'Alasan versi baru' }].map(f => <FieldInput key={f.key} field={f} value={edit[f.key]} disabled={busy || !!edit.id && f.key === 'nama'} onChange={v => setEdit({ ...edit, [f.key]: v })} />)}
       </div>
@@ -68,12 +68,12 @@ export default function BellBoard() {
       {!edit.slots.length && <p role="status" className="text-sm">Tambahkan minimal satu jam pelajaran sebelum menyimpan.</p>}
       <label className="flex items-start gap-2 text-sm"><input aria-label="Konfirmasi pemeriksaan jam" type="checkbox" disabled={busy} checked={!!edit.terverifikasi} onChange={e => setEdit({ ...edit, terverifikasi: e.target.checked })} />Saya sudah memeriksa kesesuaian jam belajar</label>
       <div className="flex flex-wrap gap-3"><button className={buttonClass} disabled={busy || !edit.slots.length}>{busy ? 'Menyimpan…' : 'Simpan versi jam'}</button><button disabled={busy} type="button" className={secondaryClass} onClick={() => setEdit(null)}>Batal</button></div>
-    </form>}
+    </form></Modal>}
     {loading && <p role="status">Memuat jam pembelajaran…</p>}
     <div className="grid min-w-0 gap-5 xl:grid-cols-2 2xl:grid-cols-3">{rows.map(r => <section className="min-w-0 space-y-3 rounded-xl border bg-white p-4" key={r.id}>
       <h2 className="font-bold">{r.nama} · Versi {Number(r.versi)} · {r.status}</h2><p className="text-sm">Hari: {profileDays(r.payload).join(', ') || 'Belum ditetapkan'}</p>{r.catatan && <p className="break-words text-sm">{r.catatan}</p>}
       <DataTable paginate={false} rows={timetable(r.payload.slots || [])} columns={columns} />
-      {user?.role === 'admin' && <button type="button" disabled={busy} className={secondaryClass} onClick={() => open({ ...r, ...r.payload, hari: [...profileDays(r.payload)], id: r.id, slots: r.payload.slots.map((s: any[]) => [...s]), alasan: '', terverifikasi: false })}>Buat revisi profil</button>}
+      {user?.role === 'admin' && <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} className={secondaryClass} onClick={() => open({ ...r, ...r.payload, hari: [...profileDays(r.payload)], id: r.id, slots: r.payload.slots.map((s: any[]) => [...s]), alasan: '', terverifikasi: false })}>Buat revisi profil</button><ManagementAction title={`Hapus profil ${r.nama}`} endpoint="/api/jam-belajar" body={{...r,action:'delete'}} onDone={()=>{setSuccess('Profil jam dihapus.');setRefresh(x=>x+1);}} /></div>}
     </section>)}</div>
     {!loading && !rows.length && <p>Belum ada profil jam belajar tersimpan. Admin dapat menggunakan contoh lampiran atau menambah profil baru.</p>}
     <details open={!loading && !rows.length} className="min-w-0 space-y-4 rounded-xl border bg-white p-4"><summary className="cursor-pointer font-semibold">Acuan jam pembelajaran dari lampiran</summary>

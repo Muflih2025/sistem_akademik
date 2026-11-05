@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -24,6 +24,14 @@ export default function PortalLayout({
   navItems,
 }: PortalLayoutProps) {
   const pathname = usePathname();
+  const topbar=useRef<HTMLDivElement>(null);
+  const [topbarHeight,setTopbarHeight]=useState(136);
+  useEffect(()=>{
+    const element=topbar.current;if(!element)return;
+    const measure=()=>setTopbarHeight(Math.ceil(element.getBoundingClientRect().height));
+    measure();const observer=new ResizeObserver(measure);observer.observe(element);
+    return()=>observer.disconnect();
+  },[]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => setSidebarOpen(false), [pathname]);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -200,9 +208,10 @@ export default function PortalLayout({
   ) || currentModules[0] || { key: 'loading', label: 'Memuat menu…', items: [] };
 
   return (
-    <div className="sia-app min-h-screen flex flex-col bg-[#f3f4f6] text-[#111] font-sans antialiased">
+    <div style={{'--sia-topbar-height':`${topbarHeight}px`} as React.CSSProperties} className="sia-app min-h-screen flex flex-col bg-[#f3f4f6] text-[#111] font-sans antialiased">
+      <div ref={topbar} className="sia-topbar sticky top-0 z-40 w-full shrink-0">
       {/* 1. SIA Top Header (Identik dengan .sia-header di main) */}
-      <header className="sia-header flex items-center justify-between gap-3 bg-[#111] text-white px-4 sm:px-5 py-3 min-h-[76px] sticky top-0 z-40">
+      <header className="sia-header flex items-center justify-between gap-3 bg-[#111] text-white px-4 sm:px-5 py-3 min-h-[76px]">
         <Link href="/beranda" className="sia-brand min-w-0 text-white no-underline text-lg sm:text-xl font-extrabold leading-tight">
           SIA SMKN 2 MAGELANG
           <span className="block text-xs font-normal text-slate-300">
@@ -245,11 +254,12 @@ export default function PortalLayout({
           );
         })}
       </nav>
+      </div>
 
       {/* 3. Main Shell: Sidebar Kiri & Konten Tengah (Identik dengan .sia-shell di main) */}
       <div className="sia-shell mx-auto w-full max-w-[1920px] flex-1 grid grid-cols-1 md:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[256px_minmax(0,1fr)] items-start">
         {/* Contextual Feature Sidebar */}
-        <aside className="sia-sidebar bg-white border-b md:border-b-0 md:border-r border-[#e5e7eb] md:sticky md:top-[76px] md:min-h-[calc(100vh-136px)]">
+        <aside className="sia-sidebar bg-white border-b md:border-b-0 md:border-r border-[#e5e7eb] md:sticky md:top-[var(--sia-topbar-height)] md:max-h-[calc(100dvh_-_var(--sia-topbar-height))] md:overflow-y-auto">
           <div className="sia-sidebar-inner p-3 md:p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div><h3 className="sia-module-title text-sm font-bold text-[#111] px-2.5">

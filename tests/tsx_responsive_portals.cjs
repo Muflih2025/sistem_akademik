@@ -41,16 +41,28 @@ async function fits(page, label) {
         assert.equal(response.status(), 200, username + route);
         await page.waitForFunction(() => document.querySelector('nav[aria-label="Modul utama"]')?.getAttribute('aria-busy') === 'false');
         await page.waitForLoadState('networkidle');
+        // Exercise scrolling even on pages whose current fixture has little data.
+        await page.evaluate(()=>{document.querySelector('main').style.minHeight='1800px';});
         for (const width of [320, 390, 768, 1024, 1440, 1920]) {
           await page.setViewportSize({ width, height: 900 });
           await fits(page, username + route + ' @' + width);
+          await page.evaluate(()=>window.scrollTo({top:600,behavior:'instant'}));
+          await page.waitForFunction(()=>{const rect=document.querySelector('.sia-topbar').getBoundingClientRect(),height=parseFloat(getComputedStyle(document.querySelector('.sia-app')).getPropertyValue('--sia-topbar-height'));return Math.abs(rect.top)<1&&Math.abs(rect.height-height)<1;});
+          const position=await page.evaluate(()=>{
+            const header=document.querySelector('.sia-header').getBoundingClientRect(),bar=document.querySelector('.sia-topbar').getBoundingClientRect(),nav=document.querySelector('.sia-modules').getBoundingClientRect(),side=document.querySelector('.sia-sidebar').getBoundingClientRect(),inside=document.querySelector('.sia-sidebar-inner').getBoundingClientRect();
+            return {headerBottom:header.bottom,navTop:nav.top,navBottom:nav.bottom,barBottom:bar.bottom,sideTop:side.top,sideHeight:side.height,innerHeight:inside.height};
+          });
+          assert(Math.abs(position.navTop-position.headerBottom)<=1,route+' module bar must stay below header');
+          assert(Math.abs(position.navBottom-position.barBottom)<=1,route+' full navbar must remain fixed');
+          if(width>=768){assert(Math.abs(position.sideTop-position.barBottom)<=1,route+' sidebar offset');assert(position.sideHeight<=position.innerHeight+2,route+' no empty sidebar filler');assert(position.sideHeight<=900-position.barBottom+1,route+' sidebar fits viewport');}
+          await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
         }
         pages++;
       }
       assert.deepEqual(errors, [], username);
     } finally { await ctx.close(); }
   }
-  pass('RESPONSIVE_all_role_pages_mobile_tablet_desktop_no_page_or_form_overflow', { pages, widths: [320, 390, 768, 1024, 1440, 1920] });
+  pass('RESPONSIVE_all_role_pages_mobile_tablet_desktop_no_page_or_form_overflow', { pages, widths: [320, 390, 768, 1024, 1440, 1920],sticky_header_and_module_bar:true,sidebar_offset_and_no_empty_filler:true });
 
   const admin = await login('uji_admin'), ac = await context(appBrowser, admin), a = await ac.newPage();
   try {

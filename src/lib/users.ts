@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { AuthUser } from './auth';
 import { Row } from './academic';
 import { db, rows, one, fail, role, text, choice, unique, write, nextId, hash, ensureVersion } from './store';
+import { removeManaged } from './management';
 function view(row:Row):Row {
   const ref=row.role==='guru'?one('guru',{id_guru:row.id_referensi}):row.role==='siswa'?one('siswa',{nis:row.id_referensi}):null;
   const cls=ref?.id_kelas?one('kelas',{id_kelas:ref.id_kelas}):null;
@@ -14,6 +15,7 @@ export function userReferences(user:AuthUser) {
   role(user,'admin');return {guru:rows("SELECT id_guru id,nama_guru nama FROM guru WHERE status='aktif' ORDER BY nama_guru"),siswa:rows("SELECT nis id,nama_siswa nama FROM siswa WHERE status='aktif' ORDER BY nama_siswa")};
 }
 export function saveUser(user:AuthUser,input:Row) {
+  if(input.action==='delete')return removeManaged(user,'users','id_user',text(input.id_user,'ID akun',40),input);
   role(user,'admin');const id=input.id_user?text(input.id_user,'ID akun',40):'',before=id?one('users',{id_user:id}):undefined;
   if(id&&!before)fail('Akun tidak ditemukan.',404);ensureVersion(before,input);
   const action=choice(input.action||'save',['save','activate','deactivate']);

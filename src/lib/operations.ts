@@ -2,9 +2,11 @@ import { schoolDays, profileDays } from './bell-times';
 import { currentSchoolYear } from './academic-year';
 import { AuthUser } from './auth';
 import { Row, period, schedule, roster, duties, weekday, dateValue, revisionCheck } from './academic';
-import { rows, one, fail, role, text, choice, number, reference, range, write, nextId, hash, today } from './store';
+import { rows, one, fail, role, text, choice, number, reference, range, write, nextId, hash, today, publicRow, ensureVersion } from './store';
 import { schoolDay } from './reports';
+import { removeManaged, visibleRecordSql } from './management';
 export function saveEvent(user:AuthUser,input:Row) {
+  if(input.action==='delete')return removeManaged(user,'ak_kalender','id',text(input.id,'Agenda',40),input);
   role(user,'admin');const p=period(text(input.id_tahun_ajaran,'Periode'),true),dates=range(input,p);const before=input.id?one('ak_kalender',{id:String(input.id)}):undefined;
   if(input.id&&!before||before&&before.id_tahun_ajaran!==p.id_tahun_ajaran)fail('Agenda tidak ditemukan.',404);revisionCheck(before,input.revision,input.alasan||input.catatan);
   const v={...dates,id_tahun_ajaran:p.id_tahun_ajaran,judul:text(input.judul,'Judul',150),jenis:choice(input.jenis,['Libur','Ujian','Hari Efektif','Agenda']),status:choice(input.status,['draft','disahkan','nonaktif']),catatan:text(input.catatan,'Catatan',1000,false),revision:Number(before?.revision||0)+1};
@@ -15,9 +17,16 @@ export function saveEvent(user:AuthUser,input:Row) {
   return write(user,'ak_kalender',{id:String(input.id||nextId('ak_kalender','id'))},v,input.catatan||'Agenda akademik');
 }
 export function listBells(): Row[] {
-  return rows('SELECT b.* FROM ak_jam_belajar b WHERE CAST(b.versi AS INTEGER)=(SELECT MAX(CAST(v.versi AS INTEGER)) FROM ak_jam_belajar v WHERE v.nama=b.nama) ORDER BY b.nama').map(r=>({...r,payload:JSON.parse(r.payload_json)}));
+  return rows(`SELECT ak_jam_belajar.rowid _rowid,ak_jam_belajar.* FROM ak_jam_belajar WHERE CAST(versi AS INTEGER)=(SELECT MAX(CAST(v.versi AS INTEGER)) FROM ak_jam_belajar v WHERE v.nama=ak_jam_belajar.nama) AND ${visibleRecordSql('ak_jam_belajar','id')} ORDER BY nama`).map(r=>({...publicRow(r),payload:JSON.parse(r.payload_json)}));
 }
 export function saveBell(user:AuthUser,input:Row) {
+  if(input.action==='delete') {
+    const latest=listBells().find(p=>p.id===input.id);if(!latest)fail('Profil tidak ditemukan.',404);
+    ensureVersion(one('ak_jam_belajar',{id:input.id}),input);
+    // Retire every version, so a previous reference profile cannot reappear.
+    for(const row of rows('SELECT rowid _rowid,* FROM ak_jam_belajar WHERE nama=?',latest.nama))removeManaged(user,'ak_jam_belajar','id',row.id,{...input,etag:hash(row)});
+    return {removed:true};
+  }
   role(user,'admin');const nama=text(input.nama,'Profil hari',80),old=listBells().filter(r=>r.nama===nama);if(old.length>1)fail('Versi profil ambigu.',409);const before=old[0];if(before&&String(before.id)!==String(input.id)||before&&Number(input.versi)!==Number(before.versi))fail('Versi profil berubah. Muat ulang.',409);
   const hari = input.hari === undefined ? profileDays(before ? JSON.parse(before.payload_json) : { nama }) : input.hari;
   if (!Array.isArray(hari) || hari.some(d => !schoolDays.includes(d)) || new Set(hari).size !== hari.length) fail('Hari profil jam tidak valid.');
@@ -66,7 +75,7 @@ export function calendarData(user: AuthUser, q: URLSearchParams) {
   if (user.role === 'siswa' && (!p || p.tahun_ajaran !== currentSchoolYear().tahun_ajaran)) return { data: [], bounds: null, period: null, notice: 'Periode berjalan belum ditetapkan admin.' };
   if (bounds && (month < bounds.min || month > bounds.max)) fail(`Kalender siswa hanya tersedia pada periode berjalan (${bounds.min} sampai ${bounds.max}).`);
   if (user.role === 'siswa' && q.get('id_tahun_ajaran') && q.get('id_tahun_ajaran') !== p.id_tahun_ajaran) fail('Kalender siswa hanya tersedia pada periode berjalan.', 403);
-  const data = rows('SELECT * FROM ak_kalender ORDER BY mulai,id').filter(r =>
+  const data = rows(`SELECT rowid _rowid,* FROM ak_kalender WHERE ${visibleRecordSql('ak_kalender','id')} ORDER BY mulai,id`).map(publicRow).filter(r =>
     (user.role === 'admin' || r.status === 'disahkan') &&
     (user.role !== 'siswa' || r.id_tahun_ajaran === p.id_tahun_ajaran) &&
     (!q.get('id_tahun_ajaran') || r.id_tahun_ajaran === q.get('id_tahun_ajaran')) &&

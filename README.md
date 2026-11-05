@@ -62,6 +62,8 @@ Detail pengembangan dan pengujian: **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)*
 
 Pilih **modul utama di atas**, kemudian fitur pada **sidebar kiri**. Di smartphone, buka **Menu fitur**; navigasi bawah menyediakan akses cepat. Menu mengikuti peran/penugasan, sedangkan izin setiap operasi tetap diperiksa di server.
 
+Header dan navbar modul tetap terlihat saat halaman digulir. Sidebar mengikuti tinggi navbar dan isi menunya. Form tambah/edit pengelolaan admin menggunakan popup. Tombol **Cabut** mengakhiri penetapan, sedangkan **Hapus** menghapus data yang belum digunakan atau mengarsipkan data bersejarah. Arsip master dan penetapan dapat ditampilkan dan dipulihkan oleh admin.
+
 | Pengguna | Fungsi |
 |---|---|
 | **Admin** | Akun/role, master siswa/guru/kelas/jurusan/mapel/ruang, bulk Excel, jadwal, periode/penugasan, jam belajar, kalender, kenaikan kelas/alumni, serta verifikasi dan penerbitan rapor |
