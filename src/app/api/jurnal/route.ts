@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { actor, schedules, schedule, one, dateValue, checkWrite, saveMeeting, errorResponse, fail } from '@/lib/academic';
+import { journalEntries } from '@/lib/journal-transfer';
 export async function GET(request: Request) {
   try {
     const user = await actor(), q = new URL(request.url).searchParams;
+    if(q.get('transfer')==='1'||q.get('scope')==='seluruh')return NextResponse.json({success:true,...journalEntries(user,Object.fromEntries(q))});
     const scope = q.get('scope') === 'kelas' ? 'journal' : 'own';
     if (scope === 'journal' && (!q.get('id_kelas') || !q.get('id_tahun_ajaran'))) fail('Pilih kelas dan periode jurnal terlebih dahulu.');
     const selected = q.get('id_jadwal') ? schedule(user, q.get('id_jadwal'), q.get('view') === 'editor' ? dateValue(q.get('tanggal')) : undefined, false, scope) : null;

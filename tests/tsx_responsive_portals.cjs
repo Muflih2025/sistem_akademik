@@ -54,7 +54,7 @@ async function fits(page, label) {
           });
           assert(Math.abs(position.navTop-position.headerBottom)<=1,route+' module bar must stay below header');
           assert(Math.abs(position.navBottom-position.barBottom)<=1,route+' full navbar must remain fixed');
-          if(width>=768){assert(Math.abs(position.sideTop-position.barBottom)<=1,route+' sidebar offset');assert(position.sideHeight<=position.innerHeight+2,route+' no empty sidebar filler');assert(position.sideHeight<=900-position.barBottom+1,route+' sidebar fits viewport');}
+          if(width>=768){assert(Math.abs(position.sideTop-position.barBottom)<=1,route+' sidebar offset');assert(Math.abs(position.sideHeight-(900-position.barBottom))<=1,route+' sidebar white background fills viewport');}
           await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
         }
         pages++;
@@ -62,7 +62,7 @@ async function fits(page, label) {
       assert.deepEqual(errors, [], username);
     } finally { await ctx.close(); }
   }
-  pass('RESPONSIVE_all_role_pages_mobile_tablet_desktop_no_page_or_form_overflow', { pages, widths: [320, 390, 768, 1024, 1440, 1920],sticky_header_and_module_bar:true,sidebar_offset_and_no_empty_filler:true });
+  pass('RESPONSIVE_all_role_pages_mobile_tablet_desktop_no_page_or_form_overflow', { pages, widths: [320, 390, 768, 1024, 1440, 1920],sticky_header_and_module_bar:true,sidebar_full_height:true });
 
   const admin = await login('uji_admin'), ac = await context(appBrowser, admin), a = await ac.newPage();
   try {

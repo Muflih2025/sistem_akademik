@@ -33,11 +33,11 @@ let appBrowser;const tests=[];const pass=id=>{tests.push({id,status:'PASS'});con
   await page.waitForFunction(()=>document.querySelector('nav[aria-label="Modul utama"]')?.getAttribute('aria-busy')==='false');
   await page.evaluate(()=>{document.querySelector('main').style.minHeight='1600px';window.scrollTo({top:400,behavior:'instant'});});
   const geometry=await page.evaluate(()=>{const side=document.querySelector('.sia-sidebar'),bar=document.querySelector('.sia-topbar').getBoundingClientRect();side.scrollTop=side.scrollHeight;const rect=side.getBoundingClientRect(),last=side.querySelector('nav a:last-child').getBoundingClientRect();return{sideTop:rect.top,barBottom:bar.bottom,sideBottom:rect.bottom,lastBottom:last.bottom,overflow:getComputedStyle(side).overflowY};});
-  assert(Math.abs(geometry.sideTop-geometry.barBottom)<=1);assert(geometry.sideBottom<=481);assert(geometry.lastBottom<=geometry.sideBottom+1);assert.equal(geometry.overflow,'auto');
+  assert(Math.abs(geometry.sideTop-geometry.barBottom)<=1);assert(Math.abs(geometry.sideBottom-480)<=1);assert(geometry.lastBottom<=geometry.sideBottom+1);assert.equal(geometry.overflow,'auto');
   await page.screenshot({path:path.join(state,'screenshots/navbar-sidebar-desktop.png')});
   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.scrollTo({top:400,behavior:'instant'}));
   assert(Math.abs(await page.locator('.sia-topbar').evaluate(el=>el.getBoundingClientRect().top))<1);await page.screenshot({path:path.join(state,'screenshots/navbar-mobile.png')});
-  pass('NAVIGATION_full_top_bar_stays_visible_and_compact_sidebar_scrolls_without_extra_space');
+  pass('NAVIGATION_full_top_bar_stays_visible_and_white_sidebar_fills_available_height');
  }finally{await ctx.close();}
  unchanged();pass('INTEGRITY_original_school_database_unchanged');
 })().catch(e=>{tests.push({id:'admin-navigation',status:'FAIL',message:e.stack});console.error(e.stack)}).finally(async()=>{if(appBrowser)await appBrowser.close();db.close();const report={passed:tests.filter(t=>t.status==='PASS').length,failed:tests.filter(t=>t.status==='FAIL').length,tests};fs.writeFileSync(path.join(state,'reports/admin-navigation.json'),JSON.stringify(report,null,2)+'\n');console.log(`${report.passed} PASS, ${report.failed} FAIL`);process.exitCode=report.failed?1:0;});

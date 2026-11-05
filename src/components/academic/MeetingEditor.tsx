@@ -5,10 +5,12 @@ import { Downloads, useRole } from '@/components/modules/Common';
 import PortalLayout from '@/components/PortalLayout';
 import Notice from './Notice';
 import JournalConfirmation from './JournalConfirmation';
+import JournalTransfer from '@/components/modules/JournalTransfer';
 import { classKey, TeachingPicker, useTeachingContext } from './TeachingContext';
 
 export default function MeetingEditor({ attendance = false }: { attendance?: boolean }) {
   const user = useRole();
+  const [refresh,setRefresh]=useState(0);
   const context = useTeachingContext({ sharedJournal: !attendance });
   const [confirmedKey, setConfirmedKey] = useState(''), [confirmOpen, setConfirmOpen] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
@@ -41,7 +43,7 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
       setStudents(a.data || []); setMeeting(a.meeting || { pertemuan_ke: 1, materi: '', refleksi: '', revision: 0, jam_ke: a.schedule?.jam_ke || '' }); setHistory(h.data); setLoaded(key); setLoading(false);
     }).catch(e => { if (e.name !== 'AbortError') { setError(e.message); setLoading(false); } });
     return () => controller.abort();
-  }, [context.ready, context.id, context.date, context.classId, key, attendance, historyQuery]);
+  }, [context.ready, context.id, context.date, context.classId, key, attendance, historyQuery,refresh]);
   async function save(e: React.FormEvent) {
     e.preventDefault(); setError(''); setSuccess('');
     if (loaded !== key || !attendance && confirmedKey !== key) { setError('Muat jadwal dan tanggal yang sesuai terlebih dahulu.'); return; }
@@ -78,6 +80,7 @@ export default function MeetingEditor({ attendance = false }: { attendance?: boo
     <h2 className="text-2xl font-bold">{attendance ? 'Presensi Siswa & Jurnal Kelas' : 'Jurnal Kelas Bersama'}</h2>
     {!attendance && <p className="text-sm leading-relaxed">Semua guru dapat mengisi atau mengoreksi jurnal kelas, termasuk sesi guru lain. Pilih kelas, tanggal, lalu sesi pelajaran dan konfirmasi sebelum mengedit.</p>}
     <TeachingPicker context={context} disabled={saving} />
+    <JournalTransfer user={user} initial={{id_kelas:selected?.id_kelas,id_tahun_ajaran:selected?.id_tahun_ajaran,tanggal:context.date||undefined}} onImported={()=>setRefresh(x=>x+1)} />
     <div ref={notice}><Notice error={error} success={success} /></div>
     {context.ready && !context.schedules.length && <section role="status" className="space-y-3 rounded-xl border bg-white p-4 text-sm"><p>{attendance ? 'Absensi sesi membutuhkan jadwal mengajar milik Anda, periode dan penugasan terverifikasi, serta anggota kelas yang ditetapkan admin.' : 'Jurnal kelas membutuhkan jadwal kelas dengan periode dan penugasan terverifikasi dari admin.'}</p>{user?.is_piket && <p>Tugas piket menggunakan rekap kehadiran harian. <Link className="underline" href="/piket">Buka presensi harian piket</Link></p>}</section>}
     {context.ready && context.schedules.length > 0 && !context.id && <p role="status" className="text-sm">{attendance ? 'Pilih jadwal mengajar dan tanggal yang sesuai untuk memuat siswa dan jurnal.' : 'Pilih kelas, tanggal, dan sesi pelajaran untuk melihat riwayat serta mengisi jurnal.'}</p>}

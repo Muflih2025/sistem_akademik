@@ -7,15 +7,20 @@ import { readReport } from './reports';
 import { studentData } from './students';
 import { listCatalog } from './admin';
 import { importTemplate } from './imports';
-export interface DocumentTable { title:string;headers:string[];data:unknown[][]; layout?: 'journal'; metadata?: string[]; notes?: string[] }
+import { journalEntries, journalHeaders } from './journal-transfer';
+export interface DocumentTable { title:string;headers:string[];data:unknown[][]; layout?: 'journal'; metadata?: string[]; notes?: string[]; journalRoundTrip?:boolean }
 const statuses=['H','S','I','A','B'];
 export function dateRange(q:URLSearchParams) {
   const from=dateValue(q.get('mulai')||q.get('tanggal')||today()),until=dateValue(q.get('selesai')||from);if(from>until||(Date.parse(until)-Date.parse(from))/86400000>62)fail('Pilih rentang berurutan, maksimal 63 hari.');const dates:string[]=[];for(let d=from;d<=until;d=new Date(Date.parse(d+'T00:00:00Z')+86400000).toISOString().slice(0,10))dates.push(d);return dates;
 }
 export function documentTable(user:AuthUser,q:URLSearchParams):DocumentTable {
   const kind=q.get('kind')||'nilai';
-  if(kind==='template'){const t=importTemplate(user,Object.fromEntries(q.entries()));return{title:'Template '+q.get('module'),headers:t.headers,data:t.data.map(r=>t.headers.map(h=>r[h]))};}
+  if(kind==='template'){const t=importTemplate(user,Object.fromEntries(q.entries()));return{title:'Template '+q.get('module'),headers:t.headers,data:t.data.map(r=>t.headers.map(h=>r[h])),journalRoundTrip:q.get('module')==='jurnal'};}
   if(kind==='master'){const t=listCatalog(user,q.get('table')||'siswa','',1000);const fields=t.definition.fields.filter(f=>f.type!=='password');return {title:t.definition.label,headers:fields.map(f=>f.key),data:t.data.map(r=>fields.map(f=>r[f.key]))};}
+  if(kind==='jurnal_data') {
+    const result=journalEntries(user,Object.fromEntries(q));
+    return {title:'Data jurnal untuk impor kembali',headers:journalHeaders,data:result.data.map(r=>journalHeaders.map(k=>r[k]??'')),journalRoundTrip:true};
+  }
   if(kind==='rapor'){
     const r=readReport(user,text(q.get('id'),'ID rapor')),p=r.payload;
     return {title:`Rapor Semester - ${p.periode.tahun_ajaran} ${p.periode.semester}`,headers:['No','Mata pelajaran','Nilai akhir','Predikat','Deskripsi capaian'],data:p.nilai.map((n:Row,i:number)=>[i+1,n.nama_mapel,n.nilai_akhir,n.predikat,n.deskripsi||'Belum diisi']),metadata:[`Siswa: ${p.siswa.nama} | NIS: ${p.siswa.nis} | Kelas: ${p.siswa.kelas||'-'}`,`Status: ${r.status} | Versi rapor: ${r.versi}`],notes:[`Kehadiran: ${statuses.map(s=>`${s}: ${p.kehadiran_harian[s]}`).join(' | ')}`]};
@@ -33,6 +38,14 @@ export function documentTable(user:AuthUser,q:URLSearchParams):DocumentTable {
     return {title:'Rekap nilai akademik',headers:['NIS','Nama siswa','Kelas','Mapel','Nilai akhir','Predikat','Deskripsi capaian'],data:gradeRows.map(n=>[n.nis,n.nama_siswa,n.nama_kelas,n.nama_mapel,n.nilai_akhir,n.predikat,n.deskripsi||'Belum diisi'])};
   }
   if(['jurnal','agenda','absensi'].includes(kind)) {
+    if(kind!=='absensi'&&['kelas','seluruh'].includes(q.get('scope')||'')) {
+      const result=journalEntries(user,Object.fromEntries(q));
+      return {layout:'journal',title:kind==='jurnal'?'Jurnal kelas':'Agenda harian guru',metadata:[`Periode: ${result.year?.tahun_ajaran||'-'} ${result.year?.semester||''}`,`Kelas: ${q.get('scope')==='seluruh'?'Seluruh kelas':result.allowed[0]?.nama_kelas||'-'}`,`Tanggal: ${result.from} sampai ${result.until}${q.get('hari')?' | Hari: '+q.get('hari'):''}`],headers:['Tanggal','Jam','Pertemuan','Guru','Kelas','Mapel','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Catatan','Guru pengganti','Siswa tidak hadir / belum dikonfirmasi'],data:result.data.map(p=>{
+        const absent=rows("SELECT nama_snapshot,status,keterangan FROM ak_absensi_sesi WHERE id_pertemuan=? AND status<>'H' ORDER BY CAST(nomor_absen AS INTEGER)",p.id).map(r=>`${r.nama_snapshot}: ${r.status}${r.keterangan?' ('+r.keterangan+')':''}`).join('; ');
+        const replacement=p.id_guru_pengganti?rows('SELECT nama_guru FROM guru WHERE id_guru=?',p.id_guru_pengganti)[0]?.nama_guru:'';
+        return [p.tanggal,p.jam_ke,p.pertemuan_ke,p.nama_guru,p.nama_kelas,p.nama_mapel,p.tp_atp,p.materi,p.kegiatan,p.refleksi,p.tindak_lanjut,p.catatan,replacement,absent];
+      })};
+    }
     const scope = kind !== 'absensi' && q.get('scope') === 'kelas' ? 'journal' : 'own';
     if (scope === 'journal' && (!q.get('id_kelas') || !q.get('id_tahun_ajaran'))) fail('Pilih kelas dan periode jurnal terlebih dahulu.');
     const allowed=(q.get('id_jadwal')?[schedule(user,q.get('id_jadwal'),undefined,false,scope)]:schedules(user,scope)).filter(j => scope !== 'journal' || j.id_kelas === q.get('id_kelas') && j.id_tahun_ajaran === q.get('id_tahun_ajaran'));
@@ -48,12 +61,12 @@ export function documentTable(user:AuthUser,q:URLSearchParams):DocumentTable {
   }
   fail('Jenis dokumen tidak dikenal.',404);
 }
-const safeCell=(v:unknown)=>{const s=v==null?'':String(v);return /^[=+@\-\t\r]/.test(s)?"'"+s:s;};
+const safeCell=(v:unknown,journalRoundTrip=false)=>{const s=v==null?'':String(v);return /^[=+@\-\t\r]/.test(s)||journalRoundTrip&&s.startsWith("'")?"'"+s:s;};
 export async function renderDocument(table:DocumentTable,format:string) {
   const exportRows = [table.headers, ...table.data, ...[...(table.metadata || []), ...(table.notes || [])].map(note => [note])];
-  if(format==='csv')return{bytes:Buffer.from('\uFEFF'+exportRows.map(row=>row.map(v=>'"'+safeCell(v).replace(/"/g,'""')+'"').join(',')).join('\r\n')),'type':'text/csv; charset=utf-8',extension:'csv'};
+  if(format==='csv')return{bytes:Buffer.from('\uFEFF'+exportRows.map(row=>row.map(v=>'"'+safeCell(v,table.journalRoundTrip).replace(/"/g,'""')+'"').join(',')).join('\r\n')),'type':'text/csv; charset=utf-8',extension:'csv'};
   if(format==='xlsx') {
-    const workbook=new ExcelJS.Workbook();workbook.creator='SIA Akademik';const sheet=workbook.addWorksheet('Data');exportRows.forEach(r=>sheet.addRow(r.map(safeCell)));sheet.getRow(1).font={bold:true};sheet.views=[{state:'frozen',ySplit:1}];sheet.columns.forEach(c=>{c.width=22;});sheet.autoFilter={from:{row:1,column:1},to:{row:1,column:table.headers.length}};return{bytes:Buffer.from(await workbook.xlsx.writeBuffer()),type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',extension:'xlsx'};
+    const workbook=new ExcelJS.Workbook();workbook.creator='SIA Akademik';const sheet=workbook.addWorksheet('Data');exportRows.forEach(r=>sheet.addRow(r.map(v=>safeCell(v,table.journalRoundTrip))));sheet.getRow(1).font={bold:true};sheet.views=[{state:'frozen',ySplit:1}];sheet.columns.forEach(c=>{c.width=22;});sheet.autoFilter={from:{row:1,column:1},to:{row:1,column:table.headers.length}};return{bytes:Buffer.from(await workbook.xlsx.writeBuffer()),type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',extension:'xlsx'};
   }
   if(format==='pdf') {
     return {bytes:await tablePdf(table),type:'application/pdf',extension:'pdf'};

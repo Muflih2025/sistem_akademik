@@ -1,0 +1,479 @@
+{
+  "date": "2026-11-05",
+  "base_commit": "5f0c4fa",
+  "scope": "Sidebar white full viewport, mobile module/feature popups, class/all-class journal import/export by date/range/weekday",
+  "method": "Real HTTP and Chromium on external synthetic SQLite fixtures; original school database hashes unchanged; actual generated PDF text checked with pypdf",
+  "passed": 69,
+  "failed": 0,
+  "build": {
+    "next": "16.4.3",
+    "compiled": true,
+    "typescript": true,
+    "generated_pages": 82,
+    "source_matches_repository": true
+  },
+  "source_sha256": {
+    "src/components/PortalLayout.tsx": "c0bf2f4c7e28e78b268441ca1204fddc9ebf407c6041e051cc53ebd3c61545dd",
+    "src/components/modules/JournalTransfer.tsx": "4791e0abb51dcc40501fbeaabee70cb9fe49a95993e2ca536eccc38f288471df",
+    "src/components/modules/Common.tsx": "d101861b679f4430eaccbd625ecbc6f536b30dacbd1f5bfb4f6ef0058ca16cf4",
+    "src/components/modules/ImportBoard.tsx": "2dd882d2f061d476f65a3618ca9f09eebbba217f8eb51cd8155d10b6c6609f4e",
+    "src/lib/journal-transfer.ts": "891f3b3afe72d8a2c46946dbc7e130d4add1aecba8e7c52b2d2f924d8cbef2b1",
+    "src/lib/imports.ts": "744a2da5b2a185344abc672db99a7e19a04e4aebb6e467be3a2d69845cab9356",
+    "src/lib/documents.ts": "09ad63a215e737c7188de7b2536dec82d2194695cef3014c666216be3ed243e1",
+    "src/app/api/jurnal/route.ts": "6fd47d7e9f804b70a6c1efb64b88781b2a35ac2eb59f5d4602e1c8d83f9b5efa",
+    "src/components/academic/MeetingEditor.tsx": "7d7ad1a1a4b2004cd807c4ddc3d59068da9f77c71fb770f743a44114ecb6b5ed",
+    "src/components/modules/JournalBoard.tsx": "e5d3ceb8798e228ebea1ef7dbe77909c84ddc0b7bc0d7f460de8d6b4d93aac31"
+  },
+  "suites": [
+    {
+      "suite": "journal-transfer",
+      "passed": 9,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "EXPORT_per_class_all_classes_single_date_date_range_and_weekday_filters",
+          "status": "PASS"
+        },
+        {
+          "id": "PDF_actual_text_contains_period_class_dates_journal_fields_and_absence_details",
+          "status": "PASS"
+        },
+        {
+          "id": "IMPORT_template_preview_no_write_confirm_creates_updates_other_teachers_and_preserves_attendance_grades",
+          "status": "PASS"
+        },
+        {
+          "id": "VALIDATION_wrong_class_identity_revision_dates_negative_number_duplicates_and_partial_batch_rejected_atomically",
+          "status": "PASS"
+        },
+        {
+          "id": "CONCURRENCY_changed_sources_and_locked_period_block_import_without_partial_writes",
+          "status": "PASS"
+        },
+        {
+          "id": "XLSX_round_trip_preserves_literal_text_line_breaks_and_rejects_spreadsheet_formulas",
+          "status": "PASS"
+        },
+        {
+          "id": "BROWSER_export_download_and_import_preview_confirm_work_in_responsive_popups_including_import_menu",
+          "status": "PASS"
+        },
+        {
+          "id": "MOBILE_module_and_feature_breadcrumb_popups_navigate_close_and_fit_phone",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_school_database_unchanged_and_head_has_export_only",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "suite": "responsive-portals",
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "RESPONSIVE_all_role_pages_mobile_tablet_desktop_no_page_or_form_overflow",
+          "status": "PASS",
+          "details": {
+            "pages": 40,
+            "widths": [
+              320,
+              390,
+              768,
+              1024,
+              1440,
+              1920
+            ],
+            "sticky_header_and_module_bar": true,
+            "sidebar_full_height": true
+          }
+        },
+        {
+          "id": "RESPONSIVE_bell_editor_with_full_template_and_desktop_space",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "RESPONSIVE_confirmation_readable_focus_and_mobile_feature_menu",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "INTEGRITY_original_school_database_unchanged",
+          "status": "PASS",
+          "details": {}
+        }
+      ]
+    },
+    {
+      "suite": "admin-navigation",
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "LOOKUPS_failed_reference_blocks_empty_popup_and_reload_recovers_all_options",
+          "status": "PASS"
+        },
+        {
+          "id": "LOOKUPS_switching_master_tabs_never_opens_a_form_with_stale_references",
+          "status": "PASS"
+        },
+        {
+          "id": "NAVIGATION_full_top_bar_stays_visible_and_white_sidebar_fills_available_height",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_original_school_database_unchanged",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "suite": "shared-journal-bells",
+      "passed": 8,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "BELLS_sidebar_and_all_three_image_templates_save_and_reload",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "BELLS_edit_add_remove_rows_versions_and_invalid_changes_preserve_data",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "SCHEDULE_four_teachers_and_lesson_numbers_1_to_8",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "JOURNAL_select_class_cancel_confirm_edit_other_teacher_reload_and_reset",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "JOURNAL_history_client_navigation_and_schedule_dropdown_open_correct_session",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "JOURNAL_all_four_teachers_can_edit_without_changing_attendance_or_original_teacher",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "SERVER_confirmation_class_period_stale_lock_and_separate_permissions_enforced",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "INTEGRITY_original_school_database_unchanged",
+          "status": "PASS",
+          "details": {}
+        }
+      ]
+    },
+    {
+      "suite": "complete-workflows",
+      "passed": 18,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "AUTH_all_five_roles_login",
+          "status": "PASS"
+        },
+        {
+          "id": "USERS_add_edit_status_and_cancel_saved",
+          "status": "PASS"
+        },
+        {
+          "id": "RBAC_cross_role_and_teacher_scope_denied",
+          "status": "PASS"
+        },
+        {
+          "id": "CATALOG_seven_master_modules_persist_and_stale_guard",
+          "status": "PASS"
+        },
+        {
+          "id": "FOUNDATION_period_assignment_roster_and_duty_permission_persist",
+          "status": "PASS"
+        },
+        {
+          "id": "BELL_and_calendar_real_browser_save_reload",
+          "status": "PASS"
+        },
+        {
+          "id": "IMPORT_XLSX_preview_does_not_write_and_confirm_persists",
+          "status": "PASS"
+        },
+        {
+          "id": "TEACHER_browser_attendance_and_grade_reload_stale_and_atomic_rollback",
+          "status": "PASS"
+        },
+        {
+          "id": "EXTRACURRICULAR_persisted_by_assigned_coach",
+          "status": "PASS"
+        },
+        {
+          "id": "DAILY_school_reconciliation_separate_from_session_and_readonly_head",
+          "status": "PASS"
+        },
+        {
+          "id": "REPORT_real_snapshot_lifecycle_own_student_and_three_export_formats",
+          "status": "PASS"
+        },
+        {
+          "id": "PROGRESSION_preview_confirmation_history_and_alumni_saved",
+          "status": "PASS"
+        },
+        {
+          "id": "HEAD_evaluation_saves_and_monitor_reads_schedule_journal",
+          "status": "PASS"
+        },
+        {
+          "id": "STUDENT_own_profile_attendance_and_schedule",
+          "status": "PASS"
+        },
+        {
+          "id": "DASHBOARD_real_counts_profiles_and_role_links",
+          "status": "PASS"
+        },
+        {
+          "id": "NAVIGATION_all_role_modules_reachable_and_mobile",
+          "status": "PASS"
+        },
+        {
+          "id": "AUTH_logout_and_password_change_revoke_existing_sessions",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_original_school_database_files_unchanged",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "suite": "crud-sidebar",
+      "passed": 15,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "CRUD_jurusan",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "CRUD_kelas",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "CRUD_guru",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "CRUD_siswa",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "CRUD_mata_pelajaran",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "CRUD_ak_ruang",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "CRUD_ekstrakurikuler",
+          "status": "PASS",
+          "details": {
+            "actions": [
+              "create",
+              "reload",
+              "edit",
+              "deactivate",
+              "reactivate",
+              "search",
+              "download CSV",
+              "cancel"
+            ]
+          }
+        },
+        {
+          "id": "FOUNDATION_membership_create_edit_and_homeroom_create_revoke",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "CALENDAR_draft_publish_edit_deactivate_and_student_visibility",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "BELL_add_remove_rows_and_versioned_revision_saved",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "TEACHER_attendance_edit_bulk_attendance_rules_and_grade_descriptions_persist",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "DUTY_correct_daily_record_weekly_matrix_and_print_button",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "SIDEBAR_five_role_menus_links_highlights_shared_pages_and_mobile",
+          "status": "PASS",
+          "details": {
+            "clicked": 55
+          }
+        },
+        {
+          "id": "TEACHER_clear_schedule_aborts_loading_without_stuck_form",
+          "status": "PASS",
+          "details": {}
+        },
+        {
+          "id": "INTEGRITY_original_school_database_unchanged",
+          "status": "PASS",
+          "details": {}
+        }
+      ]
+    },
+    {
+      "suite": "admin-button-followup",
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "SCHEDULE_browser_create_verified_assignment_edit_before_use_status_and_cancel",
+          "status": "PASS"
+        },
+        {
+          "id": "SCHEDULE_draft_edit_then_foundation_verification_persists",
+          "status": "PASS"
+        },
+        {
+          "id": "AUDIT_pagination_search_details_close_refresh_and_redaction",
+          "status": "PASS"
+        },
+        {
+          "id": "YEAR_lock_rejects_teacher_write_and_unlock_persists",
+          "status": "PASS"
+        },
+        {
+          "id": "HEAD_evaluation_edit_persists_after_reload",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_original_database_unchanged",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "suite": "import-report-buttons",
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "IMPORT_teacher_attendance_template_preview_no_write_and_confirm",
+          "status": "PASS"
+        },
+        {
+          "id": "IMPORT_teacher_grade_template_preview_and_persisted_descriptions",
+          "status": "PASS"
+        },
+        {
+          "id": "REPORT_withdraw_button_persists_and_student_access_revoked",
+          "status": "PASS"
+        },
+        {
+          "id": "REPORT_new_snapshot_includes_revised_grade_and_publishes",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_original_school_database_unchanged",
+          "status": "PASS"
+        }
+      ]
+    }
+  ]
+}

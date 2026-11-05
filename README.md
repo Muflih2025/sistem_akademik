@@ -60,9 +60,9 @@ Detail pengembangan dan pengujian: **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)*
 
 ## Modul dan pembagian tugas
 
-Pilih **modul utama di atas**, kemudian fitur pada **sidebar kiri**. Di smartphone, buka **Menu fitur**; navigasi bawah menyediakan akses cepat. Menu mengikuti peran/penugasan, sedangkan izin setiap operasi tetap diperiksa di server.
+Pilih **modul utama di atas**, kemudian fitur pada **sidebar kiri**. Di smartphone, tombol **Pilih modul** dan **Menu fitur** pada baris navigasi membuka popup; navigasi bawah menyediakan akses cepat. Menu mengikuti peran/penugasan, sedangkan izin setiap operasi tetap diperiksa di server.
 
-Header dan navbar modul tetap terlihat saat halaman digulir. Sidebar mengikuti tinggi navbar dan isi menunya. Form tambah/edit pengelolaan admin menggunakan popup. Tombol **Cabut** mengakhiri penetapan, sedangkan **Hapus** menghapus data yang belum digunakan atau mengarsipkan data bersejarah. Arsip master dan penetapan dapat ditampilkan dan dipulihkan oleh admin.
+Header dan navbar modul tetap terlihat saat halaman digulir. Latar putih sidebar memenuhi tinggi layar di bawah navbar, dengan menu yang dapat digulir. Form tambah/edit pengelolaan admin menggunakan popup. Tombol **Cabut** mengakhiri penetapan, sedangkan **Hapus** menghapus data yang belum digunakan atau mengarsipkan data bersejarah. Arsip master dan penetapan dapat ditampilkan dan dipulihkan oleh admin.
 
 | Pengguna | Fungsi |
 |---|---|
@@ -95,6 +95,8 @@ Nilai mengikuti mapel yang diampu dan bobot berversi. Rapor menggunakan snapshot
 ### Impor, ekspor, dan PDF
 
 Bulk Upload Excel tersedia pada master Admin dengan template, preview dan konfirmasi. Modul akademik yang relevan menyediakan impor/ekspor, matriks, CSV, Excel dan cetak.
+
+Tombol **Ekspor jurnal** dan **Impor jurnal** membuka popup untuk satu kelas atau seluruh kelas, periode, tanggal tertentu atau rentang tanggal, serta filter hari. CSV/XLSX dapat diimpor kembali; template mengisi identitas sesi dan revisinya. Isi materi pada baris yang akan disimpan, unggah, periksa pratinjau, lalu konfirmasi. Impor memperbarui jurnal tanpa mengubah absensi atau nilai. PDF jurnal berisi identitas periode/kelas/tanggal dan rincian tiap pertemuan.
 
 Ekspor XLSX memakai ExcelJS dan PDF memakai PDFKit di server Node; unduhan API tidak memerlukan Chromium. Tombol **Cetak** menggunakan dialog browser. Playwright/Chromium digunakan oleh pengujian browser, dengan konfigurasi tersendiri. Detail: [dependensi PDF](docs/DEVELOPMENT.md#pdf-dan-dependensi-opsional).
 
@@ -143,6 +145,7 @@ Hasil launcher/UI pada 3 November 2026 berlaku untuk runtime PHP historis. Untuk
 | [Merge main dan pnpm](docs/MERGE_MAIN_PNPM_2026-11-03.md) | Resolusi merge dan hasil validasi |
 | [Bukti launcher/UI](docs/evidence/PNPM_MAIN_TEST_RESULTS.json) | Hasil pengujian tersanitasi |
 | [Navigasi modul/sidebar](docs/NAVIGASI_MODUL_SIDEBAR_2026-11-03.md) | Pengelompokan fitur dan pengujian responsif |
+| [Navigasi HP dan impor/ekspor jurnal](docs/JOURNAL_TRANSFER_MOBILE_NAV_2026-11-05.md) | Sidebar penuh, popup modul/fitur, filter jurnal dan 69 kelompok uji |
 | [Perbaikan simpan Piket](docs/BUGFIX_SIMPAN_GURU_PIKET_2026-11-03.md) | Simpan, edit, reload, validasi dan audit |
 | [Matriks fitur](docs/MATRIKS_FUNGSI_AKADEMIK.md) | Cakupan dan keterbatasan per checkpoint |
 

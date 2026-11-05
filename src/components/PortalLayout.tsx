@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Modal from '@/components/modules/Modal';
+import { ChevronDown } from 'lucide-react';
 
 interface NavigationModule {
   key: string;
@@ -33,7 +35,8 @@ export default function PortalLayout({
     return()=>observer.disconnect();
   },[]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  useEffect(() => setSidebarOpen(false), [pathname]);
+  const [modulesOpen,setModulesOpen]=useState(false);
+  useEffect(() => {setSidebarOpen(false);setModulesOpen(false);}, [pathname]);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
@@ -206,6 +209,7 @@ export default function PortalLayout({
   const activeModule = currentModules.find((m) =>
     m.items.some(matchesItem)
   ) || currentModules[0] || { key: 'loading', label: 'Memuat menu…', items: [] };
+  const activeFeature=activeModule.items.find(matchesItem)||activeModule.items[0];
 
   return (
     <div style={{'--sia-topbar-height':`${topbarHeight}px`} as React.CSSProperties} className="sia-app min-h-screen flex flex-col bg-[#f3f4f6] text-[#111] font-sans antialiased">
@@ -234,7 +238,8 @@ export default function PortalLayout({
       </header>
 
       {/* 2. Horizontal Module Bar (Identik dengan .sia-modules di main) */}
-      <nav aria-label="Modul utama" aria-busy={!currentUser} className="sia-modules flex gap-2 px-5 py-2.5 overflow-x-auto max-w-full bg-white border-b border-[#e5e7eb] scrollbar-thin">
+      <nav aria-label="Modul utama" aria-busy={!currentUser} className="sia-modules px-4 sm:px-5 py-2.5 max-w-full bg-white border-b border-[#e5e7eb]">
+        <div className="hidden md:flex gap-2 overflow-x-auto scrollbar-thin">
         {currentModules.map((mod) => {
           const isCurrent = mod.key === activeModule.key;
           const firstTarget = mod.items[0]?.href || '#';
@@ -253,13 +258,19 @@ export default function PortalLayout({
             </Link>
           );
         })}
+        </div>
+        <div className="md:hidden flex min-w-0 items-center gap-2" aria-label="Navigasi halaman">
+          <button type="button" aria-label="Pilih modul" aria-haspopup="dialog" aria-expanded={modulesOpen} disabled={!currentUser} onClick={()=>setModulesOpen(true)} className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold"><span className="truncate">{activeModule.label}</span><ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
+          <span aria-hidden="true" className="text-gray-400">/</span>
+          <button type="button" aria-label="Menu fitur" aria-haspopup="dialog" aria-expanded={sidebarOpen} aria-controls="mobile-feature-menu" disabled={!currentUser} onClick={()=>setSidebarOpen(true)} className="flex min-h-11 min-w-0 flex-[1.4] items-center justify-between gap-2 rounded-lg bg-black px-3 py-2 text-left text-sm font-semibold text-white"><span className="truncate">{activeFeature?.label||'Pilih fitur'}</span><ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
+        </div>
       </nav>
       </div>
 
       {/* 3. Main Shell: Sidebar Kiri & Konten Tengah (Identik dengan .sia-shell di main) */}
       <div className="sia-shell mx-auto w-full max-w-[1920px] flex-1 grid grid-cols-1 md:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[256px_minmax(0,1fr)] items-start">
         {/* Contextual Feature Sidebar */}
-        <aside className="sia-sidebar bg-white border-b md:border-b-0 md:border-r border-[#e5e7eb] md:sticky md:top-[var(--sia-topbar-height)] md:max-h-[calc(100dvh_-_var(--sia-topbar-height))] md:overflow-y-auto">
+        <aside className="sia-sidebar hidden md:block bg-white border-r border-[#e5e7eb] md:sticky md:top-[var(--sia-topbar-height)] md:h-[calc(100dvh_-_var(--sia-topbar-height))] md:overflow-y-auto">
           <div className="sia-sidebar-inner p-3 md:p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div><h3 className="sia-module-title text-sm font-bold text-[#111] px-2.5">
@@ -268,10 +279,9 @@ export default function PortalLayout({
               <p className="sia-sidebar-hint hidden md:block text-[11px] text-[#60646c] px-2.5 mb-2">
                 Pilih menu fitur di bawah ini
               </p></div>
-              <button type="button" aria-expanded={sidebarOpen} aria-controls="feature-menu" onClick={() => setSidebarOpen(v => !v)} className="md:hidden min-h-11 rounded-lg border px-3 py-2 text-sm font-semibold">{sidebarOpen ? 'Tutup menu fitur' : 'Menu fitur'}</button>
             </div>
 
-            <nav id="feature-menu" aria-label="Fitur modul" aria-busy={!currentUser} className={(sidebarOpen ? 'grid' : 'hidden') + ' md:grid gap-1'}>
+            <nav id="feature-menu" aria-label="Fitur modul" aria-busy={!currentUser} className="grid gap-1">
               {activeModule.items.map((item) => {
                 const isItemActive = matchesItem(item);
                 return (
@@ -298,6 +308,9 @@ export default function PortalLayout({
           {children}
         </main>
       </div>
+
+      {modulesOpen&&<Modal title="Pilih modul" onClose={()=>setModulesOpen(false)}><nav aria-label="Pilihan modul" className="grid gap-2">{currentModules.map(module=><Link key={module.key} href={module.items[0]?.href||'#'} onClick={()=>setModulesOpen(false)} aria-current={module.key===activeModule.key?'page':undefined} className={`min-h-11 rounded-lg border px-4 py-3 text-sm ${module.key===activeModule.key?'bg-black text-white':'bg-white'}`}>{module.label}</Link>)}</nav></Modal>}
+      {sidebarOpen&&<Modal title={`Fitur ${activeModule.label}`} onClose={()=>setSidebarOpen(false)}><nav id="mobile-feature-menu" aria-label="Fitur modul" className="grid gap-2">{activeModule.items.map(item=><Link key={item.href} href={item.href} onClick={()=>setSidebarOpen(false)} aria-current={matchesItem(item)?'page':undefined} className={`min-h-11 rounded-lg border px-4 py-3 text-sm ${matchesItem(item)?'bg-black text-white':'bg-white'}`}>{item.label}</Link>)}</nav></Modal>}
 
       {/* 4. Mobile Bottom Navigation bar (Identik dengan .sia-bottom di main) */}
       <div className="md:hidden sia-bottom fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[#e5e7eb] pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
