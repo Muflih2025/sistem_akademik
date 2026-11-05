@@ -6,6 +6,18 @@ import { catalog } from './catalog';
 import { db, rows, one, fail, role, text, choice, number, reference, unique, write, nextId, ensureVersion, publicRow, range, today } from './store';
 export const aliases:Record<string,string>={mapel:'mata_pelajaran',ruang:'ak_ruang'};
 export function canonical(value:string) { return aliases[value]||value; }
+function scheduleEditLock(schedule:Row) {
+  const year=one('tahun_ajaran',{id_tahun_ajaran:schedule.id_tahun_ajaran});
+  if(year?.dikunci==='1'||year?.rapor_diterbitkan==='1')return 'Periode jadwal terkunci atau rapor telah diterbitkan.';
+  if(year?.status!=='Aktif')return 'Periode jadwal sudah tidak aktif.';
+  if(rows('SELECT 1 FROM ak_pertemuan WHERE id_jadwal=? LIMIT 1',schedule.id_jadwal).length)return 'Jadwal sudah memiliki riwayat jurnal atau absensi.';
+  if(rows('SELECT 1 FROM ak_nilai WHERE id_tahun_ajaran=? AND id_kelas=? AND id_mapel=? AND id_guru=? LIMIT 1',schedule.id_tahun_ajaran,schedule.id_kelas,schedule.id_mapel,schedule.id_guru).length)return 'Penugasan jadwal sudah memiliki riwayat nilai.';
+  if(rows('SELECT 1 FROM ak_rapor_snapshot WHERE id_tahun_ajaran=? AND id_kelas=? LIMIT 1',schedule.id_tahun_ajaran,schedule.id_kelas).length)return 'Kelas dan periode jadwal sudah memiliki arsip rapor.';
+  return '';
+}
+function checkScheduleCollision(schedule:Row,id:string) {
+  if(rows("SELECT 1 FROM jadwal WHERE status='aktif' AND id_tahun_ajaran=? AND hari=? AND substr(jam_mulai,1,5)<? AND substr(jam_selesai,1,5)>? AND (id_guru=? OR id_kelas=? OR (?<>'' AND ruang=?)) AND id_jadwal<>?",schedule.id_tahun_ajaran,schedule.hari,String(schedule.jam_selesai).slice(0,5),String(schedule.jam_mulai).slice(0,5),schedule.id_guru,schedule.id_kelas,schedule.ruang,schedule.ruang,id).length)fail('Jadwal guru, kelas, atau ruang bertabrakan.',409);
+}
 export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0) {
   table=canonical(table);if(!catalog[table])fail('Modul tidak dikenal.',404);
   role(user,...(['catatan_evaluasi','tahun_ajaran'].includes(table)?['admin','kepala_sekolah']:['admin']));
@@ -15,7 +27,7 @@ export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0) {
   const total=rows(`SELECT COUNT(*) n FROM ${table} ${where}`,...(q?args:[]))[0].n;
   const data=rows(`SELECT rowid _rowid,* FROM ${table} ${where} ORDER BY CAST(${def.pk} AS INTEGER),${def.pk} LIMIT ? OFFSET ?`,...(q?args:[]),limit,offset).map(publicRow);
   if(table==='tahun_ajaran')for(const r of data){const p=one('ak_periode',{id_tahun_ajaran:r.id_tahun_ajaran});r.mulai=p?.mulai;r.selesai=p?.selesai;r.terverifikasi=p?.terverifikasi;}
-  if(table==='jadwal')for(const r of data){r.nama_kelas=one('kelas',{id_kelas:r.id_kelas})?.nama_kelas;r.nama_guru=one('guru',{id_guru:r.id_guru})?.nama_guru;r.nama_mapel=one('mata_pelajaran',{id_mapel:r.id_mapel})?.nama_mapel;const y=one('tahun_ajaran',{id_tahun_ajaran:r.id_tahun_ajaran});r.tahun_ajaran=y?.tahun_ajaran;r.semester=y?.semester;r.sudah_ditugaskan=!!one('ak_penugasan',{id_jadwal:r.id_jadwal});}
+  if(table==='jadwal')for(const r of data){r.nama_kelas=one('kelas',{id_kelas:r.id_kelas})?.nama_kelas;r.nama_guru=one('guru',{id_guru:r.id_guru})?.nama_guru;r.nama_mapel=one('mata_pelajaran',{id_mapel:r.id_mapel})?.nama_mapel;const y=one('tahun_ajaran',{id_tahun_ajaran:r.id_tahun_ajaran});r.tahun_ajaran=y?.tahun_ajaran;r.semester=y?.semester;r.sudah_ditugaskan=!!one('ak_penugasan',{id_jadwal:r.id_jadwal});r.alasan_kunci=scheduleEditLock(r);r.konteks_terkunci=!!r.alasan_kunci;}
   if(table==='users')for(const r of data){const ref=r.role==='guru'?one('guru',{id_guru:r.id_referensi}):r.role==='siswa'?one('siswa',{nis:r.id_referensi}):null;r.nama=ref?.nama_guru||ref?.nama_siswa||r.username;r.nip_nis=ref?.nip||ref?.nis||'';r.id=r.id_user;r.is_active=r.status==='aktif';}
   return {data,total,table,definition:def};
 }
@@ -29,6 +41,7 @@ export function saveCatalog(user:AuthUser,input:Row):Row {
   if(['deactivate','delete','activate'].includes(action)) {
     if(!before || !('status' in before)||table==='tahun_ajaran')fail('Operasi tidak tersedia.');
     values.status=action==='activate'?'aktif':'nonaktif';
+    if(table==='jadwal'&&values.status==='aktif'&&before.status!=='aktif')checkScheduleCollision(before,id);
   } else {
     for(const f of def.fields) {
       if(f.key==='password')continue;
@@ -72,8 +85,16 @@ export function saveCatalog(user:AuthUser,input:Row):Row {
       const p=reference('tahun_ajaran','id_tahun_ajaran',values.id_tahun_ajaran);if(p.dikunci==='1')fail('Periode terkunci.',409);
       for(const k of ['jam_mulai','jam_selesai']){if(!/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(values[k]))fail('Jam tidak valid.');values[k]=values[k].slice(0,5);}
       if(values.jam_mulai>=values.jam_selesai)fail('Jam selesai harus setelah mulai.');
-      if(before&&(one('ak_penugasan',{id_jadwal:id})||rows('SELECT 1 FROM ak_pertemuan WHERE id_jadwal=?',id).length))for(const k of def.fields.map(f=>f.key))if(String(values[k])!==String(before[k]||'').slice(0,k.startsWith('jam_')?5:undefined))fail('Jadwal terverifikasi memiliki konteks tetap. Buat jadwal baru.',409);
-      if(rows("SELECT 1 FROM jadwal WHERE status='aktif' AND id_tahun_ajaran=? AND hari=? AND substr(jam_mulai,1,5)<? AND substr(jam_selesai,1,5)>? AND (id_guru=? OR id_kelas=? OR (?<>'' AND ruang=?)) AND id_jadwal<>?",values.id_tahun_ajaran,values.hari,values.jam_selesai,values.jam_mulai,values.id_guru,values.id_kelas,values.ruang,values.ruang,id).length)fail('Jadwal guru, kelas, atau ruang bertabrakan.',409);
+      if(before) {
+        const changed=def.fields.some(f=>String(values[f.key])!==String(before[f.key]||'').slice(0,f.key.startsWith('jam_')?5:undefined));
+        if(changed) {
+          const locked=scheduleEditLock(before);
+          if(locked)fail(`${locked} Buat jadwal baru untuk mengganti konteksnya.`,409);
+          const assignment=one('ak_penugasan',{id_jadwal:id});
+          if(assignment)range(assignment,period(values.id_tahun_ajaran,true));
+        }
+      }
+      if(values.status==='aktif')checkScheduleCollision(values,id);
     }
     if(table==='tahun_ajaran') {
       const current = currentSchoolYear();

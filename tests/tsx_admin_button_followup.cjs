@@ -33,19 +33,21 @@ async function field(page, label, value) {
     const created = await post(page, 'Simpan', '/api/admin'), id = created.data.id_jadwal;
     assert.equal(db.prepare('SELECT terverifikasi FROM ak_penugasan WHERE id_jadwal=?').get(id).terverifikasi, '1');
     await page.reload();
-    const row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: clock(hour), exact: true }) }).filter({ has: page.getByRole('cell', { name: clock(hour + 1), exact: true }) }).filter({ has: page.getByRole('cell', { name: 'Kamis', exact: true }) });
+    let row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: clock(hour), exact: true }) }).filter({ has: page.getByRole('cell', { name: clock(hour + 1), exact: true }) }).filter({ has: page.getByRole('cell', { name: 'Kamis', exact: true }) });
     await row.getByRole('button', { name: 'Edit', exact: true }).click();
     await field(page, 'Jam mulai', clock(hour).replace(':00', ':10'));
-    await field(page, 'Alasan perubahan', 'Uji perlindungan konteks terverifikasi');
-    await post(page, 'Simpan', '/api/admin', page, 409);
-    assert.equal(await page.getByLabel('Jam mulai', { exact: true }).inputValue(), clock(hour).replace(':00', ':10'));
-    assert.equal(db.prepare('SELECT jam_mulai FROM jadwal WHERE id_jadwal=?').get(id).jam_mulai, clock(hour));
+    await field(page, 'Alasan perubahan', 'Koreksi jadwal terverifikasi yang belum dipakai');
+    await post(page, 'Simpan', '/api/admin');
+    assert.equal(db.prepare('SELECT jam_mulai FROM jadwal WHERE id_jadwal=?').get(id).jam_mulai, clock(hour).replace(':00', ':10'));
+    await page.reload();
+    row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: clock(hour).replace(':00', ':10'), exact: true }) }).filter({ has: page.getByRole('cell', { name: clock(hour + 1), exact: true }) }).filter({ has: page.getByRole('cell', { name: 'Kamis', exact: true }) });
+    await row.getByRole('button', { name: 'Edit', exact: true }).click();
     await page.getByRole('button', { name: 'Batal', exact: true }).click();
     await post(page, 'Nonaktifkan', '/api/admin', row);
     assert.equal(db.prepare('SELECT status FROM jadwal WHERE id_jadwal=?').get(id).status, 'nonaktif');
     await post(page, 'Aktifkan', '/api/admin', row);
     assert.equal(db.prepare('SELECT status FROM jadwal WHERE id_jadwal=?').get(id).status, 'aktif');
-    pass('SCHEDULE_browser_create_assignment_context_guard_status_and_cancel');
+    pass('SCHEDULE_browser_create_verified_assignment_edit_before_use_status_and_cancel');
 
     const draft = await request('/api/admin', admin, { table: 'jadwal', action: 'create', id_guru: '2', id_mapel: '2', id_kelas: '2', id_tahun_ajaran: '1', hari: 'Kamis', jam_mulai: clock(hour + 1), jam_selesai: clock(hour + 2), ruang: '', status: 'aktif' });
     assert.equal(draft.status, 200, JSON.stringify(draft.json));
