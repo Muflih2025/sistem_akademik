@@ -35,7 +35,7 @@ def main():
  test('no_invented_teacher_schedule_for_new_classes',lambda:check(not db('SELECT id_jadwal FROM jadwal WHERE id_kelas IN('+marks+')',ids)))
  test('no_unverified_attendance_written_for_new_classes',lambda:check(not db('SELECT id FROM ak_absensi_harian WHERE id_kelas IN('+marks+')',ids)))
  def idempotent():
-  before=snapshot(STATE/'private/inspector.json');r=subprocess.run(['python3',str(ROOT/'ops/academic_kelas10.py'),'--source',str(source),'--expected-database=sia_academic_dev_20261031','--apply'],capture_output=True);check(r.returncode==0 and json.loads(r.stdout)['status']=='already_imported_verified' and before==snapshot(STATE/'private/inspector.json'))
+  before=snapshot(STATE/'private/inspector.json');r=subprocess.run(['python3',str(ROOT/'ops/academic/academic_kelas10.py'),'--source',str(source),'--expected-database=sia_academic_dev_20261031','--apply'],capture_output=True);check(r.returncode==0 and json.loads(r.stdout)['status']=='already_imported_verified' and before==snapshot(STATE/'private/inspector.json'))
  test('repeated_import_is_read_only_without_duplicates',idempotent)
  references=db('SELECT * FROM ak_jam_belajar WHERE versi=1');profiles={r['nama']:json.loads(r['payload_json'])for r in references}
  test('bell_reference_three_versioned_profiles_stored_in_real_DB',lambda:check(len(references)==3 and all(r['versi']==1 for r in references)))
@@ -59,7 +59,7 @@ def main():
  test('Piket_real_XLSX_35_students_all_unconfirmed_not_H_or_A',export)
  def private_files():
   b=Browser()
-  for path in ['/data%20kelas%2010%20clean.xlsx','/NIS%20NIK%20KLS%2011.xlsx','/database/fixtures/jam_belajar_referensi.json','/ops/academic_kelas10.py']:
+  for path in ['/data%20kelas%2010%20clean.xlsx','/NIS%20NIK%20KLS%2011.xlsx','/database/fixtures/jam_belajar_referensi.json','/ops/academic/academic_kelas10.py']:
    check(b.request(path)[0]in [403,404])
  test('source_workbooks_and_internal_scripts_not_web_accessible',private_files)
  report={'passed':sum(r['status']=='PASS'for r in results),'failed':sum(r['status']=='FAIL'for r in results),'skipped':0,'tests':results,'source_sha256':digest,'students_verified':len(rows),'classes_verified':len(ids)};save_json(STATE/'reports/kelas10-tests.json',report);return bool(report['failed'])

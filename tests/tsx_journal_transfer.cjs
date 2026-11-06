@@ -1,0 +1,81 @@
+'use strict';
+// Fresh external fixture; optional PDF Python defaults to the private inspection venv.
+const {fs,path,state,base,db,assert,request,login,browser,context,unchanged}=require('./tsx_admin_helpers.cjs');
+const ExcelJS=require('exceljs'),{Readable}=require('stream'),cp=require('child_process'),os=require('os');
+const tests=[];let appBrowser;const pass=id=>{tests.push({id,status:'PASS'});console.log('PASS '+id)};
+async function json(url,session,body,expected=200){const r=await request(url,session,body);assert.equal(r.status,expected,JSON.stringify({url,error:r.json?.error}));return r.json;}
+async function csv(bytes){const w=new ExcelJS.Workbook();await w.csv.read(Readable.from(bytes),{map:value=>value});const s=w.worksheets[0],headers=s.getRow(1).values.slice(1).map(v=>String(v).replace(/^\uFEFF/,''));return{headers,rows:Array.from({length:s.rowCount-1},(_,i)=>Object.fromEntries(headers.map((h,c)=>[h,s.getRow(i+2).getCell(c+1).text])))};}
+async function workbook(headers,rows,format='csv'){const w=new ExcelJS.Workbook(),s=w.addWorksheet('Jurnal');s.addRow(headers);rows.forEach(r=>s.addRow(headers.map(h=>r[h]??'')));return Buffer.from(format==='csv'?await w.csv.writeBuffer():await w.xlsx.writeBuffer());}
+const records=t=>db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all();
+const digest=()=>JSON.stringify(['ak_absensi_sesi','ak_absensi_harian','ak_nilai'].map(records));
+const all={scope:'seluruh',id_tahun_ajaran:'1',mulai:'2026-10-26',selesai:'2026-10-30'};
+const query=(extra={})=>new URLSearchParams({...all,...extra}).toString();
+async function exportFile(session,extra={}){const r=await request('/api/export?'+query({kind:'jurnal_data',format:'csv',...extra}),session);assert.equal(r.status,200,JSON.stringify(r.json));return r.bytes;}
+async function post(page,name,url){const pending=page.waitForResponse(r=>new URL(r.url()).pathname===url&&r.request().method()==='POST');await page.getByRole('button',{name,exact:true}).click();const r=await pending,j=await r.json();assert.equal(r.status(),200,JSON.stringify(j));return j.data;}
+async function filters(page,classId=''){await page.getByLabel('Kelas transfer jurnal',{exact:true}).selectOption(classId);await page.getByLabel('Pilihan tanggal jurnal',{exact:true}).selectOption('range');await page.getByLabel('Mulai jurnal',{exact:true}).fill('2026-10-26');await page.getByLabel('Selesai jurnal',{exact:true}).fill('2026-10-30');}
+
+(async()=>{
+ const admin=await login('uji_admin'),first=await login('uji_guru'),second=await login('uji_guru_lain'),duty=await login('uji_piket'),head=await login('uji_kepsek'),student=await login('uji_siswa');
+ for(const [session,id,status]of [[first,'1','S'],[second,'2','I']]){const a=await json(`/api/absensi?id_jadwal=${id}&tanggal=2026-10-30`,session);await json('/api/absensi',session,{id_jadwal:id,tanggal:'2026-10-30',pertemuan_ke:1,materi:id==='1'?'Jurnal kelas satu':'Jurnal kelas dua',tp_atp:'TP 1',kegiatan:'Diskusi',refleksi:'Refleksi awal',tindak_lanjut:'Latihan',catatan:"'- Catatan uji",items:a.data.map((m,i)=>({...m,status:i===a.data.length-1?status:'H'}))});}
+ for(const [id,date,materi]of [['1','2026-10-23','Jurnal sebelum rentang'],['4','2026-10-26','Jurnal hari Senin']])await json('/api/jurnal',first,{scope:'kelas',id_jadwal:id,id_kelas:'1',id_tahun_ajaran:'1',tanggal:date,pertemuan_ke:1,materi,konfirmasi:true});
+ const untouched=digest();
+ const data=await csv(await exportFile(admin));assert.equal(data.rows.length,3);assert(data.headers.includes('id_jadwal')&&data.headers.includes('revision'));assert.equal((await csv(await exportFile(first,{scope:'kelas',id_kelas:'1'}))).rows.length,2);
+ assert.equal((await csv(await exportFile(head,{mulai:'2026-10-30',selesai:'2026-10-30'}))).rows.length,2);assert.equal((await csv(await exportFile(first,{hari:'Senin'}))).rows.length,1);
+ assert.equal((await csv(await exportFile(admin,{mulai:'2026-07-01',selesai:'2026-11-05'}))).rows.length,4);
+ const list=await json('/api/jurnal?'+query({transfer:'1',scope:'kelas',id_kelas:'2'}),duty);assert.equal(list.data.length,1);assert.equal(list.data[0].nama_kelas,'XII PPLG 1');
+ pass('EXPORT_per_class_all_classes_single_date_date_range_and_weekday_filters');
+
+ const pdf=await request('/api/export?'+query({kind:'jurnal',format:'pdf'}),head);assert.equal(pdf.status,200);assert.equal(pdf.bytes.subarray(0,4).toString(),'%PDF');fs.writeFileSync(path.join(state,'reports/journal-all.pdf'),pdf.bytes);
+ const python=process.env.SIA_PDF_PYTHON||path.join(os.homedir(),'.local/state/sia-pdf-inspection/venv/bin/python');assert(fs.existsSync(python),'Provide SIA_PDF_PYTHON with pypdf for PDF content validation');
+ const pdfText=cp.execFileSync(python,['-c','import sys,io;from pypdf import PdfReader;print("\\n".join(p.extract_text() for p in PdfReader(io.BytesIO(sys.stdin.buffer.read())).pages))'],{input:pdf.bytes,encoding:'utf8'}).replace(/\s+/g,' ');
+ for(const term of ['Jurnal harian kelas','Periode: 2026/2027 Ganjil','Kelas: Seluruh kelas','2026-10-26 sampai 2026-10-30','TP / ATP','Materi','Kegiatan','Refleksi','Tindak lanjut','Siswa Review 2','XII PPLG 1','XII PPLG 2'])assert(pdfText.includes(term),'PDF missing '+term);
+ pass('PDF_actual_text_contains_period_class_dates_journal_fields_and_absence_details');
+
+ const templateResponse=await request('/api/export?'+query({kind:'template',module:'jurnal',format:'csv'}),duty);assert.equal(templateResponse.status,200);const template=await csv(templateResponse.bytes);assert.equal(template.rows.length,7);
+ const fresh=template.rows.find(r=>r.id_jadwal==='6');assert.equal(fresh.tanggal,'2026-10-28');assert.equal(fresh.revision,'0');assert.equal(fresh.materi,'');
+ const selected=data.rows.filter(r=>['1','2'].includes(r.id_jadwal)).map(r=>({...r,materi:'- Materi impor '+r.id_jadwal}));selected.push({...fresh,materi:'Materi baru Rabu',pertemuan_ke:'3'});
+ const previewBody={...all,module:'jurnal',action:'preview',filename:'jurnal.csv',content:(await workbook(data.headers,[...selected,{...template.rows.find(r=>r.id_jadwal==='5'),materi:''}])).toString('base64'),alasan:'Pemeriksaan lintas guru setelah kelas dan tanggal diperiksa'};
+ const before=records('ak_pertemuan'),audits=records('ak_riwayat').length;let preview=(await json('/api/impor-akademik',duty,previewBody)).data;assert.equal(preview.total,3);assert.equal(preview.skipped,1);assert.deepEqual(records('ak_pertemuan'),before);assert.equal(records('ak_riwayat').length,audits);
+ await json('/api/impor-akademik',first,{action:'commit',token:preview.token,konfirmasi:true},403);await json('/api/impor-akademik',duty,{action:'commit',token:preview.token,konfirmasi:false},422);
+ await json('/api/impor-akademik',duty,{action:'commit',token:preview.token,konfirmasi:true});await json('/api/impor-akademik',duty,{action:'commit',token:preview.token,konfirmasi:true},409);
+ assert.equal(digest(),untouched);assert.equal(db.prepare("SELECT catatan FROM ak_pertemuan WHERE id_jadwal='1' AND tanggal='2026-10-30'").get().catatan,"'- Catatan uji");assert.equal(db.prepare("SELECT materi FROM ak_pertemuan WHERE id_jadwal='6' AND tanggal='2026-10-28'").get().materi,'Materi baru Rabu');assert.equal(db.prepare("SELECT updated_by FROM ak_pertemuan WHERE id_jadwal='2' AND tanggal='2026-10-30'").get().updated_by,duty.user.id_user);
+ pass('IMPORT_template_preview_no_write_confirm_creates_updates_other_teachers_and_preserves_attendance_grades');
+
+ const current=await csv(await exportFile(admin));const valid=current.rows.find(r=>r.id_jadwal==='1'),bad=current.rows.find(r=>r.id_jadwal==='2');
+ const invalidCases=[{rows:[{...valid,id_kelas:'2'}],extra:{}},{rows:[{...valid,nama_guru:'Guru yang salah'}],extra:{}},{rows:[{...valid,pertemuan_ke:'-2'}],extra:{}},{rows:[valid,valid],extra:{}},{rows:[{...valid,tanggal:'2026-10-23'}],extra:{}},{rows:[{...valid,revision:'999'}],extra:{},status:409},{rows:[valid],extra:{scope:'kelas',id_kelas:'2'}},{rows:[{...valid,materi:'Harus rollback'}, {...bad,tanggal:'2026-10-26'}],extra:{}}];
+ const stable=records('ak_pertemuan'),stableAudit=records('ak_riwayat').length;
+ for(const test of invalidCases)await json('/api/impor-akademik',duty,{...previewBody,...test.extra,content:(await workbook(current.headers,test.rows)).toString('base64')},test.status||422);
+ assert.deepEqual(records('ak_pertemuan'),stable);assert.equal(records('ak_riwayat').length,stableAudit);assert.equal(digest(),untouched);
+ await json('/api/export?'+query({kind:'jurnal_data',format:'csv'}),student,undefined,403);await json('/api/impor-akademik',head,previewBody,403);await json('/api/absensi?id_jadwal=1&tanggal=2026-10-30',duty,undefined,403);await json('/api/nilai?id_jadwal=1',duty,undefined,403);
+ pass('VALIDATION_wrong_class_identity_revision_dates_negative_number_duplicates_and_partial_batch_rejected_atomically');
+
+ preview=(await json('/api/impor-akademik',duty,{...previewBody,content:(await workbook(current.headers,[valid,bad])).toString('base64')})).data;
+ const meeting=db.prepare("SELECT * FROM ak_pertemuan WHERE id_jadwal='1' AND tanggal='2026-10-30'").get();await json('/api/jurnal',first,{...meeting,scope:'kelas',konfirmasi:true,materi:'Perubahan setelah preview',alasan:'Uji versi sesudah preview'});
+ const changed=records('ak_pertemuan');await json('/api/impor-akademik',duty,{action:'commit',token:preview.token,konfirmasi:true},409);assert.deepEqual(records('ak_pertemuan'),changed);
+ let year=(await json('/api/admin?table=tahun_ajaran',admin)).data.find(y=>y.id_tahun_ajaran==='1');const locked=(await json('/api/admin',admin,{...year,table:'tahun_ajaran',id:'1',action:'update',dikunci:'1',alasan:'Uji periode terkunci'})).data;
+ const latest=(await csv(await exportFile(admin))).rows.find(r=>r.id_jadwal==='1');await json('/api/impor-akademik',duty,{...previewBody,content:(await workbook(current.headers,[latest])).toString('base64')},409);await json('/api/admin',admin,{...locked,table:'tahun_ajaran',id:'1',action:'update',dikunci:'0',alasan:'Selesai uji periode'});
+ pass('CONCURRENCY_changed_sources_and_locked_period_block_import_without_partial_writes');
+
+ const xlsx=await exportFile(duty,{format:'xlsx'}),book=new ExcelJS.Workbook();await book.xlsx.load(xlsx);const sheet=book.worksheets[0],headers=sheet.getRow(1).values.slice(1).map(String),materialColumn=headers.indexOf('materi')+1,reflectionColumn=headers.indexOf('refleksi')+1;
+ sheet.getRow(2).getCell(materialColumn).value='- Materi literal dari Excel';sheet.getRow(2).getCell(reflectionColumn).value='Refleksi\n  Baris kedua  ';
+ let p=(await json('/api/impor-akademik',duty,{...previewBody,filename:'jurnal.xlsx',content:Buffer.from(await book.xlsx.writeBuffer()).toString('base64')})).data;await json('/api/impor-akademik',duty,{action:'commit',token:p.token,konfirmasi:true});
+ const firstId=sheet.getRow(2).getCell(headers.indexOf('id_jadwal')+1).text,firstDate=sheet.getRow(2).getCell(headers.indexOf('tanggal')+1).text;const updated=db.prepare('SELECT * FROM ak_pertemuan WHERE id_jadwal=? AND tanggal=?').get(firstId,firstDate);assert.equal(updated.materi,'- Materi literal dari Excel');assert.equal(updated.refleksi,'Refleksi\n  Baris kedua  ');
+ sheet.getRow(2).getCell(materialColumn).value={formula:'1+1'};await json('/api/impor-akademik',duty,{...previewBody,filename:'formula.xlsx',content:Buffer.from(await book.xlsx.writeBuffer()).toString('base64')},422);assert.equal(digest(),untouched);
+ pass('XLSX_round_trip_preserves_literal_text_line_breaks_and_rejects_spreadsheet_formulas');
+
+ appBrowser=await browser();const ctx=await context(appBrowser,duty),page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.goto(base+'/guru/jurnal');await page.getByRole('button',{name:'Ekspor jurnal',exact:true}).click();await filters(page,'1');const expected=(await csv(await exportFile(duty,{scope:'kelas',id_kelas:'1'}))).rows.length;
+  await page.getByText(`${expected} jurnal sesuai pilihan.`,{exact:true}).waitFor();let download=page.waitForEvent('download');await page.getByRole('button',{name:'Unduh Jurnal CSV',exact:true}).click();let file=await download;assert.equal(await file.failure(),null);const downloaded=await csv(fs.readFileSync(await file.path()));assert(downloaded.rows.every(r=>r.id_kelas==='1'));
+  await page.getByRole('button',{name:'Tutup Ekspor jurnal kelas',exact:true}).click();await page.getByRole('button',{name:'Impor jurnal',exact:true}).click();await filters(page,'1');downloaded.rows[0].materi='Materi dari popup jurnal';const upload=await workbook(downloaded.headers,downloaded.rows);
+  await page.getByLabel('Berkas jurnal',{exact:true}).setInputFiles({name:'popup.csv',mimeType:'text/csv',buffer:upload});await page.getByLabel('Alasan impor jurnal',{exact:true}).fill('Konteks diperiksa melalui popup');const beforeUi=records('ak_pertemuan');await post(page,'Pratinjau impor jurnal','/api/impor-akademik');assert.deepEqual(records('ak_pertemuan'),beforeUi);assert(await page.getByRole('button',{name:'Simpan impor jurnal',exact:true}).isDisabled());
+  await page.getByLabel('Konfirmasi seluruh jurnal',{exact:true}).check();await post(page,'Simpan impor jurnal','/api/impor-akademik');await page.getByText(`${downloaded.rows.length} jurnal berhasil disimpan.`,{exact:true}).waitFor();assert.equal(digest(),untouched);
+  for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});const rect=await page.getByRole('dialog').boundingBox();assert(rect&&rect.x>=-1&&rect.x+rect.width<=width+1);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+  await page.screenshot({path:path.join(state,'screenshots/journal-import-popup.png')});await page.keyboard.press('Escape');await page.goto(base+'/guru/impor');await page.getByLabel('Modul impor',{exact:true}).selectOption('jurnal');await page.getByRole('button',{name:'Impor jurnal',exact:true}).click();await page.getByRole('dialog',{name:'Impor jurnal kelas',exact:true}).waitFor();await page.keyboard.press('Escape');assert.deepEqual(errors,[]);
+  pass('BROWSER_export_download_and_import_preview_confirm_work_in_responsive_popups_including_import_menu');
+ }finally{await ctx.close();}
+
+ const mobile=await context(appBrowser,admin),m=await mobile.newPage();try{await m.setViewportSize({width:390,height:844});await m.goto(base+'/admin');await m.getByRole('button',{name:'Pilih modul',exact:true}).click();await m.getByRole('navigation',{name:'Pilihan modul',exact:true}).getByRole('link',{name:'Akademik',exact:true}).click();await m.waitForURL('**/admin/penugasan');await m.getByRole('button',{name:'Menu fitur',exact:true}).click();await m.getByRole('navigation',{name:'Fitur modul',exact:true}).getByRole('link',{name:'Kelola Jadwal',exact:true}).click();await m.waitForURL('**/admin/jadwal');assert.equal(await m.getByRole('button',{name:'Menu fitur',exact:true}).getAttribute('aria-expanded'),'false');assert.equal(await m.locator('.sia-sidebar').isVisible(),false);for(const width of [320,390]){await m.setViewportSize({width,height:844});await m.getByRole('button',{name:'Menu fitur',exact:true}).click();const rect=await m.getByRole('dialog').boundingBox();assert(rect&&rect.x>=0&&rect.x+rect.width<=width+1);await m.keyboard.press('Escape');}await m.screenshot({path:path.join(state,'screenshots/mobile-breadcrumb-navigation.png')});pass('MOBILE_module_and_feature_breadcrumb_popups_navigate_close_and_fit_phone');}finally{await mobile.close();}
+ const hc=await context(appBrowser,head),h=await hc.newPage();try{await h.goto(base+'/kepsek/jurnal');await h.getByRole('button',{name:'Ekspor jurnal',exact:true}).waitFor();assert.equal(await h.getByRole('button',{name:'Impor jurnal',exact:true}).count(),0);}finally{await hc.close();}
+ unchanged();pass('INTEGRITY_school_database_unchanged_and_head_has_export_only');
+})().catch(error=>{tests.push({id:'journal-transfer',status:'FAIL',message:error.stack});console.error(error.stack)}).finally(async()=>{if(appBrowser)await appBrowser.close();db.close();const report={passed:tests.filter(t=>t.status==='PASS').length,failed:tests.filter(t=>t.status==='FAIL').length,tests};fs.writeFileSync(path.join(state,'reports/journal-transfer.json'),JSON.stringify(report,null,2)+'\n');console.log(`${report.passed} PASS, ${report.failed} FAIL`);process.exitCode=report.failed?1:0;});

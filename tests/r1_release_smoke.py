@@ -48,7 +48,7 @@ def main():
             b=Browser(base);page=b.request('/auth/login.php')
             test(name+'_guest_login_200',lambda:status(page,200))
             test(name+'_guest_admin_denied',lambda:status(b.request('/admin/index.php'),302))
-            test(name+'_internal_files_blocked',lambda:[status(b.request(path),404) for path in ['/db_sia_smkn2_magelang.sql','/.git/config','/.env','/server.log','/config/config.php','/ops/read_only_query.php']])
+            test(name+'_internal_files_blocked',lambda:[status(b.request(path),404) for path in ['/db_sia_smkn2_magelang.sql','/.git/config','/.env','/server.log','/config/config.php','/ops/database/read_only_query.php']])
             test(name+'_login_fixture_only',lambda:status(b.request('/auth/login.php','POST',{'csrf_token':csrf(page[2]),'username':username,'password':password}),302))
             test(name+'_admin_page_after_additive_migration',lambda:status(b.request('/admin/index.php'),200))
             test(name+'_master_page_after_additive_migration',lambda:status(b.request('/admin/master.php?table=siswa'),200))
@@ -82,7 +82,7 @@ def main():
             # Production-mode guard testing still points ONLY at the socket-only clone.
             check(config['DB_NAME']=='r1_review_20261030' and config['DB_SOCKET']==runtime['DB_SOCKET'])
             save_json(cfg,config);env={k:v for k,v in os.environ.items() if not k.startswith('SIA_')};env['SIA_CONFIG_FILE']=str(cfg)
-            return subprocess.run(['php',str(candidate/'ops/migrate_r1.php'),*options],env=env,capture_output=True)
+            return subprocess.run(['php',str(candidate/'ops/database/migrate_r1.php'),*options],env=env,capture_output=True)
         common=['--expected-database=r1_review_20261030','--production-release='+commit]
         test('production_guard_missing_private_approval_denied',lambda:check(migration(production,['--apply',*common]).returncode==2))
         approved={**production,'R1_APPROVED_RELEASE':commit}
@@ -94,7 +94,7 @@ def main():
         tamper=state/'release'/('tamper-'+secrets.token_hex(4));shutil.copytree(candidate,tamper)
         target=tamper/'database/migrations/002_r1_security.php';target.chmod(0o600);target.write_text(target.read_text()+'\n// tampered review probe\n')
         env={k:v for k,v in os.environ.items() if not k.startswith('SIA_')};env['SIA_CONFIG_FILE']=str(cfg)
-        test('production_guard_modified_migration_denied',lambda:check(subprocess.run(['php',str(tamper/'ops/migrate_r1.php'),'--apply',*common],env=env,capture_output=True).returncode==2))
+        test('production_guard_modified_migration_denied',lambda:check(subprocess.run(['php',str(tamper/'ops/database/migrate_r1.php'),'--apply',*common],env=env,capture_output=True).returncode==2))
         test('guard_tests_do_not_change_clone',lambda:check(snapshot(inspector)==with_fixture))
     finally:
         mysql(client,"DELETE FROM users WHERE username IN ('"+username+"','"+teachername+"');",database=runtime['DB_NAME'])
@@ -102,12 +102,12 @@ def main():
     original=json.loads((state/'reports/original-column-projection.json').read_text())
     test('original_clone_rows_unchanged_after_app_rollback',lambda:check(projection(inspector,columns)==original))
     env={k:v for k,v in os.environ.items() if not k.startswith('SIA_')};env['SIA_CONFIG_FILE']=str(state/'private/clone-runtime.json')
-    test('frozen_runtime_preflight_least_privilege_passes',lambda:check(subprocess.run(['php',str(candidate/'ops/check_r1_runtime.php'),'--expected-database=r1_review_20261030','--expected-environment=staging'],env=env,capture_output=True).returncode==0))
+    test('frozen_runtime_preflight_least_privilege_passes',lambda:check(subprocess.run(['php',str(candidate/'ops/release/check_r1_runtime.php'),'--expected-database=r1_review_20261030','--expected-environment=staging'],env=env,capture_output=True).returncode==0))
     env['SIA_CONFIG_FILE']=str(state/'private/clone-owner.json')
-    test('migration_owner_rejected_as_application_runtime',lambda:check(subprocess.run(['php',str(candidate/'ops/check_r1_runtime.php'),'--expected-database=r1_review_20261030','--expected-environment=staging'],env=env,capture_output=True).returncode==1))
+    test('migration_owner_rejected_as_application_runtime',lambda:check(subprocess.run(['php',str(candidate/'ops/release/check_r1_runtime.php'),'--expected-database=r1_review_20261030','--expected-environment=staging'],env=env,capture_output=True).returncode==1))
     baseline=state/'reports'/('fingerprint-smoke-'+secrets.token_hex(4)+'.json')
     def fingerprint(action,path):
-        return subprocess.run(['python3',str(candidate/'ops/r1_data_fingerprint.py'),action,'--config',str(inspector),'--baseline',str(path)],capture_output=True).returncode
+        return subprocess.run(['python3',str(candidate/'ops/release/r1_data_fingerprint.py'),action,'--config',str(inspector),'--baseline',str(path)],capture_output=True).returncode
     test('read_only_fingerprint_capture',lambda:check(fingerprint('capture',baseline)==0))
     test('read_only_fingerprint_verify',lambda:check(fingerprint('verify',baseline)==0))
     wrong=state/'reports'/('fingerprint-wrong-'+secrets.token_hex(4)+'.json');data=json.loads(baseline.read_text());data['database']='not_the_clone';save_json(wrong,data)

@@ -2,14 +2,41 @@
   "name": "sia-smkn2-magelang",
   "version": "0.1.0",
   "private": true,
-  "description": "Website akademik PHP native dengan perintah development pnpm",
+  "description": "Website akademik Next.js, TypeScript dan SQLite",
   "scripts": {
-    "dev": "node ops/dev.cjs",
-    "dev:setup": "node ops/dev.cjs --setup",
-    "dev:check": "node ops/dev.cjs --check"
+    "dev": "next dev",
+    "dev:php": "node ops/dev/dev.cjs",
+    "dev:setup": "node ops/dev/dev.cjs --setup",
+    "dev:check": "node ops/dev/dev.cjs --check",
+    "build": "next build",
+    "start": "next start"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=22",
     "pnpm": ">=9"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
+    "lucide-react": "^1.66.0",
+    "next": "^16.4.3",
+    "pdfkit": "^0.20.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.6",
+    "@types/pdfkit": "^0.17.7",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
   }
 }

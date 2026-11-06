@@ -1,5 +1,0 @@
-<?php
-// Included only after ak_report has enforced the caller's report scope.
-$reviews=ak_rows('SELECT r.*,u.username FROM ak_review_rapor r JOIN users u ON u.id_user=r.actor_id WHERE r.id_snapshot=? ORDER BY r.id DESC',[$report['id']]);
-?><section class="panel"><h2>Pemeriksaan wali kelas</h2><?php if(!$reviews):?><p>Belum diperiksa wali. Snapshot baru wajib disetujui wali yang ditugaskan sebelum diterbitkan admin.</p><?php endif;foreach($reviews as $review):?><article class="history-entry"><strong><?=e($review['username'])?> · <?=e($review['keputusan'])?></strong><p><?=e($review['created_at'])?> · <?=e($review['catatan'])?></p></article><?php endforeach;
-if($role==='guru' && $report['status']==='draft'):?><form method="post"><?=csrf_field()?><?php ak_hidden('action','rapor_review');ak_hidden('id',$report['id']);ak_hidden('revision',$report['revision']);ak_select('keputusan','Hasil pemeriksaan',['disetujui'=>'Disetujui untuk verifikasi admin','perlu_perbaikan'=>'Perlu perbaikan / snapshot baru']);ak_field('catatan','Catatan pemeriksaan');?><button type="submit">Simpan Pemeriksaan Wali</button></form><?php endif;?></section>

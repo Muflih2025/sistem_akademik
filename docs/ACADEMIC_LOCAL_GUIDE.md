@@ -10,15 +10,15 @@ Worktree: `/home/muflih/sia-academic-dev`.
 
 ```bash
 cd /home/muflih/sia-academic-dev
-python3 ops/academic_server.py status
-python3 ops/academic_server.py start
+python3 ops/academic/academic_server.py status
+python3 ops/academic/academic_server.py start
 ```
 
 Buka **http://127.0.0.1:18125/auth/login.php**. Login mengarahkan ke Ruang Akademik sesuai role.
 
 ```bash
-python3 ops/academic_server.py restart
-python3 ops/academic_server.py stop
+python3 ops/academic/academic_server.py restart
+python3 ops/academic/academic_server.py stop
 ```
 
 Wrapper hanya mengendalikan `sia-academic-dev-20261031.service`. Membutuhkan akses operator lokal `sudo -n`; tidak menerima nama service/port lain. Tidak ada fallback ke database atau service produksi. Service development sudah dipasang dan berjalan; perintah `install` atau setup database **tidak perlu diulang**. Service tidak di-enable otomatis saat boot.

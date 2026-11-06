@@ -1,0 +1,81 @@
+{
+  "method": "Real Chromium clicks, reloads, SQLite checks and HTTP against an isolated synthetic database",
+  "passed": 10,
+  "failed": 0,
+  "tests": [
+    {
+      "id": "JOURNAL_create_with_trimmed_lesson_and_reload_without_inventing_attendance",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_empty_correction_reason_shows_actionable_error_without_writes",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_correction_persists_and_records_reason",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_edit_after_attendance_preserves_all_session_rows",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_history_refresh_failure_does_not_report_saved_data_as_failed",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_wrong_day_cannot_write_and_correct_date_recovers",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_server_keeps_revision_scope_reason_and_lesson_guards",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_unchanged_legacy_lesson_label_remains_editable",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL_no_browser_runtime_errors",
+      "status": "PASS"
+    },
+    {
+      "id": "INTEGRITY_original_school_database_unchanged",
+      "status": "PASS"
+    }
+  ],
+  "date": "2026-11-04",
+  "base_commit": "072bc8527f8cff7409e03948aaf8d22305703d08",
+  "tested_state": "Base commit plus the source edits identified by hashes below; executed against the normal pnpm build / Next start production runtime.",
+  "runner": "tests/tsx_journal_save.cjs",
+  "before_fix_observations": {
+    "new_standalone_journal": "HTTP 200 and persisted after reload",
+    "empty_correction_reason": "Browser-native validation prevented submission; no in-app error notice appeared",
+    "lesson_with_surrounding_spaces": "HTTP 422 for input \" 1-2 \""
+  },
+  "checks": {
+    "typecheck": "pnpm exec tsc --noEmit --incremental false: PASS",
+    "production_build": "pnpm build (Turbopack), 82 routes: PASS",
+    "whitespace": "git diff --check: PASS"
+  },
+  "source_sha256": {
+    "src/components/academic/MeetingEditor.tsx": "100340104d7257408d86f220df523b81a9cb7606259314f2b2169a06adc92111",
+    "src/components/academic/TeachingContext.tsx": "6eeb41fbe68e49d83ac294b4ffaafe4e57ceb04ac955b6b08cc29f6eb85b6053",
+    "src/lib/academic.ts": "d2bc49bc62caeb2eee68538c75a74ccbfa331662c513a43b6ffe5fbf829fae60",
+    "tests/tsx_journal_save.cjs": "84ce46861552af9618ae9389b0124e5e26808e72a93c1ce80773da035cafd8bc"
+  },
+  "original_database": {
+    "unchanged": true,
+    "before": {
+      "sia.db-wal": "bb73e687cd3fc1d58f6f7829041ba887af3a9cb2b55956407eaa3ed1934b7f69",
+      "sia.db-shm": "36a377023a006bfb994296ffacde37c5a912ac50df7438279b8db886209dacff",
+      "sia.db": "1a21075ce4fa60343070186ab7b13cb10bd7bc9e473178f5ac26648f8d1719e7"
+    },
+    "after": {
+      "sia.db-wal": "bb73e687cd3fc1d58f6f7829041ba887af3a9cb2b55956407eaa3ed1934b7f69",
+      "sia.db-shm": "36a377023a006bfb994296ffacde37c5a912ac50df7438279b8db886209dacff",
+      "sia.db": "1a21075ce4fa60343070186ab7b13cb10bd7bc9e473178f5ac26648f8d1719e7"
+    }
+  },
+  "scope": "Synthetic schema-only database outside repository. The reported user incident cannot be uniquely identified without its URL and actual error message."
+}

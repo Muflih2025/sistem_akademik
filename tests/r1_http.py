@@ -11,7 +11,7 @@ def main():
  os.umask(0o077);p=argparse.ArgumentParser();p.add_argument('--state',required=True);p.add_argument('--port',type=int,default=18091);a=p.parse_args();state=Path(a.state).resolve()
  control_path=state/'private/service-control.json';control=json.loads(control_path.read_text()) if control_path.exists() else None
  def service_action(action,name=None):
-  command=['sudo','-n','python3',str(ROOT/'ops/r15_service_control.py'),action,'--state',str(state)]
+  command=['sudo','-n','python3',str(ROOT/'ops/release/r15_service_control.py'),action,'--state',str(state)]
   if name is not None:command+=['--name',name]
   r=subprocess.run(command,capture_output=True)
   if r.returncode:raise RuntimeError('Isolated staging service action failed; private context redacted')
@@ -359,7 +359,7 @@ def main():
   status(upload(memory.getvalue(),'fixture.xlsx'),302);check(scalar('SELECT COUNT(*) FROM siswa WHERE nis=?',[nis])==1)
  test('import_inline_sparse_xlsx_leading_zero',import_xlsx)
  # R0 protections and cross-role regression remain intact after mutations.
- for path in ['/db_sia_smkn2_magelang.sql','/.git/config','/.env','/adminer.php','/db.php','/config/config.php','/ops/migrate_r1.php','/tests/r1_db.php','/%2e%2e/config/config.php']:
+ for path in ['/db_sia_smkn2_magelang.sql','/.git/config','/.env','/adminer.php','/db.php','/config/config.php','/ops/database/migrate_r1.php','/tests/r1_db.php','/%2e%2e/config/config.php']:
   for method in ['GET','HEAD']:test('r0_block_'+method+'_'+path,lambda path=path,method=method:status(admin.request(path,method),404))
  routes=json.loads(subprocess.check_output(['php','-r','echo json_encode(require $argv[1]);',str(ROOT/'config/web_routes.php')]))
  for role,account in [('admin','admin'),('guru','teacher_a'),('siswa','student_a'),('kepala_sekolah','head')]:

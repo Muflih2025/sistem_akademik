@@ -1,0 +1,825 @@
+{
+  "date": "2026-11-04",
+  "base_commit": "5317898c5f69f958fdc0b5989b5b35e653f52212",
+  "source_state": "Base commit plus source hashes below; application edits were present during testing. The base commit alone does not identify the tested implementation.",
+  "roles": [
+    "admin",
+    "guru_mapel",
+    "guru_piket",
+    "kepala_sekolah",
+    "siswa"
+  ],
+  "fixture": "Schema-only SQLite with synthetic accounts and students, stored outside repository; no school rows copied.",
+  "totals": {
+    "passed": 96,
+    "failed": 0,
+    "errors": 0
+  },
+  "counting": "96 assertions/workflow groups across five suites; includes overlapping checks. Not a claim of exhaustive PHP source parity or every possible configuration.",
+  "checks": {
+    "typescript": "pnpm exec tsc --noEmit --incremental false: PASS",
+    "production_build": "pnpm build (default Turbopack): PASS, 82 routes",
+    "diff_whitespace": "git diff --check: PASS",
+    "production_source_matches_worktree": true
+  },
+  "original_database": {
+    "before": {
+      "sia.db-wal": "bb73e687cd3fc1d58f6f7829041ba887af3a9cb2b55956407eaa3ed1934b7f69",
+      "sia.db-shm": "36a377023a006bfb994296ffacde37c5a912ac50df7438279b8db886209dacff",
+      "sia.db": "1a21075ce4fa60343070186ab7b13cb10bd7bc9e473178f5ac26648f8d1719e7"
+    },
+    "after": {
+      "sia.db-wal": "bb73e687cd3fc1d58f6f7829041ba887af3a9cb2b55956407eaa3ed1934b7f69",
+      "sia.db-shm": "36a377023a006bfb994296ffacde37c5a912ac50df7438279b8db886209dacff",
+      "sia.db": "1a21075ce4fa60343070186ab7b13cb10bd7bc9e473178f5ac26648f8d1719e7"
+    },
+    "unchanged": true
+  },
+  "source_sha256": {
+    "src/app/absensi/page.tsx": "cc2e09349d9c4902e9c779b6185c5ed99dbd2d27356594a335a37aaf9abce53e",
+    "src/app/admin/alumni/page.tsx": "6302ae9c6182c9d36d2c201f2d211ef34fea287ca275dcca3b0d9e3fb55d86ed",
+    "src/app/admin/audit/page.tsx": "fa20ac34f55c885fe6860536debc42508403cdbd3593fbce336ba97b1e650a8b",
+    "src/app/admin/bulk-upload/page.tsx": "5075eda7149b5c3e5452446ab8a929be12f76da78be04ff4ea99ee53014af53a",
+    "src/app/admin/ekskul/page.tsx": "edd307fb4d054ee921ffe4d0f0f73839d7f0e0b850c9253584eaca84726ee869",
+    "src/app/admin/export-import/page.tsx": "442572e412d54a0603eebeb61f4b6bbde3de58539b4804f6bd3f9fb8b6dbec32",
+    "src/app/admin/jadwal/page.tsx": "81060ec9e92564a58e2a2cf20ee785b52d843d305ece7e211030531c59c0ce20",
+    "src/app/admin/jam-belajar/page.tsx": "382f89312c95ad837b27ba1800f784a85ff4b50a11867fa4c1338524df21e440",
+    "src/app/admin/jurnal/page.tsx": "810fa41946dd4bb0d127129fed73e2b99c76623c778312d9fce77733c7138a64",
+    "src/app/admin/kalender/page.tsx": "fbfe8208095be32bf12eff17eddd21db3b606afdd17e5f2dbfe155188612fe96",
+    "src/app/admin/kenaikan/page.tsx": "a512afce03ec8a3aec63b0eb29169a65771c665448cb0a57632268e5efba1597",
+    "src/app/admin/layout.tsx": "18d59bc30cf1ff1aeaa200158fefba237350487cf50a0e157c5ab6ee23ded58a",
+    "src/app/admin/master/page.tsx": "1de4534f8368a3a1ba583ad9dc2b2b94987952520ccca324a47f1ad075400fa3",
+    "src/app/admin/nilai/page.tsx": "f65152cabe05282597f5015741443b0661034c9652a303295f537a2c62d1415e",
+    "src/app/admin/page.tsx": "76fc50b78bdb50173004206a9b266625077eb90b1acded40017cbce3d283de35",
+    "src/app/admin/penugasan/page.tsx": "a71cc6651a6faf00a01afc86a827268737b71c136fa0f41217fe82332b6fdd97",
+    "src/app/admin/rekap-nilai/page.tsx": "a136fad80021262157261bb4c0a1577ab946f43570ac85a3a6115d3481124f1f",
+    "src/app/admin/tahun-ajaran/page.tsx": "768299adfc7614bd13df2ea5e3f1aabd6a99a05ab61c69d0cc9bd982866ecebb",
+    "src/app/admin/users/page.tsx": "df8d9de65fddf18cac5ed45b05d2359af775482bdbac28127c57a01e81670e79",
+    "src/app/api/absensi/route.ts": "427b4ace2fc1891a530dd6f9bcd6709148d767658f979af6652cec9c00c09cb4",
+    "src/app/api/admin/route.ts": "4a99eef33b6e8215847b898fd1fb0016fa256d5ef2497d530fc97f86a8c0fbd4",
+    "src/app/api/alumni/route.ts": "477544a717351b79e4acae7990dbe59199d86ba61381fdb120963fc52bc620fe",
+    "src/app/api/aturan-nilai/route.ts": "9762d44d6b0de7ee20e27ab381fa0eb883e1990566b51caf3c8086fcc7d0ff3d",
+    "src/app/api/audit/route.ts": "1687708da8ba7c557d782dc63ea1201798ececf8656ce2b2ec26dc77a0e92244",
+    "src/app/api/auth/change-password/route.ts": "2abc69f38454eeba8e800ff3b9e30ccb1fe1773f9a72f490b97501e9eb9d2579",
+    "src/app/api/auth/route.ts": "06e63dce761ccfd3ab4a70726be5e2b6f4682b8ab7ae242868e236f08de4a38a",
+    "src/app/api/dashboard/route.ts": "74f93bb14efe55c1614ee4900b6d97b79fac4785693be184783c487263cf131f",
+    "src/app/api/ekskul/route.ts": "da17f9d1f8b1cd3d92f9c7708c23774e0bcc5f092da419522d6a2a6ace70f84b",
+    "src/app/api/export/route.ts": "3ce9bd35af69bc74e8b7eb3acb46165441f3db4f1060a37da9fb316eeb49b497",
+    "src/app/api/foundation/route.ts": "676f05dd81d3e21575050eabb18f2fe80d141e0cb01daddc08957fc62922a5d1",
+    "src/app/api/guru-options/route.ts": "7f18ed0647c12bd3059e2697cba5355a8dbb9f1bcf4f4bfda68c0ce7f66009a9",
+    "src/app/api/impor/route.ts": "c26404055674592864ce0b1ec245fef01d5a59aa77a0e8bbae59a6bcc768c07b",
+    "src/app/api/impor-akademik/route.ts": "eafac7a00928ac29381bcdd224ffcd8ff7566a317229653ea36272534a6b12dc",
+    "src/app/api/jadwal/route.ts": "41ca68de57ee1811c9208ab4ac5216440e8df8669329162bd741529d6e1b865e",
+    "src/app/api/jam-belajar/route.ts": "8d287b9f72d503a334787c969afcc2b7d98bfc1e69b7e48620473aaae248c819",
+    "src/app/api/jurnal/route.ts": "d6bd8a38c4f0464dfa31740a14fd2ec87a7c6a9bb7bcafc4c11fce7e52150c7e",
+    "src/app/api/kalender/route.ts": "abd05b8c1c125670095e857fe56417b306e55ca59b71874c4ad175a8ae1fada0",
+    "src/app/api/kenaikan/route.ts": "0fd134d8477cf976d0103a2a0cf3156ad7da2ad84f9a9087fc973a1946be1187",
+    "src/app/api/logout/route.ts": "4a7c3427d8bc8770034d042adce414112f6b3d8c1574f6f9dd640d507c8c9fcf",
+    "src/app/api/master/route.ts": "44510bb50750dfc6ad2bf850ea0d67e7b2427e3a66a27b766badb19d209961a1",
+    "src/app/api/me/route.ts": "64d3ea50bb84c2c6c262c41ab750161d66f5d8ab2396a047b99ac1186dfaec66",
+    "src/app/api/monitoring/route.ts": "d01003b3164abeeca022a2b6a662138e5eb21fd2c3a1ef9b06ac7a9cacbab568",
+    "src/app/api/nilai/route.ts": "1479c850dbe2df8d8e814d879aa74ed69171d5fdd2a0df500b35553235c8048d",
+    "src/app/api/piket/route.ts": "e20009b41804be3915f90eb21b7fb1c9e6263deee9d12bd1f3378b1e07d103eb",
+    "src/app/api/rapor/route.ts": "d1a7f5a40c9d83a1b65d88735459ae2f7b9b4acdef1babe4f8270814aa528125",
+    "src/app/api/siswa/route.ts": "5be47383325f0f3a850d3621ec84aebda121b93c3b4e45a07f4313bdeac139e3",
+    "src/app/api/users/route.ts": "b66ff8dcad77a5c7bc1d9387a26dad6489c67d80c7a0da66f955aa0d72fa5a4b",
+    "src/app/auth/change-password/page.tsx": "c3c8dffa50948c36ec253f9b0705e9db7e8631b349b559c169bfb7548e87b71f",
+    "src/app/auth/login/page.tsx": "2c05d6c0aa9363399ff686f8649ce59fbf26e4cee16cf313817e126a286defa1",
+    "src/app/beranda/page.tsx": "9f7eb5197b907705993821925f58e83fd167a8d1cb816e5eb132caea99ea1160",
+    "src/app/favicon.ico": "44542b463f20064216c8f5b65e7995a23db0cf17ade754a67a919ab4d16a5a14",
+    "src/app/globals.css": "61a6cdeb999f98e547a23914a742207a9e392d52b40b662807b662e2fc798dd1",
+    "src/app/guru/absen/page.tsx": "a7644f53bc0d3deee93d810b356918fbf5c8e6cb7701eb8d594515b3ba7ffea9",
+    "src/app/guru/ekskul/page.tsx": "ce48cd904aa5a5afb1619114b833bca091c37d7863a96b07dcc1820c46f9da25",
+    "src/app/guru/impor/page.tsx": "442572e412d54a0603eebeb61f4b6bbde3de58539b4804f6bd3f9fb8b6dbec32",
+    "src/app/guru/jadwal/page.tsx": "22a8021cba7e0dd702e922e17460caed29ef998b9019f73d2e2d601639f00d46",
+    "src/app/guru/jurnal/page.tsx": "d97ef3b89a8201929e3cbca077912ad50c71e049cf9665310fc64d1e70a0b8ce",
+    "src/app/guru/kalender/page.tsx": "fbfe8208095be32bf12eff17eddd21db3b606afdd17e5f2dbfe155188612fe96",
+    "src/app/guru/layout.tsx": "7432c97e1061f73c1d60161a28c3eb355f453d1cb25df3ba07efa043edc995f9",
+    "src/app/guru/nilai/page.tsx": "f55e7aeb7ef43fe260458609d6fae64f2e654a9ae3d4521b3562340f5e8d192f",
+    "src/app/guru/page.tsx": "76fc50b78bdb50173004206a9b266625077eb90b1acded40017cbce3d283de35",
+    "src/app/guru/rapor/page.tsx": "4477967e0865719744ddc50724051e7b934b929d91468423c6832b5ddd17f2b6",
+    "src/app/jadwal/page.tsx": "e31287495c24d6ec6dbfb2cf747ce713f525a99c7e87e73083449468f9ebbd2f",
+    "src/app/jam-belajar/layout.tsx": "90fec303d428251dca257e74d7fe584bcbe7bb1cfa921711f045f0f3df603453",
+    "src/app/jam-belajar/page.tsx": "382f89312c95ad837b27ba1800f784a85ff4b50a11867fa4c1338524df21e440",
+    "src/app/jurnal/page.tsx": "ba9b68f2d632cb8c0c1330e507f90e13dc46f6c2199c01a94ff79933896eadca",
+    "src/app/kalender/page.tsx": "4c7d05259486d89625a39f99c94ddede1d160d33485435f656a6ad26fea3e88b",
+    "src/app/kepsek/evaluasi/page.tsx": "6b47e64937aa6f4e9a55fc7208dab6ed4f577f3bc2c368ea922b64d3472d9f7e",
+    "src/app/kepsek/jadwal/page.tsx": "432d44009fc2871f7174a2063437e2c5bea678b43c453c8d35d474f02caec8e3",
+    "src/app/kepsek/jurnal/page.tsx": "810fa41946dd4bb0d127129fed73e2b99c76623c778312d9fce77733c7138a64",
+    "src/app/kepsek/kalender/page.tsx": "fbfe8208095be32bf12eff17eddd21db3b606afdd17e5f2dbfe155188612fe96",
+    "src/app/kepsek/layout.tsx": "91f5861d8b3093c0f82ba4ee93f5fee9c47da93377f7a718588aeaa4aeb3de28",
+    "src/app/kepsek/page.tsx": "76fc50b78bdb50173004206a9b266625077eb90b1acded40017cbce3d283de35",
+    "src/app/kepsek/posisi-guru/page.tsx": "432d44009fc2871f7174a2063437e2c5bea678b43c453c8d35d474f02caec8e3",
+    "src/app/kepsek/rapor/page.tsx": "f65152cabe05282597f5015741443b0661034c9652a303295f537a2c62d1415e",
+    "src/app/kepsek/rekap-nilai/page.tsx": "a136fad80021262157261bb4c0a1577ab946f43570ac85a3a6115d3481124f1f",
+    "src/app/layout.tsx": "c73d17afa709673940885ca9e5f1138558ac8586d1c525e0cd3d7f464ac990ff",
+    "src/app/nilai/page.tsx": "c60ce74c97aadbb9e37388fbb75f9db3b3fc9a7f084109121d447da6585e6c73",
+    "src/app/page.tsx": "b0b83019935698052c271b448df48d80dad47772a920280ce64ab58a23c5907d",
+    "src/app/piket/layout.tsx": "ebbe85d5362187078bfb83587cfa117880a62aa6a5caeb99f42701139751f5db",
+    "src/app/piket/page.tsx": "681d8112602a6221b419df29b97bbd11f366b642bb7350538c5fed1b9f7596bd",
+    "src/app/rapor/page.tsx": "0c8cb67a8beaac0ffdb5499598e970e546a8244075e1222548559a5165a80734",
+    "src/app/siswa/absen/page.tsx": "f511dbd6f32814020c21396c7596f1baef61f231cfcd7413072c8e706a77d91c",
+    "src/app/siswa/jadwal/page.tsx": "a777d9dcf28ccd7a6a54cce783f954323ef6118d437491ab2c6617deddd28030",
+    "src/app/siswa/kalender/page.tsx": "fbfe8208095be32bf12eff17eddd21db3b606afdd17e5f2dbfe155188612fe96",
+    "src/app/siswa/layout.tsx": "0b548f2df2e67719dfd9a6a9564a42bb0a858e8a734b8afc46dad042b8d41e56",
+    "src/app/siswa/page.tsx": "76fc50b78bdb50173004206a9b266625077eb90b1acded40017cbce3d283de35",
+    "src/app/siswa/rapor/page.tsx": "f65152cabe05282597f5015741443b0661034c9652a303295f537a2c62d1415e",
+    "src/components/PortalLayout.tsx": "7a766aee9d713b66bae61bf54d9ad1a8fe1dc4d452d0f06e4320f43ffe90342a",
+    "src/components/academic/GradeBook.tsx": "95edfeed18236823169421e115961deecbfaeb4c700061f3bc1267a79eddab96",
+    "src/components/academic/MeetingEditor.tsx": "82ee83ec2bb6e3f07db6e7b2b831aaf69a23f8caf0dd9eaebd1fd515f1a4adef",
+    "src/components/academic/Notice.tsx": "d647c93b3799fb96af6f8453edbabc11ef7eda067e84d22d23fd350b93a65b40",
+    "src/components/academic/TeachingContext.tsx": "6502e06e01b1a543642726fa99c054744f3b98f60182e0e36c31cd9e7604c164",
+    "src/components/modules/ActivityBoard.tsx": "41df6bf1ec74193ac0eef986a996e8da6b775e00f27148d156f883bcf1aacc52",
+    "src/components/modules/AuditBoard.tsx": "2377e752bab989701db36c004ef59aa0b43711af0a16bd2493fc652926c2384e",
+    "src/components/modules/BellBoard.tsx": "e0d27269528d7b3c9ef30aed117487a0d5c3367c97d34e4776d9c72103fe4e00",
+    "src/components/modules/CalendarBoard.tsx": "91b58d3f7e1f718199adc0f88ae560255cf2ba063663eae23111f66f3af045e8",
+    "src/components/modules/CatalogManager.tsx": "db57cbea2b8d9aa2a38550adb26ad5bf8f41cd5e052d72f6dafdf91d0e3313e3",
+    "src/components/modules/Common.tsx": "62b45c3da2bf3d596688c583dcb0f9305164cf7e0f79cd38142dcac51463a975",
+    "src/components/modules/DailyReconciliation.tsx": "846cc5fc315445c90dff911c30da211d4e66ccfd7cd8c0cf6ccd6e2274da8a79",
+    "src/components/modules/FoundationManager.tsx": "2808329532affeffb5d4d6374b3a7b34634b777609e6036a245b1c603dc3f2e5",
+    "src/components/modules/GradeSummary.tsx": "7a0270afa6d0cc4a5245f3921c38cfdbc883870f1c3a175c8a555db8420f2c29",
+    "src/components/modules/ImportBoard.tsx": "07d70725ebee66318bab7059ad7e74fe1adbc54d1a1e52303b35089f00eabaef",
+    "src/components/modules/JournalBoard.tsx": "d7ae02736b74b1834760a2913daeb8cff3ae4db9f600faf1079cb8b4c9a60036",
+    "src/components/modules/LiveDashboard.tsx": "d95c6ef76b57213c00cf35eab8fbd3871fde99813e36ac7dbbf9eab0bdaadafd",
+    "src/components/modules/MonitoringBoard.tsx": "50b2883d49aeca4396cb0599fc96c3f2b225ee48ebafc46de906eb2897a8d6aa",
+    "src/components/modules/ProgressionBoard.tsx": "26443965b668df11adf288c9d3ee8a5e4bcb62743e1026ddbba0c2bc290a31ac",
+    "src/components/modules/ReportBoard.tsx": "81c94495efba32402fe29bfc41bc1dbc27bbbad39e43ad60fbabe0e075185683",
+    "src/components/modules/RuleEditor.tsx": "287ec5916b91d7bc98a84397c0c01346ec94e44db3ebea2dbea41040f56828bb",
+    "src/components/modules/StudentBoard.tsx": "bd42d11a56577a591557a616cdd83e38e547b36eb02bf52d85cd9d9744045da1",
+    "src/components/modules/UserManager.tsx": "ce4d4978c03483a09a0812a57ba507b6401793de168e262c270e90c8d4c5c207",
+    "src/lib/academic.ts": "b31b54b1fcd4c69bce62cd3b219c96d64c2fda1736a4b8d8dc9ae923512e1efc",
+    "src/lib/activities.ts": "5d932e6230e0c872b31d8dc34adafef5f624eda1771aed2a82ea434723006154",
+    "src/lib/admin.ts": "774ff0942fa4083dc68a51196449c5731c432a311be8fbcfec3cd9db2dae11ab",
+    "src/lib/auth.ts": "3c75d8bd0b03bb7cc6ea4c17f23c7b493e7d35b7110df3aec662cb6555977291",
+    "src/lib/bulk.ts": "e05e286b3cb87a929edfbeacd6a574992c7c597f700e1d6df65302592181a1ee",
+    "src/lib/catalog.ts": "2350366d7da23d7cf2b0a0863363e943d39b7a48af679767f06de927096397a1",
+    "src/lib/db.ts": "b38edf43f4b99c0ac9d684845167cf41df927e639bf7b2b205aab7594780a2bb",
+    "src/lib/documents.ts": "6bbecdc90299a860f47a5701cffefa285c42e77e52149c34177dd8dd8c23b990",
+    "src/lib/imports.ts": "96224264549806c362948d85b90f0458cca38083e2f3cf4174496782c99c832e",
+    "src/lib/master.ts": "8220b7bc6d38ba47c1ff1919a145086810df9dd50e3ea29b8c10bcab45ecaf4e",
+    "src/lib/operations.ts": "50e81b9f3356afef815395db01671621647a53fc53298fb6a91b4cc43af7d59e",
+    "src/lib/portal.ts": "04846686c45f450d1ea1de3d13ba9eb7697e0e4de5722df96ea80ae2c37c77f1",
+    "src/lib/progression.ts": "2f042d61d015e6799f39689c59cc4e7c7d9b8b36a8650ae6ef4ca85811a5ce44",
+    "src/lib/reports.ts": "7f4d2c03af35388af4122493168d0557108d11cb819d5b6e598949aab88b0b48",
+    "src/lib/store.ts": "203372699ffa9f081dc3de290f9849fd5be34a57ba259a21db8ee7aac389c269",
+    "src/lib/students.ts": "90b48b288da13eb87eb2e0d0fd500438e8b1222b5293730e018cfcad32f95442",
+    "src/lib/users.ts": "936b8ba175c04c67468fcf60bc3e22d17b77e8276590d3e53c3914f4aa9aa0b5",
+    "next.config.ts": "c58506b943e60dc022dd9a5e6b85a5d9cd73bd9df1b51b1109cc487361ab15ed",
+    "package.json": "5f9b05f753e005ffe3d1e846f55ca3927eda43c2387a65d88d62edcead4720c7",
+    "pnpm-lock.yaml": "84497f554eaf9a3828cc116996294cb094091f3175f960087907e8c66b805283"
+  },
+  "suites": [
+    {
+      "name": "complete_workflows",
+      "runner": "tests/tsx_complete_workflows.cjs",
+      "method": "Real HTTP and Chromium clicks on external synthetic database; no school rows copied",
+      "passed": 18,
+      "failed": 0,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "AUTH_all_five_roles_login",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "USERS_add_edit_status_and_cancel_saved",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "RBAC_cross_role_and_teacher_scope_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "CATALOG_seven_master_modules_persist_and_stale_guard",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "FOUNDATION_period_assignment_roster_and_duty_permission_persist",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BELL_and_calendar_real_browser_save_reload",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "IMPORT_XLSX_preview_does_not_write_and_confirm_persists",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "TEACHER_browser_attendance_and_grade_reload_stale_and_atomic_rollback",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "EXTRACURRICULAR_persisted_by_assigned_coach",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DAILY_school_reconciliation_separate_from_session_and_readonly_head",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "REPORT_real_snapshot_lifecycle_own_student_and_three_export_formats",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PROGRESSION_preview_confirmation_history_and_alumni_saved",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "HEAD_evaluation_saves_and_monitor_reads_schedule_journal",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "STUDENT_own_profile_attendance_and_schedule",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DASHBOARD_real_counts_profiles_and_role_links",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "NAVIGATION_all_role_modules_reachable_and_mobile",
+          "status": "PASS",
+          "observed": {
+            "pages": 36,
+            "role_aware_aliases": 4
+          }
+        },
+        {
+          "id": "AUTH_logout_and_password_change_revoke_existing_sessions",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "INTEGRITY_original_school_database_files_unchanged",
+          "status": "PASS",
+          "observed": {}
+        }
+      ]
+    },
+    {
+      "name": "teacher_regression",
+      "runner": "tests/tsx_teacher_flows.cjs",
+      "method": "Actual HTTP and Chromium with isolated synthetic SQLite, no school data copied",
+      "passed": 44,
+      "failed": 0,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "AUTH_teacher_other_duty_head_login",
+          "status": "PASS",
+          "observed": {
+            "accounts": 4
+          }
+        },
+        {
+          "id": "ABSENSI_new_session_uses_roster_not_daily_status",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "RBAC_foreign_teacher_session_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "JURNAL_wrong_weekday_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "JURNAL_invalid_date_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "CSRF_cross_origin_write_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_schedule_journal_save_reload_2026-10-26",
+          "status": "PASS",
+          "observed": {
+            "date": "2026-10-26",
+            "stored": "Materi sintetis 2026-10-26",
+            "displayed": "Materi sintetis 2026-10-26"
+          }
+        },
+        {
+          "id": "BROWSER_schedule_journal_save_reload_2026-10-27",
+          "status": "PASS",
+          "observed": {
+            "date": "2026-10-27",
+            "stored": "Materi sintetis 2026-10-27",
+            "displayed": "Materi sintetis 2026-10-27"
+          }
+        },
+        {
+          "id": "BROWSER_schedule_journal_save_reload_2026-10-28",
+          "status": "PASS",
+          "observed": {
+            "date": "2026-10-28",
+            "stored": "Materi sintetis 2026-10-28",
+            "displayed": "Materi sintetis 2026-10-28"
+          }
+        },
+        {
+          "id": "BROWSER_schedule_journal_save_reload_2026-10-29",
+          "status": "PASS",
+          "observed": {
+            "date": "2026-10-29",
+            "stored": "Materi sintetis 2026-10-29",
+            "displayed": "Materi sintetis 2026-10-29"
+          }
+        },
+        {
+          "id": "BROWSER_schedule_journal_save_reload_2026-10-30",
+          "status": "PASS",
+          "observed": {
+            "date": "2026-10-30",
+            "stored": "Materi sintetis 2026-10-30",
+            "displayed": "Materi sintetis 2026-10-30"
+          }
+        },
+        {
+          "id": "BROWSER_wrong_day_error_uses_cross_icon",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_failed_save_shows_cross_and_preserves_database",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "ABSENSI_atomic_save_and_reload",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "ABSENSI_other_subject_same_class_stays_pending",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "ABSENSI_other_class_roster_isolated",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "ABSENSI_foreign_roster_rejected_without_write",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "CONCURRENCY_stale_meeting_revision_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "TRANSACTION_failure_rolls_back_meeting_and_attendance_audit",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_grades_create_database_and_reload",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_report_book_syncs_subject_components_and_final",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "GRADES_historical_period_unchanged",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "GRADES_other_subject_stays_empty",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "RBAC_foreign_grade_write_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "GRADES_non_numeric_rejected",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PERIOD_locked_write_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "AUDIT_actor_and_creator_match_authenticated_teacher",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_no_horizontal_overflow_320",
+          "status": "PASS",
+          "observed": {
+            "width": 320,
+            "scrollWidth": 320
+          }
+        },
+        {
+          "id": "BROWSER_no_horizontal_overflow_375",
+          "status": "PASS",
+          "observed": {
+            "width": 375,
+            "scrollWidth": 375
+          }
+        },
+        {
+          "id": "BROWSER_no_horizontal_overflow_430",
+          "status": "PASS",
+          "observed": {
+            "width": 430,
+            "scrollWidth": 430
+          }
+        },
+        {
+          "id": "BROWSER_no_horizontal_overflow_768",
+          "status": "PASS",
+          "observed": {
+            "width": 768,
+            "scrollWidth": 768
+          }
+        },
+        {
+          "id": "BROWSER_no_horizontal_overflow_1440",
+          "status": "PASS",
+          "observed": {
+            "width": 1440,
+            "scrollWidth": 1440
+          }
+        },
+        {
+          "id": "BROWSER_pagination_preserves_and_persists_all_student_statuses",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PIKET_unassigned_teacher_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PIKET_guest_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PIKET_expired_duty_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PIKET_no_redirect_loop",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_duty_dashboard_loads_school_daily_and_session_journals",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "BROWSER_duty_matrix_uses_daily_data_and_pending_not_session_status",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "PIKET_duty_revoked_old_session_denied",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "KEPSEK_read_only_school_monitor_available",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "INTEGRITY_daily_snapshots_publication_and_assignments_preserved",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "INTEGRITY_sqlite_check",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "INTEGRITY_repository_database_files_unchanged",
+          "status": "PASS",
+          "observed": {}
+        }
+      ]
+    },
+    {
+      "name": "paperless_register",
+      "runner": "tests/tsx_paperless_audit.cjs",
+      "method": "Focused paper-replacement acceptance audit using actual Chromium + HTTP + isolated synthetic SQLite; no application fixes applied",
+      "passed": 24,
+      "failed": 0,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "ROSTER_20_students_pending_before_verification",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "ROSTER_identity_can_fill_LP_column_in_physical_register",
+          "status": "PASS",
+          "observed": {
+            "gender_field_in_session_response": true
+          }
+        },
+        {
+          "id": "ONE_SUBMISSION_saves_one_meeting_and_20_session_rows",
+          "status": "PASS",
+          "observed": {
+            "write_endpoints": [
+              "/api/absensi",
+              "/api/auth"
+            ],
+            "meeting_rows": 1,
+            "session_rows": 20
+          }
+        },
+        {
+          "id": "ATTENDANCE_exact_18H_1S_1I_0A_0B",
+          "status": "PASS",
+          "observed": {
+            "H": 18,
+            "S": 1,
+            "I": 1,
+            "A": 0,
+            "B": 0
+          }
+        },
+        {
+          "id": "JOURNAL_stores_TP_material_activity_reflection_followup",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "AUDIT_actor_and_timestamp_saved",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "RELOAD_session_data_persists",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "ISOLATION_other_subject_and_class_not_overwritten",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "SHARED_MEETING_journal_and_attendance_same_record",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "AGENDA_displays_nonpresent_names_and_statuses_from_same_meeting",
+          "status": "PASS",
+          "observed": {
+            "absent_names_visible": true
+          }
+        },
+        {
+          "id": "DOCUMENTS_three_print_or_download_outputs_available",
+          "status": "PASS",
+          "observed": {
+            "available_actions": [
+              "Impor absensi dari CSV / Excel",
+              "Unduh Daftar Hadir CSV",
+              "Unduh Daftar Hadir XLSX",
+              "Unduh Daftar Hadir PDF",
+              "Cetak Daftar Hadir",
+              "Unduh Jurnal CSV",
+              "Unduh Jurnal XLSX",
+              "Unduh Jurnal PDF",
+              "Cetak Jurnal",
+              "Unduh Agenda CSV",
+              "Unduh Agenda XLSX",
+              "Unduh Agenda PDF",
+              "Cetak Agenda",
+              "Simpan Jurnal",
+              "Buka / koreksi jurnal"
+            ]
+          }
+        },
+        {
+          "id": "JOURNAL_substitute_teacher_workflow_available",
+          "status": "PASS",
+          "observed": {
+            "substitute_controls": 1
+          }
+        },
+        {
+          "id": "VALIDATION_substitute_field_not_silently_discarded",
+          "status": "PASS",
+          "observed": {
+            "http": 200,
+            "stored_substitute": "2"
+          }
+        },
+        {
+          "id": "VALIDATION_invalid_lesson_number_rejected",
+          "status": "PASS",
+          "observed": {
+            "http": 422,
+            "submitted_lesson_number": "99"
+          }
+        },
+        {
+          "id": "DAILY_school_source_is_not_overwritten_by_session",
+          "status": "PASS",
+          "observed": {
+            "session_counts": {
+              "H": 18,
+              "S": 1,
+              "I": 1,
+              "A": 0,
+              "B": 0
+            },
+            "daily_counts": {
+              "H": 1,
+              "S": 1,
+              "I": 0,
+              "A": 0,
+              "B": 18
+            }
+          }
+        },
+        {
+          "id": "RBAC_non_duty_teacher_cannot_read_piket",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DAILY_piket_reconciliation_action_available",
+          "status": "PASS",
+          "observed": {
+            "available_actions": [
+              "Cetak Rekap Piket",
+              "Tampilkan Matriks Mingguan",
+              "Unduh Rekap Piket CSV",
+              "Unduh Rekap Piket XLSX",
+              "Unduh Rekap Piket PDF",
+              "Cetak Rekap Piket",
+              "Pratinjau rekonsiliasi",
+              "Pratinjau rekonsiliasi"
+            ]
+          }
+        },
+        {
+          "id": "EXPORT_journal_CSV_contains_requested_meeting",
+          "status": "PASS",
+          "observed": {
+            "http": 200,
+            "type": "text/csv; charset=utf-8",
+            "first_line": "﻿\"Tanggal\",\"Jam\",\"Pertemuan\",\"Guru\",\"Kelas\",\"Mapel\",\"TP / ATP\",\"Materi\",\"Kegiatan\",\"Refleksi\",\"Tindak lanjut\",\"Catatan\",\"Guru pengganti\",\"Siswa tidak hadir / belum dikonfirmasi\"\r"
+          }
+        },
+        {
+          "id": "EXPORT_agenda_xlsx_is_real_file",
+          "status": "PASS",
+          "observed": {
+            "http": 200,
+            "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "signature": "PK\u0003\u0004\n"
+          }
+        },
+        {
+          "id": "EXPORT_absensi_pdf_is_real_file",
+          "status": "PASS",
+          "observed": {
+            "http": 200,
+            "type": "application/pdf",
+            "signature": "%PDF-"
+          }
+        },
+        {
+          "id": "EXPORT_piket_enforces_same_permission_as_dashboard",
+          "status": "PASS",
+          "observed": {
+            "dashboard_status": 403,
+            "export_status": 403
+          }
+        },
+        {
+          "id": "MATRIX_subject_session_matrix_action_available",
+          "status": "PASS",
+          "observed": {
+            "observed": "No session matrix action in teacher journal. The Piket matrix uses daily school attendance."
+          }
+        },
+        {
+          "id": "INTEGRITY_synthetic_database_check",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "INTEGRITY_repository_DB_WAL_SHM_unchanged",
+          "status": "PASS",
+          "observed": {}
+        }
+      ]
+    },
+    {
+      "name": "development_interactions",
+      "runner": "tests/tsx_dev_interactions.cjs",
+      "method": "Actual Chromium clicks against Next dev with default Turbopack",
+      "passed": 6,
+      "failed": 0,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "DEV_assignment_tab_edit_and_save",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DEV_attendance_browser_save_reload",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DEV_stale_revision_returns_409",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DEV_grade_browser_save_reload",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DEV_logout_click_revokes_session",
+          "status": "PASS",
+          "observed": {}
+        },
+        {
+          "id": "DEV_original_database_unchanged",
+          "status": "PASS",
+          "observed": {}
+        }
+      ]
+    },
+    {
+      "name": "document_buttons",
+      "runner": "tests/tsx_document_buttons.cjs",
+      "method": "Actual Chromium clicks on XLSX/CSV download and PDF print buttons for a published own-student report",
+      "passed": 4,
+      "failed": 0,
+      "errors": 0,
+      "tests": [
+        {
+          "id": "BUTTON_download_rapor_CSV_contains_actual_data",
+          "status": "PASS"
+        },
+        {
+          "id": "BUTTON_download_rapor_XLSX_contains_actual_data",
+          "status": "PASS"
+        },
+        {
+          "id": "BUTTON_print_rapor_loads_scoped_PDF",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_original_database_unchanged",
+          "status": "PASS"
+        }
+      ]
+    }
+  ]
+}

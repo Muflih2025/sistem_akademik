@@ -1,0 +1,10 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { api, message, Feedback, inputClass, buttonClass, type Row } from './Common';
+const components = ['tugas', 'uts', 'uas', 'praktik', 'proyek'];
+export default function RuleEditor({ schedule, rule, onSaved }: { schedule: string; rule: Row | null; onSaved: () => void }) {
+  const [weights, setWeights] = useState<Row>({}), [note, setNote] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
+  useEffect(() => { setWeights(rule ? JSON.parse(rule.bobot_json) : { tugas: 30, uts: 30, uas: 40, praktik: 0, proyek: 0 }); setNote(''); setError(''); }, [rule, schedule]);
+  async function save(e: React.FormEvent) { e.preventDefault(); setBusy(true); setError(''); try { await api('/api/aturan-nilai', { id_jadwal: schedule, versi: rule?.versi || 0, bobot: weights, catatan: note }); onSaved(); } catch (e) { setError(message(e)); } finally { setBusy(false); } }
+  return <details className="border rounded-xl p-4 bg-white"><summary className="cursor-pointer font-semibold">Aturan & bobot penilaian</summary><form onSubmit={save} className="space-y-4 mt-4"><p className="text-sm">Perubahan membuat versi baru. Nilai dan rapor yang sudah disimpan tetap memiliki jejak aturan sebelumnya.</p><Feedback error={error} /><div className="grid grid-cols-2 sm:grid-cols-5 gap-3">{components.map(c => <label key={c} className="text-sm">{c.toUpperCase()} (%)<input aria-label={`Bobot ${c}`} type="number" min="0" max="100" step="0.01" required className={inputClass} value={weights[c] ?? ''} onChange={e => setWeights({ ...weights, [c]: e.target.value })} /></label>)}</div><p className="text-sm">Total {components.reduce((n, c) => n + Number(weights[c] || 0), 0)}%</p><label className="block text-sm">Dasar perubahan bobot<input aria-label="Dasar perubahan bobot" required className={inputClass} value={note} onChange={e => setNote(e.target.value)} /></label><button className={buttonClass} disabled={busy || !schedule}>Simpan versi aturan</button></form></details>;
+}

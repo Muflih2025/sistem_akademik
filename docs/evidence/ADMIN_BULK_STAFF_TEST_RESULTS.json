@@ -1388,7 +1388,7 @@
           "status": "PASS"
         },
         {
-          "test": "javascript_syntax_ops/academic_pdf.cjs",
+          "test": "javascript_syntax_ops/academic/academic_pdf.cjs",
           "status": "PASS"
         },
         {

@@ -135,7 +135,7 @@
           "status": "PASS"
         },
         {
-          "test": "internal_file_block_/ops/academic_fixture.php",
+          "test": "internal_file_block_/ops/academic/academic_fixture.php",
           "status": "PASS"
         },
         {
@@ -2517,7 +2517,7 @@
           "status": "PASS"
         },
         {
-          "test": "javascript_syntax_ops/academic_pdf.cjs",
+          "test": "javascript_syntax_ops/academic/academic_pdf.cjs",
           "status": "PASS"
         },
         {

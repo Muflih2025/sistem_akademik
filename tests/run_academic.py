@@ -23,7 +23,7 @@ def main():
   for k,v in desired.items():
    if v is None:c.pop(k,None)
    else:c[k]=v
-  cfgpath.write_text(json.dumps(c,indent=2)+'\n');r=subprocess.run(['python3',str(ROOT/'ops/academic_server.py'),'refresh'],capture_output=True);assert r.returncode==0,'Local policy refresh failed; private context omitted'
+  cfgpath.write_text(json.dumps(c,indent=2)+'\n');r=subprocess.run(['python3',str(ROOT/'ops/academic/academic_server.py'),'refresh'],capture_output=True);assert r.returncode==0,'Local policy refresh failed; private context omitted'
  reports=[]
  try:
   if options.with_staff:policy(True);compat=True

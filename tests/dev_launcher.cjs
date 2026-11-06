@@ -7,7 +7,7 @@ if(!source||!inspector)throw Error('Explicit private development test config/ins
 const original=JSON.parse(fs.readFileSync(source));
 if(original.APP_ENV!=='testing'||original.DB_NAME!=='sia_academic_dev_20261031'||!original.DB_SOCKET)throw Error('Refuse non-fixture database');
 const check=(v,m='Condition failed')=>{if(!v)throw Error(m);};
-const snapshot=()=>execFileSync('php',[ROOT+'/ops/db_snapshot.php',inspector]).toString();
+const snapshot=()=>execFileSync('php',[ROOT+'/ops/database/db_snapshot.php',inspector]).toString();
 const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'sia-dev-command-'));fs.chmodSync(tmp,0o700);
 const config=path.join(tmp,'runtime.json');
 const cfg={...original,SESSION_PATH:path.join(tmp,'sessions'),SECURITY_STATE_PATH:path.join(tmp,'security'),SECURITY_LOG:path.join(tmp,'logs','security.jsonl')};
@@ -34,7 +34,7 @@ let server,port=18126,serverOutput='';
    // Pick an unused test port without touching the existing 18125 service.
    const probe=net.createServer();await new Promise((resolve,reject)=>{probe.once('error',reject);probe.listen(0,'127.0.0.1',resolve);});port=probe.address().port;await new Promise(r=>probe.close(r));
    server=spawn('pnpm',['dev','--port',String(port)],{cwd:ROOT,env,detached:true,stdio:['ignore','pipe','pipe']});for(const stream of[server.stdout,server.stderr])stream.on('data',d=>{serverOutput=(serverOutput+d).slice(-65536);});
-   let ready=false;for(let i=0;i<100;i++){try{const r=await fetch('http://127.0.0.1:'+port+'/auth/login.php');if(r.status===200&&(await r.text()).includes('Masuk ke akun Anda')){ready=true;break;}}catch{}await sleep(100);}check(ready,'Server did not become ready');check(serverOutput.includes('PHP native'));for(const p of ['/.git/config','/.env','/config/config.php','/ops/dev.cjs','/db_sia_smkn2_magelang.sql'])check((await fetch('http://127.0.0.1:'+port+p)).status===404);
+   let ready=false;for(let i=0;i<100;i++){try{const r=await fetch('http://127.0.0.1:'+port+'/auth/login.php');if(r.status===200&&(await r.text()).includes('Masuk ke akun Anda')){ready=true;break;}}catch{}await sleep(100);}check(ready,'Server did not become ready');check(serverOutput.includes('PHP native'));for(const p of ['/.git/config','/.env','/config/config.php','/ops/dev/dev.cjs','/db_sia_smkn2_magelang.sql'])check((await fetch('http://127.0.0.1:'+port+p)).status===404);
   });
   await test('pnpm_server_real_login_and_role_protected_navigation',async()=>{
    const base='http://127.0.0.1:'+port;let cookie='';const request=async(url,body)=>{const r=await fetch(base+url,{method:body?'POST':'GET',redirect:'manual',headers:{Cookie:cookie,...(body?{'Content-Type':'application/x-www-form-urlencoded'}:{})},body:body?new URLSearchParams(body):undefined});const c=r.headers.get('set-cookie');if(c)cookie=c.split(';')[0];return r;};

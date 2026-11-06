@@ -9,7 +9,7 @@ const check=v=>{if(!v)throw Error('Pagination condition failed; private contents
 const db=(sql,args=[])=>JSON.parse(cp.execFileSync('php',[root+'/tests/academic_db.php',state+'/private/inspector.json'],{input:JSON.stringify({sql,args})}));
 async function test(name,fn){try{await fn();results.push({test:name,status:'PASS'});process.stdout.write('PASS '+name+'\n');}catch(e){results.push({test:name,status:'FAIL',error_type:e.name});throw e;}}
 async function login(key){const c=await browser.newContext({viewport:{width:1440,height:900}});contexts.push(c);await c.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());const p=await c.newPage();await p.goto(base+'/auth/login.php');await p.locator('[name=username]').fill(creds[key]);await p.locator('[name=password]').fill(creds.password);await Promise.all([p.waitForURL(/\/(?:academic\/index\.php|beranda)(?:\?|$)/),p.locator('button').click()]);return p;}
-const snapshot=()=>cp.execFileSync('php',[root+'/ops/db_snapshot.php',state+'/private/inspector.json']).toString();
+const snapshot=()=>cp.execFileSync('php',[root+'/ops/database/db_snapshot.php',state+'/private/inspector.json']).toString();
 (async()=>{
  const before=snapshot();browser=await chromium.launch();const admin=await login('admin');const total=db('SELECT COUNT(*) n FROM siswa')[0].n;
  await test('default_Admin_table_10_rows_and_exact_range',async()=>{await admin.goto(base+'/admin/master.php?table=siswa');check(await admin.locator('tbody tr').count()===10);check(await admin.locator('.page-range').innerText()===`Menampilkan 1–10 dari ${total} data`);check(await admin.locator('select[name=per_page]').inputValue()==='10');check(await admin.locator('.module-tabs a[href*=export_import]').count()===0);});

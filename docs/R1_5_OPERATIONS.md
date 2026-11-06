@@ -44,7 +44,7 @@ python3 tests/r1_integrity.py --state /home/muflih/.local/state/sia-r15/20261031
 
 Controller memakai sudo operator, memvalidasi unit tetap, target 18115, DB fixture/socket dan direktori staging. Menolak target production/root profile. Service sendiri tidak dapat menggunakan sudo karena NoNewPrivileges dan identitas berbeda. Kontrol restart menunggu health HTTP, tidak hanya ActiveState. Batas start khusus staging 50/10 detik diperlukan untuk stress restart test; tidak melonggarkan service 8085.
 
-`ops/r15_stage_setup.py` adalah bootstrap **sekali** pada instalasi baru; menolak akun/direktori/unit/canary yang sudah ada. Jangan menghapus database atau mengulang provisioning untuk meloloskan guard. `ops/r15_minimum_runtime.py` mencatat transisi satu kali prototype ke principal minimum tanpa mencabut grant lama. Instalasi baru memakai model minimum langsung dari setup.
+`ops/release/r15_stage_setup.py` adalah bootstrap **sekali** pada instalasi baru; menolak akun/direktori/unit/canary yang sudah ada. Jangan menghapus database atau mengulang provisioning untuk meloloskan guard. `ops/release/r15_minimum_runtime.py` mencatat transisi satu kali prototype ke principal minimum tanpa mencabut grant lama. Instalasi baru memakai model minimum langsung dari setup.
 
 ## Secret, restart dan rotasi
 
@@ -56,26 +56,26 @@ Rotasi production nanti harus membuat principal/password baru dengan privilege m
 
 `reports/TEMPLATE_REVIEW_PENUGASAN.csv` dan matriks Markdown privat memuat 18 identitas serta seluruh field review. Semua tetap **PENDING ADMIN REVIEW**. Tahun/semester penugasan existing tidak tersedia; observasi periode nilai disajikan terpisah dan tidak menjadi bukti periode jadwal.
 
-`ops/r15_assignment_review.py export/plan` memvalidasi snapshot, ID konteks, periode yang terdaftar, jenis bukti resmi, reviewer/tanggal, file bukti privat dan hash, serta konflik antar usulan. Hasilnya **plan-only**, tidak mengeksekusi SQL. Hash hanya membuktikan integritas file, bukan otoritas dokumen. Admin sekolah tetap memverifikasi dokumen/masa berlaku.
+`ops/release/r15_assignment_review.py export/plan` memvalidasi snapshot, ID konteks, periode yang terdaftar, jenis bukti resmi, reviewer/tanggal, file bukti privat dan hash, serta konflik antar usulan. Hasilnya **plan-only**, tidak mengeksekusi SQL. Hash hanya membuktikan integritas file, bukan otoritas dokumen. Admin sekolah tetap memverifikasi dokumen/masa berlaku.
 
 Setelah persetujuan nyata, operator mengambil snapshot baru, meninjau plan dan konflik dengan jadwal lain, lalu mensimulasikan arsip original + successor berperiode melalui layanan CRUD R1 pada fixture/staging. Jangan menulis ulang periode/identitas arsip yang sudah dipakai. Rencana periode lampau ditahan untuk model riwayat R2; jangan mengaktifkan tahun lama untuk melewati pembatasan. Penerapan produksi memerlukan persetujuan terpisah. Tidak ada approval asli dibuat dan tidak ada satu pun dari 18 record diterapkan pada fase ini.
 
 ## Paket, deployment staging dan rollback
 
-`ops/r15_package.py --commit COMMIT --output FILE_BARU` membangun archive hanya dari Git commit, dengan urutan tar, mode/owner, timestamp commit, manifest dan gzip mtime yang deterministik. Jalankan dua kali ke nama berbeda; SHA-256 harus identik. Tidak memasukkan secret, SQL dump, Git history, session, log atau browser tooling.
+`ops/release/r15_package.py --commit COMMIT --output FILE_BARU` membangun archive hanya dari Git commit, dengan urutan tar, mode/owner, timestamp commit, manifest dan gzip mtime yang deterministik. Jalankan dua kali ke nama berbeda; SHA-256 harus identik. Tidak memasukkan secret, SQL dump, Git history, session, log atau browser tooling.
 
-`sudo ops/r15_stage_install_release.py --archive FILE --sha256 SHA` (jalankan melalui `sudo python3`) memasang hanya pada prefix opt/unit staging yang di-whitelist, memverifikasi pin/hash semua file, menyimpan R0 yang hash-nya sesuai Git, lalu restart staging. Tidak mempunyai jalur deployment 8085.
+`sudo ops/release/r15_stage_install_release.py --archive FILE --sha256 SHA` (jalankan melalui `sudo python3`) memasang hanya pada prefix opt/unit staging yang di-whitelist, memverifikasi pin/hash semua file, menyimpan R0 yang hash-nya sesuai Git, lalu restart staging. Tidak mempunyai jalur deployment 8085.
 
 Tes rollback mengganti kode/config staging ke R0, memakai runtime non-root minimum yang sama, session name/path berbeda, secret namespace yang sama, dan database setelah migrasi. Login/read admin dan proteksi tetap diuji, kemudian forward ke candidate dengan session baru. Tidak melakukan down migration atau memulihkan database menimpa transaksi. R0 hanya untuk maintenance/smoke operator; jangan membuka write/ingress umum karena perbaikan authorization R1 tidak ada di R0.
 
 ## Backup/pemulihan database
 
-Backup produksi dalam fase ini hanya dump baca-saja baru, tanpa perubahan database. `ops/r15_fixture_restore.py` benar-benar menguji backup/restore **fixture sintetis** ke database baru dengan nama prefix `r15_restore_`, tidak menimpa sumber. Tabel, view, trigger, routine, proyeksi semua kolom/data dan FK dibandingkan. Existing data/schema/grant aktif tetap utuh. Pada pengulangan gunakan destination **baru**, bukan reset yang lama.
+Backup produksi dalam fase ini hanya dump baca-saja baru, tanpa perubahan database. `ops/release/r15_fixture_restore.py` benar-benar menguji backup/restore **fixture sintetis** ke database baru dengan nama prefix `r15_restore_`, tidak menimpa sumber. Tabel, view, trigger, routine, proyeksi semua kolom/data dan FK dibandingkan. Existing data/schema/grant aktif tetap utuh. Pada pengulangan gunakan destination **baru**, bukan reset yang lama.
 
 Pemulihan production kelak: maintenance dan backup terbaru; restore ke instance/database baru terisolasi; verifikasi data/FK/objek; rekonsiliasi transaksi setelah backup; provision runtime baru dengan privilege minimum; verifikasi config/health sebelum cutover yang disetujui. Tidak DROP/TRUNCATE, restore in-place atau menghapus transaksi sah. Cutover database memerlukan persetujuan baru.
 
 ## Aktivasi 8085 masih berupa rencana
 
-`ops/r15_prepare_activation.py` menghasilkan grant/config dan patch DynamicUser/LoadCredential untuk production tanpa menginstal/mengeksekusinya. Owner/runtime dipisahkan dan approval kosong. Runbook R1 tetap berlaku dengan model isolasi R1.5 ini.
+`ops/release/r15_prepare_activation.py` menghasilkan grant/config dan patch DynamicUser/LoadCredential untuk production tanpa menginstal/mengeksekusinya. Owner/runtime dipisahkan dan approval kosong. Runbook R1 tetap berlaku dengan model isolasi R1.5 ini.
 
 Persetujuan tersisa: admin menerima hasil review/penahanan 18 penugasan dan kebijakan draft; operator menyetujui akun/grant baru, pemasangan root-owned/LoadCredential/StateDirectory, migration dan backup maintenance; pengguna menyetujui perubahan unit/restart/cutover 8085. Baru setelah itu verifikasi koneksi akun baru pada database aktif, fingerprint sebelum/sesudah perubahan terencana, empat role fixture yang diotorisasi, internal files, restart serta rollback. R2 tidak dimulai otomatis.

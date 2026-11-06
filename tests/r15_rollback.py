@@ -8,7 +8,7 @@ from r0_environment import snapshot,save_json
 
 def main():
     os.umask(0o077);state=Path(sys.argv[1]);assert str(state)=='/home/muflih/.local/state/sia-r15/20261031';base='http://127.0.0.1:18115';results=[];creds=json.loads((state/'private/fixture-login.json').read_text())
-    def ctl(action):return subprocess.run(['sudo','-n','python3',str(ROOT/'ops/r15_service_control.py'),action,'--state',str(state)],capture_output=True)
+    def ctl(action):return subprocess.run(['sudo','-n','python3',str(ROOT/'ops/release/r15_service_control.py'),action,'--state',str(state)],capture_output=True)
     def check(value):assert value
     def test(name,fn):
         try:fn();results.append({'test':name,'status':'PASS'})

@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-05",
+  "base_commit": "5984c38",
+  "method": "HTTP, actual PDF text/page counts via pypdf, Chromium downloads and responsive popups on external synthetic databases; school database hashes unchanged",
+  "passed": 13,
+  "failed": 0,
+  "suites": [
+    {
+      "suite": "journal-transfer",
+      "passed": 9,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "EXPORT_per_class_all_classes_single_date_date_range_and_weekday_filters",
+          "status": "PASS"
+        },
+        {
+          "id": "PDF_actual_text_contains_period_class_dates_journal_fields_and_absence_details",
+          "status": "PASS"
+        },
+        {
+          "id": "IMPORT_template_preview_no_write_confirm_creates_updates_other_teachers_and_preserves_attendance_grades",
+          "status": "PASS"
+        },
+        {
+          "id": "VALIDATION_wrong_class_identity_revision_dates_negative_number_duplicates_and_partial_batch_rejected_atomically",
+          "status": "PASS"
+        },
+        {
+          "id": "CONCURRENCY_changed_sources_and_locked_period_block_import_without_partial_writes",
+          "status": "PASS"
+        },
+        {
+          "id": "XLSX_round_trip_preserves_literal_text_line_breaks_and_rejects_spreadsheet_formulas",
+          "status": "PASS"
+        },
+        {
+          "id": "BROWSER_export_download_and_import_preview_confirm_work_in_responsive_popups_including_import_menu",
+          "status": "PASS"
+        },
+        {
+          "id": "MOBILE_module_and_feature_breadcrumb_popups_navigate_close_and_fit_phone",
+          "status": "PASS"
+        },
+        {
+          "id": "INTEGRITY_school_database_unchanged_and_head_has_export_only",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "suite": "daily-journal",
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "id": "DAILY_six_sessions_six_subjects_repeated_teacher_and_validated_optional_teacher_filter",
+          "status": "PASS"
+        },
+        {
+          "id": "PDF_actual_single_page_contains_all_six_ordered_sessions_and_keeps_two_rows_for_same_teacher",
+          "status": "PASS"
+        },
+        {
+          "id": "PDF_class_date_groups_separate_and_long_content_keeps_daily_heading_and_table_header_on_continuations",
+          "status": "PASS"
+        },
+        {
+          "id": "BROWSER_grouped_preview_teacher_filter_real_pdf_download_filter_reset_mobile_and_attendance_integrity",
+          "status": "PASS"
+        }
+      ]
+    }
+  ]
+}

@@ -81,7 +81,7 @@ def main():
         '/db_sia_smkn2_magelang.sql','/database/db_sia_smkn2_magelang.sql','/.git/config',
         '/.env','/.env.backup','/config/config.php','/config/auth.php','/config/web_routes.php',
         '/includes/header.php','/shared/kalender.php','/README.md','/test.log',
-        '/db.php','/adminer.php','/ops/db_snapshot.php','/database/migrations/001_legacy_runtime.php',
+        '/db.php','/adminer.php','/ops/database/db_snapshot.php','/database/migrations/001_legacy_runtime.php',
         '/%2egit/config','/%2e%2e/config/config.php','/assets/../config/config.php',
         '/%252egit/config','/index.php/.git/config','/r0-internal.sql','/r0-diagnostic.log',
     ]
@@ -130,13 +130,13 @@ def main():
     for key in list(env):
         if key.startswith('SIA_'):del env[key]
     env['SIA_CONFIG_FILE']=str(state/'private/app-config.json')
-    runtime=subprocess.run(['php',str(ROOT/'ops/check_runtime.php')],env=env,capture_output=True,text=True)
+    runtime=subprocess.run(['php',str(ROOT/'ops/database/check_runtime.php')],env=env,capture_output=True,text=True)
     def runtime_checks():
         assert runtime.returncode==0
         checks=json.loads(runtime.stdout)
         assert checks and all(checks.values())
     test('isolated_connection_privileges_and_fixture_accounts',runtime_checks)
-    refused=subprocess.run(['php',str(ROOT/'ops/migrate.php'),'--apply','--expected-database=sia_r0_testing'],env=env,capture_output=True)
+    refused=subprocess.run(['php',str(ROOT/'ops/database/migrate.php'),'--apply','--expected-database=sia_r0_testing'],env=env,capture_output=True)
     test('web_credentials_cannot_invoke_schema_deployment',lambda:expect_status((refused.returncode,),2))
     after=snapshot(state/'private/testing-inspector.json')
     test('schema_and_all_table_data_unchanged_by_auth_tests',lambda:expect_status((before==after,),True))

@@ -118,7 +118,7 @@ def main():
  code="require 'config/config.php'; require 'config/validation.php'; echo json_encode(array_map('csv_safe',['=1+1','  =1+1','@SUM(A1)','normal']));"
  r=subprocess.run(['php','-r',code],cwd=ROOT,env=env,capture_output=True)
  test('csv_formula_injection_and_whitespace_prefix_protected',lambda:check(r.returncode==0 and json.loads(r.stdout)==["'=1+1","'  =1+1","'@SUM(A1)",'normal']))
- before=snapshot(STATE/'private/inspector.json');migration=subprocess.run(['php',str(ROOT/'ops/migrate_academic.php'),'--apply','--expected-database=sia_academic_dev_20261031'],env={**os.environ,'SIA_CONFIG_FILE':str(STATE/'private/owner.json')},capture_output=True)
+ before=snapshot(STATE/'private/inspector.json');migration=subprocess.run(['php',str(ROOT/'ops/database/migrate_academic.php'),'--apply','--expected-database=sia_academic_dev_20261031'],env={**os.environ,'SIA_CONFIG_FILE':str(STATE/'private/owner.json')},capture_output=True)
  test('additive_migrations_repeat_idempotently',lambda:check(migration.returncode==0 and snapshot(STATE/'private/inspector.json')==before))
  report={'passed':sum(r['status']=='PASS' for r in results),'failed':sum(r['status']=='FAIL' for r in results),'skipped':0,'tests':results,'fixture_only':True};save_json(STATE/'reports/academic-edge-tests.json',report);print(f"{report['passed']} PASS, {report['failed']} FAIL, 0 SKIP");return 1 if report['failed'] else 0
 
