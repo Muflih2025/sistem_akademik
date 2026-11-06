@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('uji_guru');
-  const [password, setPassword] = useState('password');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -105,31 +106,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Account Helper */}
-          <div className="mt-6 pt-4 border-t border-[#f3f4f6] text-[11px] text-[#60646c]">
-            <span className="font-semibold text-[#111]">Akun Uji (Password: password):</span>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {[
-                { u: 'uji_admin', l: 'Admin' },
-                { u: 'uji_guru', l: 'Guru' },
-                { u: 'uji_guru_lain', l: 'Guru 2' },
-                { u: 'uji_piket', l: 'Piket' },
-                { u: 'uji_kepsek', l: 'Kepsek' },
-                { u: 'uji_siswa', l: 'Siswa' },
-              ].map((acc) => (
-                <button
-                  key={acc.u}
-                  type="button"
-                  onClick={() => {
-                    setUsername(acc.u);
-                    setPassword('password');
-                  }}
-                  className="px-2 py-0.5 rounded bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#111] border border-[#e5e7eb] text-[11px] font-mono cursor-pointer"
-                >
-                  {acc.u}
-                </button>
-              ))}
-            </div>
+          <div className="mt-6 pt-4 border-t border-[#f3f4f6] flex flex-wrap justify-between gap-3 text-sm">
+            <Link href="/auth/register" className="underline">Daftar akun</Link>
+            <Link href="/auth/forgot-password" className="underline">Lupa password?</Link>
           </div>
         </section>
 

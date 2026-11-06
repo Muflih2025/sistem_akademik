@@ -35,11 +35,14 @@ async function memberForm(page,nis){await page.getByRole('button',{name:'Tambah 
   const gradesBefore=rows('ak_nilai'),dailyBefore=rows('ak_absensi_harian');
   const usedRow=page.getByRole('row').filter({has:page.getByRole('cell',{name:'Siswa Review 2',exact:true})});
   await usedRow.getByRole('button',{name:'Cabut',exact:true}).click();await confirm(page,'cabut','/api/foundation');await usedRow.waitFor({state:'hidden'});
-  await memberForm(page,'9000002');assert.equal(await page.getByLabel('Berlaku mulai',{exact:true}).inputValue(),'2026-11-06');
+  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const nextDate=new Date(today+'T00:00:00Z');nextDate.setUTCDate(nextDate.getUTCDate()+1);const rejoin=nextDate.toISOString().slice(0,10);
+  await memberForm(page,'9000002');assert.equal(await page.getByLabel('Berlaku mulai',{exact:true}).inputValue(),rejoin);
   const returned=await post(page,'Simpan penetapan','/api/foundation');assert.notEqual(returned.id,'2');
   assert.deepEqual(rows('ak_nilai'),gradesBefore);assert.deepEqual(rows('ak_absensi_harian'),dailyBefore);
   const gradeAfter=await json('/api/nilai?id_jadwal=1',teacher);assert.equal(gradeAfter.data.find(s=>s.nis==='9000002').id_anggota,'2');
-  const past=await json('/api/absensi?id_jadwal=1&tanggal=2026-10-30',teacher),future=await json('/api/absensi?id_jadwal=1&tanggal=2026-11-06',teacher);
+  while(nextDate.getUTCDay()!==5)nextDate.setUTCDate(nextDate.getUTCDate()+1);
+  const past=await json('/api/absensi?id_jadwal=1&tanggal=2026-10-30',teacher),future=await json('/api/absensi?id_jadwal=1&tanggal='+nextDate.toISOString().slice(0,10),teacher);
   assert.equal(past.data.find(s=>s.nis==='9000002').id_anggota,'2');assert.equal(future.data.find(s=>s.nis==='9000002').id_anggota,returned.id);
   pass('MEMBERSHIP_revoke_with_history_preserves_grades_daily_records_and_dated_rosters_after_readd');
 

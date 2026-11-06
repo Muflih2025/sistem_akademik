@@ -1,0 +1,196 @@
+{
+  "date": "2026-11-06",
+  "before_accounts": 57,
+  "deleted_accounts": 49,
+  "remaining_accounts": 8,
+  "deleted_usernames": [
+    "uji_rev_332f05",
+    "uji_rev_6c7eec",
+    "uji_rev_0fc7d2",
+    "uji_rev_f47910",
+    "uji_rev_8bf6db",
+    "uji_rev_a1de1d",
+    "uji_rev_0febdd",
+    "uji_rev_e4459e",
+    "uji_rev_94bc74",
+    "fg_w8ln6d",
+    "fs_w8ln6d",
+    "uji_rev_25fcab",
+    "fg_w8oco9",
+    "fs_w8oco9",
+    "uji_rev_afcfed",
+    "fg_w8urt5",
+    "fs_w8urt5",
+    "uji_rev_4a16ef",
+    "fg_w8z6rc",
+    "fs_w8z6rc",
+    "uji_rev_20e809",
+    "fg_w94evc",
+    "fs_w94evc",
+    "uji_rev_f3502a",
+    "fg_w98r7n",
+    "fs_w98r7n",
+    "uji_rev_7b04b8",
+    "fg_wasp6w",
+    "fs_wasp6w",
+    "uji_rev_63b3e9",
+    "fg_wbqf5u",
+    "fs_wbqf5u",
+    "uji_rev_0f835b",
+    "fg_wbvlg1",
+    "fs_wbvlg1",
+    "uji_rev_c9df4a",
+    "fg_wc23e4",
+    "fs_wc23e4",
+    "uji_rev_c4d0c5",
+    "fg_wc6zm6",
+    "fs_wc6zm6",
+    "uji_mapel_39a713",
+    "uji_rev_d441a8",
+    "fg_wiocuc",
+    "fs_wiocuc",
+    "uji_rev_772122",
+    "fg_wiv3og",
+    "fs_wiv3og",
+    "uji_mapel_d75604"
+  ],
+  "accounts": [
+    {
+      "id_user": "1",
+      "username": "admin@mail.com",
+      "role": "admin",
+      "status": "aktif"
+    },
+    {
+      "id_user": "2",
+      "username": "guru@mail.com",
+      "role": "guru",
+      "status": "aktif"
+    },
+    {
+      "id_user": "3",
+      "username": "guru.lain@mail.com",
+      "role": "guru",
+      "status": "aktif"
+    },
+    {
+      "id_user": "4",
+      "username": "piket@mail.com",
+      "role": "guru",
+      "status": "aktif"
+    },
+    {
+      "id_user": "5",
+      "username": "siswa@mail.com",
+      "role": "siswa",
+      "status": "aktif"
+    },
+    {
+      "id_user": "6",
+      "username": "kepsek@mail.com",
+      "role": "kepala_sekolah",
+      "status": "aktif"
+    },
+    {
+      "id_user": "110",
+      "username": "siswa.lain@mail.com",
+      "role": "siswa",
+      "status": "aktif"
+    },
+    {
+      "id_user": "118",
+      "username": "wali@mail.com",
+      "role": "guru",
+      "status": "aktif"
+    }
+  ],
+  "checks": {
+    "only_usernames_changed_on_retained_accounts": true,
+    "academic_tables_unchanged": true,
+    "existing_audit_preserved": true,
+    "audit_events_added": 57,
+    "sqlite_integrity": "ok"
+  },
+  "committed": false,
+  "post_cleanup_login_and_navigation_verification": {
+    "date": "2026-11-06",
+    "base": "http://127.0.0.1:3000",
+    "method": "Real Chromium login and portal navigation for eight retained local accounts; all database rows fingerprinted before/after",
+    "passed": 9,
+    "failed": 0,
+    "tests": [
+      {
+        "id": "LOCAL_admin@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 18,
+          "redirect": "/admin"
+        }
+      },
+      {
+        "id": "LOCAL_guru@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 10,
+          "redirect": "/guru"
+        }
+      },
+      {
+        "id": "LOCAL_guru.lain@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 11,
+          "redirect": "/piket"
+        }
+      },
+      {
+        "id": "LOCAL_piket@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 11,
+          "redirect": "/piket"
+        }
+      },
+      {
+        "id": "LOCAL_kepsek@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 10,
+          "redirect": "/kepsek"
+        }
+      },
+      {
+        "id": "LOCAL_wali@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 10,
+          "redirect": "/guru"
+        }
+      },
+      {
+        "id": "LOCAL_siswa@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 6,
+          "redirect": "/siswa"
+        }
+      },
+      {
+        "id": "LOCAL_siswa.lain@mail.com_login_and_all_module_pages",
+        "status": "PASS",
+        "details": {
+          "links": 6,
+          "redirect": "/siswa"
+        }
+      },
+      {
+        "id": "LOCAL_all_database_rows_and_accounts_preserved",
+        "status": "PASS",
+        "details": {
+          "accounts": 8,
+          "active": 8
+        }
+      }
+    ]
+  }
+}

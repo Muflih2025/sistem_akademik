@@ -106,13 +106,14 @@ Ekspor XLSX memakai ExcelJS dan PDF memakai PDFKit di server Node; unduhan API t
 
 | Username | Peran contoh |
 |---|---|
-| `uji_admin` | Admin |
-| `uji_guru` | Guru mapel utama |
-| `uji_guru_lain` | Guru mapel pembanding |
-| `uji_piket` | Guru Piket tanpa hak koreksi terkonfirmasi secara default |
-| `uji_kepsek` | Kepala Sekolah |
-| `uji_wali` | Guru dengan informasi penugasan wali kelas |
-| `uji_siswa` | Siswa contoh, opsional |
+| `admin@mail.com` | Admin |
+| `guru@mail.com` | Guru mapel utama |
+| `guru.lain@mail.com` | Guru mapel pembanding |
+| `piket@mail.com` | Guru Piket tanpa hak koreksi terkonfirmasi secara default |
+| `kepsek@mail.com` | Kepala Sekolah |
+| `wali@mail.com` | Guru dengan informasi penugasan wali kelas |
+| `siswa@mail.com` | Siswa contoh, opsional |
+| `siswa.lain@mail.com` | Siswa pembanding |
 
 Akun tersebut **tidak dibuat otomatis pada komputer yang baru clone**. Gunakan akun dari pengelola database development Anda. Password contoh ini bukan credential database atau akses produksi.
 

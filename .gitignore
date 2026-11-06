@@ -51,4 +51,6 @@ next-env.d.ts
 # Private persistent sessions and import previews
 /data/.sessions/
 /data/.imports/
+/data/sia.db-wal
+/data/sia.db-shm
 *.tsbuildinfo

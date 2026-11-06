@@ -1,10 +1,10 @@
-import bcrypt from 'bcryptjs';
 import { currentSchoolYear } from './academic-year';
 import { AuthUser } from './auth';
 import { Row, period } from './academic';
 import { catalog } from './catalog';
 import { db, rows, one, fail, role, text, choice, number, reference, unique, write, nextId, ensureVersion, publicRow, range, today } from './store';
 import { removeManaged, restoreManaged, revokeMembership, visibleRecordSql } from './management';
+import { saveUser } from './users';
 export const aliases:Record<string,string>={mapel:'mata_pelajaran',ruang:'ak_ruang'};
 export function canonical(value:string) { return aliases[value]||value; }
 function scheduleEditLock(schedule:Row) {
@@ -36,6 +36,7 @@ export function listCatalog(user:AuthUser,table:string,q='',limit=50,offset=0,ar
 export function saveCatalog(user:AuthUser,input:Row):Row {
   const table=canonical(text(input.table,'Modul'));const def=catalog[table];if(!def)fail('Modul tidak dikenal.',404);
   role(user,...(table==='catatan_evaluasi'?['admin','kepala_sekolah']:['admin']));
+  if(table==='users')return saveUser(user,{...input,id_user:input.action==='create'?'':input.id||input.original_id||input.id_user||'',action:['activate','deactivate','delete','reset-password'].includes(input.action)?input.action:'save'});
   if(input.action==='delete')return removeManaged(user,table,def.pk,text(input.id||input[def.pk],'ID',40),input);
   if(input.action==='restore')return restoreManaged(user,table,def.pk,text(input.id||input[def.pk],'ID',40),input);
   const id=input.id||input.original_id||input[def.pk]&&input.action!=='create'?String(input.id||input.original_id||input[def.pk]):'';
@@ -65,13 +66,6 @@ export function saveCatalog(user:AuthUser,input:Row):Row {
       }
     }
     if(table!=='tahun_ajaran'&&table!=='catatan_evaluasi')values.status=choice(input.status||before?.status||'aktif',['aktif','nonaktif'],'Status');
-  }
-  if(table==='users') {
-    const next={...before,...values};if(!/^[A-Za-z0-9_.@-]{3,50}$/.test(next.username))fail('Username harus 3–50 karakter.');
-    unique(table,'username',next.username,def.pk,id);
-    if(['guru','siswa'].includes(next.role)){reference(next.role,next.role==='guru'?'id_guru':'nis',next.id_referensi);if(rows('SELECT 1 FROM users WHERE role=? AND id_referensi=? AND id_user<>?',next.role,next.id_referensi,id).length)fail('Identitas sudah memiliki akun.',409);}else if(next.id_referensi)fail('Peran ini tidak memakai ID referensi.');
-    if(!before||input.password){if(typeof input.password!=='string'||input.password.length<8||Buffer.byteLength(input.password)>72)fail('Password harus 8–72 byte.');values.password=bcrypt.hashSync(input.password,12);}
-    if(before?.role==='admin'&&before.status==='aktif'&&(next.role!=='admin'||next.status!=='aktif')&&rows("SELECT 1 FROM users WHERE role='admin' AND status='aktif'").length<2)fail('Admin aktif terakhir tidak dapat diubah.',409);
   }
   if(!['deactivate','delete','activate'].includes(action)) {
     if(table==='siswa') {
